@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Agencies</title>
+</head>
+<body>
+<h1>Agencies</h1>
+<table>
+    <thead><tr><th>Name</th><th>Plan</th><th>Expires</th></tr></thead>
+    <tbody>
+    <tr th:each="agency : ${agencies}">
+        <td th:text="${agency.name}"></td>
+        <td th:text="${agency.subscriptionPlan}"></td>
+        <td th:text="${agency.expiresAt}"></td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

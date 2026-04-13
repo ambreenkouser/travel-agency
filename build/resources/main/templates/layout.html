@@ -1,0 +1,15 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Travel SaaS</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}" />
+</head>
+<body>
+<header>
+    <div th:text="${brandingName} ?: 'Travel Agency'"></div>
+</header>
+<main>
+    <div th:insert="~{::body}"></div>
+</main>
+</body>
+</html>

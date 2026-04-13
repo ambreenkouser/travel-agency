@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Travel Agency — User Roles & Permissions</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f1f5f9; padding: 32px 24px; color: #1e293b; }
+
+  h1 { text-align: center; font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
+  .subtitle { text-align: center; font-size: 13px; color: #64748b; margin-bottom: 36px; }
+
+  /* Role cards grid */
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 1200px; margin: 0 auto 48px; }
+
+  .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.08); overflow: hidden; }
+  .card-header { padding: 16px 18px; color: #fff; }
+  .card-header .role-icon { font-size: 28px; margin-bottom: 6px; }
+  .card-header .role-name { font-size: 15px; font-weight: 700; letter-spacing: .3px; }
+  .card-header .role-email { font-size: 11px; opacity: .85; margin-top: 2px; }
+  .card-body { padding: 14px 18px; }
+  .card-body .section-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .8px; margin: 10px 0 6px; }
+  .card-body .section-label:first-child { margin-top: 0; }
+
+  .perm { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #334155; padding: 3px 0; }
+  .perm .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .perm.yes .dot { background: #22c55e; }
+  .perm.no  .dot { background: #e2e8f0; }
+  .perm.no  span { color: #94a3b8; text-decoration: line-through; }
+
+  /* Color themes */
+  .super   .card-header { background: linear-gradient(135deg, #7c3aed, #4f46e5); }
+  .master  .card-header { background: linear-gradient(135deg, #0ea5e9, #2563eb); }
+  .agency  .card-header { background: linear-gradient(135deg, #059669, #0d9488); }
+  .sub     .card-header { background: linear-gradient(135deg, #d97706, #ea580c); }
+
+  /* Hierarchy flow */
+  .flow-section { max-width: 1200px; margin: 0 auto 48px; }
+  .flow-section h2 { font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 20px; text-align: center; }
+
+  .flow { display: flex; align-items: center; justify-content: center; gap: 0; flex-wrap: wrap; }
+  .flow-node { text-align: center; padding: 12px 20px; border-radius: 10px; color: #fff; font-size: 13px; font-weight: 600; min-width: 130px; }
+  .flow-arrow { font-size: 22px; color: #94a3b8; padding: 0 6px; }
+
+  .fn-super  { background: linear-gradient(135deg, #7c3aed, #4f46e5); }
+  .fn-master { background: linear-gradient(135deg, #0ea5e9, #2563eb); }
+  .fn-agency { background: linear-gradient(135deg, #059669, #0d9488); }
+  .fn-sub    { background: linear-gradient(135deg, #d97706, #ea580c); }
+
+  .flow-node .fn-sub-label { font-size: 10px; opacity: .85; margin-top: 2px; font-weight: 400; }
+
+  /* Module access matrix */
+  .matrix-section { max-width: 1200px; margin: 0 auto 48px; }
+  .matrix-section h2 { font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 20px; text-align: center; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  thead tr { background: #0f172a; color: #fff; }
+  thead th { padding: 12px 16px; font-size: 12px; font-weight: 600; text-align: center; letter-spacing: .3px; }
+  thead th:first-child { text-align: left; }
+  tbody tr:nth-child(even) { background: #f8fafc; }
+  tbody td { padding: 10px 16px; font-size: 12.5px; text-align: center; border-bottom: 1px solid #f1f5f9; }
+  tbody td:first-child { text-align: left; font-weight: 600; color: #334155; }
+  .tick  { color: #22c55e; font-size: 16px; }
+  .cross { color: #e2e8f0; font-size: 16px; }
+  .partial { color: #f59e0b; font-size: 12px; font-weight: 600; }
+
+  .role-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .b-super  { background: #ede9fe; color: #7c3aed; }
+  .b-master { background: #dbeafe; color: #2563eb; }
+  .b-agency { background: #d1fae5; color: #059669; }
+  .b-sub    { background: #ffedd5; color: #ea580c; }
+
+  footer { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<h1>Travel Agency SaaS — User Roles &amp; Permissions</h1>
+<p class="subtitle">Who can do what in the system</p>
+
+<!-- ── Hierarchy Flow ── -->
+<div class="flow-section">
+  <h2>Role Hierarchy</h2>
+  <div class="flow">
+    <div class="flow-node fn-super">
+      👑 Super Admin
+      <div class="fn-sub-label">Full platform access</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node fn-master">
+      🧑‍💼 Master Agent
+      <div class="fn-sub-label">Manages agencies &amp; all ops</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node fn-agency">
+      🏢 Agency Admin
+      <div class="fn-sub-label">Manages own agency</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node fn-sub">
+      👤 Sub Agent
+      <div class="fn-sub-label">Browse &amp; create bookings</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Role Cards ── -->
+<div class="grid">
+
+  <!-- Super Admin -->
+  <div class="card super">
+    <div class="card-header">
+      <div class="role-icon">👑</div>
+      <div class="role-name">Super Admin</div>
+      <div class="role-email">superadmin@demo.com</div>
+    </div>
+    <div class="card-body">
+      <div class="section-label">Agency Management</div>
+      <div class="perm yes"><span class="dot"></span><span>View agencies</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Create agencies</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Edit agencies</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Delete agencies</span></div>
+
+      <div class="section-label">Flights</div>
+      <div class="perm yes"><span class="dot"></span><span>View / Search flights</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Create / Edit / Delete flights</span></div>
+
+      <div class="section-label">Packages</div>
+      <div class="perm yes"><span class="dot"></span><span>View Umrah packages</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Manage Umrah packages</span></div>
+      <div class="perm yes"><span class="dot"></span><span>View Hajj packages</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Manage Hajj packages</span></div>
+
+      <div class="section-label">Bookings</div>
+      <div class="perm yes"><span class="dot"></span><span>View all bookings</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Create bookings</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Confirm bookings</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Cancel bookings</span></div>
+
+      <div class="section-label">Reports &amp; Extras</div>
+      <div class="perm yes"><span class="dot"></span><span>View ledger / reports</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Download invoices (PDF)</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Bypasses subscription check</span></div>
+    </div>
+  </div>
+
+  <!-- Master Agent -->
+  <div class="card master">
+    <div class="card-header">
+      <div class="role-icon">🧑‍💼</div>
+      <div class="role-name">Master Agent</div>
+      <div class="role-email">master@demo.com</div>
+    </div>
+    <div class="card-body">
+      <div class="section-label">Agency Management</div>
+      <div class="perm yes"><span class="dot"></span><span>View agencies</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Create agencies</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Edit agencies</span></div>
+      <div class="perm no"><span class="dot"></span><span>Delete agencies</span></div>
+
+      <div class="section-label">Flights</div>
+      <div class="perm yes"><span class="dot"></span><span>View / Search flights</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Create / Edit / Delete flights</span></div>
+
+      <div class="section-label">Packages</div>
+      <div class="perm yes"><span class="dot"></span><span>View Umrah packages</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Manage Umrah packages</span></div>
+      <div class="perm yes"><span class="dot"></span><span>View Hajj packages</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Manage Hajj packages</span></div>
+
+      <div class="section-label">Bookings</div>
+      <div class="perm yes"><span class="dot"></span><span>View all bookings</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Create bookings</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Confirm bookings</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Cancel bookings</span></div>
+
+      <div class="section-label">Reports &amp; Extras</div>
+      <div class="perm yes"><span class="dot"></span><span>View ledger / reports</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Download invoices (PDF)</span></div>
+      <div class="perm no"><span class="dot"></span><span>Bypasses subscription check</span></div>
+    </div>
+  </div>
+
+  <!-- Agency Admin -->
+  <div class="card agency">
+    <div class="card-header">
+      <div class="role-icon">🏢</div>
+      <div class="role-name">Agency Admin</div>
+      <div class="role-email">agencyadmin@demo.com</div>
+    </div>
+    <div class="card-body">
+      <div class="section-label">Agency Management</div>
+      <div class="perm no"><span class="dot"></span><span>View agencies</span></div>
+      <div class="perm no"><span class="dot"></span><span>Create agencies</span></div>
+      <div class="perm no"><span class="dot"></span><span>Edit agencies</span></div>
+      <div class="perm no"><span class="dot"></span><span>Delete agencies</span></div>
+
+      <div class="section-label">Flights</div>
+      <div class="perm yes"><span class="dot"></span><span>View / Search flights</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Create / Edit / Delete flights</span></div>
+
+      <div class="section-label">Packages</div>
+      <div class="perm yes"><span class="dot"></span><span>View Umrah packages</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Manage Umrah packages</span></div>
+      <div class="perm yes"><span class="dot"></span><span>View Hajj packages</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Manage Hajj packages</span></div>
+
+      <div class="section-label">Bookings</div>
+      <div class="perm yes"><span class="dot"></span><span>View all bookings</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Create bookings</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Confirm bookings</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Cancel bookings</span></div>
+
+      <div class="section-label">Reports &amp; Extras</div>
+      <div class="perm yes"><span class="dot"></span><span>View ledger / reports</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Download invoices (PDF)</span></div>
+      <div class="perm no"><span class="dot"></span><span>Bypasses subscription check</span></div>
+    </div>
+  </div>
+
+  <!-- Sub Agent -->
+  <div class="card sub">
+    <div class="card-header">
+      <div class="role-icon">👤</div>
+      <div class="role-name">Sub Agent</div>
+      <div class="role-email">agent@demo.com</div>
+    </div>
+    <div class="card-body">
+      <div class="section-label">Agency Management</div>
+      <div class="perm no"><span class="dot"></span><span>View agencies</span></div>
+      <div class="perm no"><span class="dot"></span><span>Create agencies</span></div>
+      <div class="perm no"><span class="dot"></span><span>Edit agencies</span></div>
+      <div class="perm no"><span class="dot"></span><span>Delete agencies</span></div>
+
+      <div class="section-label">Flights</div>
+      <div class="perm yes"><span class="dot"></span><span>View / Search flights</span></div>
+      <div class="perm no"><span class="dot"></span><span>Create / Edit / Delete flights</span></div>
+
+      <div class="section-label">Packages</div>
+      <div class="perm yes"><span class="dot"></span><span>View Umrah packages</span></div>
+      <div class="perm no"><span class="dot"></span><span>Manage Umrah packages</span></div>
+      <div class="perm yes"><span class="dot"></span><span>View Hajj packages</span></div>
+      <div class="perm no"><span class="dot"></span><span>Manage Hajj packages</span></div>
+
+      <div class="section-label">Bookings</div>
+      <div class="perm yes"><span class="dot"></span><span>View all bookings</span></div>
+      <div class="perm yes"><span class="dot"></span><span>Create bookings</span></div>
+      <div class="perm no"><span class="dot"></span><span>Confirm bookings</span></div>
+      <div class="perm no"><span class="dot"></span><span>Cancel bookings</span></div>
+
+      <div class="section-label">Reports &amp; Extras</div>
+      <div class="perm no"><span class="dot"></span><span>View ledger / reports</span></div>
+      <div class="perm no"><span class="dot"></span><span>Download invoices (PDF)</span></div>
+      <div class="perm no"><span class="dot"></span><span>Bypasses subscription check</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Permission Matrix Table ── -->
+<div class="matrix-section">
+  <h2>Full Permission Matrix</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Permission / Module</th>
+        <th><span class="role-badge b-super">👑 Super Admin</span></th>
+        <th><span class="role-badge b-master">🧑‍💼 Master Agent</span></th>
+        <th><span class="role-badge b-agency">🏢 Agency Admin</span></th>
+        <th><span class="role-badge b-sub">👤 Sub Agent</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="5" style="background:#f8fafc;font-size:11px;color:#64748b;padding:8px 16px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;">Agency Management</td></tr>
+      <tr><td>agencies:view</td>   <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="cross">—</span></td><td><span class="cross">—</span></td></tr>
+      <tr><td>agencies:create</td> <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="cross">—</span></td><td><span class="cross">—</span></td></tr>
+      <tr><td>agencies:edit</td>   <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="cross">—</span></td><td><span class="cross">—</span></td></tr>
+      <tr><td>agencies:delete</td> <td><span class="tick">✔</span></td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="cross">—</span></td></tr>
+
+      <tr><td colspan="5" style="background:#f8fafc;font-size:11px;color:#64748b;padding:8px 16px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;">Flights</td></tr>
+      <tr><td>flights:view</td>    <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td></tr>
+      <tr><td>flights:manage</td>  <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="cross">—</span></td></tr>
+
+      <tr><td colspan="5" style="background:#f8fafc;font-size:11px;color:#64748b;padding:8px 16px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;">Umrah Packages</td></tr>
+      <tr><td>umrah:view</td>      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td></tr>
+      <tr><td>umrah:manage</td>    <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="cross">—</span></td></tr>
+
+      <tr><td colspan="5" style="background:#f8fafc;font-size:11px;color:#64748b;padding:8px 16px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;">Hajj Packages</td></tr>
+      <tr><td>hajj:view</td>       <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td></tr>
+      <tr><td>hajj:manage</td>     <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="cross">—</span></td></tr>
+
+      <tr><td colspan="5" style="background:#f8fafc;font-size:11px;color:#64748b;padding:8px 16px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;">Bookings</td></tr>
+      <tr><td>bookings:view</td>   <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td></tr>
+      <tr><td>bookings:create</td> <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td></tr>
+      <tr><td>bookings:confirm</td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="cross">—</span></td></tr>
+      <tr><td>bookings:cancel</td> <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="cross">—</span></td></tr>
+
+      <tr><td colspan="5" style="background:#f8fafc;font-size:11px;color:#64748b;padding:8px 16px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;">Reports &amp; Billing</td></tr>
+      <tr><td>reports:view</td>    <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="cross">—</span></td></tr>
+      <tr><td>Invoice PDF download</td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="cross">—</span></td></tr>
+      <tr><td>Subscription bypass</td><td><span class="tick">✔</span></td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="cross">—</span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<footer>Travel Agency SaaS &nbsp;·&nbsp; Generated 2026-04-08 &nbsp;·&nbsp; All data is scoped per agency (multi-tenant)</footer>
+
+</body>
+</html>
