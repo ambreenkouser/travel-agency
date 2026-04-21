@@ -1,4 +1,4 @@
-﻿package com.example.travel.flight;
+package com.example.travel.flight;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -32,7 +32,7 @@ public class FlightController {
                          @RequestParam(required = false) BigDecimal max,
                          Pageable pageable,
                          Model model) {
-        Page<Flight> flights = service.search(routeId, airlineId, from, to, min, max, pageable);
+        Page<Flight> flights = service.search(routeId, airlineId, from, to, min, max, null, pageable);
         model.addAttribute("flights", flights);
         return "flights/list";
     }

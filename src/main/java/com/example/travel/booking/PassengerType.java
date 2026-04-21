@@ -1,4 +1,4 @@
-﻿package com.example.travel.booking;
+package com.example.travel.booking;
 
 public enum PassengerType {
     ADULT,

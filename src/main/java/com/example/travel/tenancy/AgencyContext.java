@@ -1,4 +1,4 @@
-﻿package com.example.travel.tenancy;
+package com.example.travel.tenancy;
 
 public final class AgencyContext {
     private static final ThreadLocal<Long> CURRENT = new ThreadLocal<>();

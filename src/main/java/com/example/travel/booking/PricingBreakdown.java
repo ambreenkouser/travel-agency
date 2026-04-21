@@ -1,4 +1,4 @@
-﻿package com.example.travel.booking;
+package com.example.travel.booking;
 
 import java.math.BigDecimal;
 import java.util.Map;

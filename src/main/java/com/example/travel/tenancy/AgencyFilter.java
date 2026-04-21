@@ -1,4 +1,4 @@
-﻿package com.example.travel.tenancy;
+package com.example.travel.tenancy;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

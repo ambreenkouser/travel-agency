@@ -1,4 +1,4 @@
-﻿package com.example.travel.auth;
+package com.example.travel.auth;
 
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;

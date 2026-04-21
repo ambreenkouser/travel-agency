@@ -1,4 +1,4 @@
-﻿package com.example.travel.common;
+package com.example.travel.common;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

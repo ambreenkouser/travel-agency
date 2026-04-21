@@ -1,4 +1,4 @@
-﻿package com.example.travel.hajj;
+package com.example.travel.hajj;
 
 import com.example.travel.common.TenantedEntity;
 import jakarta.persistence.Column;

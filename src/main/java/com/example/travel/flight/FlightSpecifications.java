@@ -1,4 +1,4 @@
-﻿package com.example.travel.flight;
+package com.example.travel.flight;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -35,5 +35,9 @@ public final class FlightSpecifications {
             if (min != null) return cb.greaterThanOrEqualTo(root.get("fareAdult"), min);
             return cb.lessThanOrEqualTo(root.get("fareAdult"), max);
         };
+    }
+
+    public static Specification<Flight> byStatus(String status) {
+        return (root, query, cb) -> status == null ? null : cb.equal(root.get("status"), status);
     }
 }

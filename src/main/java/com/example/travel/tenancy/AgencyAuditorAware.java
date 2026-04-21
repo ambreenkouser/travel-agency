@@ -1,4 +1,4 @@
-﻿package com.example.travel.tenancy;
+package com.example.travel.tenancy;
 
 import java.util.Optional;
 import org.springframework.data.domain.AuditorAware;

@@ -1,4 +1,4 @@
-﻿package com.example.travel.umrah;
+package com.example.travel.umrah;
 
 import com.example.travel.common.TenantedEntity;
 import jakarta.persistence.Column;
@@ -30,6 +30,13 @@ public class UmrahPackage extends TenantedEntity {
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> config;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private Map<String, Object> extras;
+
+    private java.math.BigDecimal priceChild;
+    private java.math.BigDecimal priceInfant;
+
     @Column(nullable = false)
     private String status = "draft";
 
@@ -47,6 +54,12 @@ public class UmrahPackage extends TenantedEntity {
     public void setBasePrice(BigDecimal basePrice) { this.basePrice = basePrice; }
     public Map<String, Object> getConfig() { return config; }
     public void setConfig(Map<String, Object> config) { this.config = config; }
+    public Map<String, Object> getExtras() { return extras; }
+    public void setExtras(Map<String, Object> extras) { this.extras = extras; }
+    public java.math.BigDecimal getPriceChild() { return priceChild; }
+    public void setPriceChild(java.math.BigDecimal priceChild) { this.priceChild = priceChild; }
+    public java.math.BigDecimal getPriceInfant() { return priceInfant; }
+    public void setPriceInfant(java.math.BigDecimal priceInfant) { this.priceInfant = priceInfant; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     public boolean isDeleted() { return deleted; }

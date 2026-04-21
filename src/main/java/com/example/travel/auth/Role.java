@@ -1,4 +1,4 @@
-﻿package com.example.travel.auth;
+package com.example.travel.auth;
 
 import com.example.travel.common.AuditableEntity;
 import jakarta.persistence.Column;

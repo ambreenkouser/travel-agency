@@ -1,4 +1,4 @@
-﻿package com.example.travel.flight;
+package com.example.travel.flight;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
