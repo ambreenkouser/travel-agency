@@ -1,0 +1,4 @@
+ALTER TABLE agencies ADD COLUMN IF NOT EXISTS contact_no VARCHAR(50);
+ALTER TABLE agencies ADD COLUMN IF NOT EXISTS address    VARCHAR(500);
+
+GRANT ALL ON TABLE agencies TO travel_user;
