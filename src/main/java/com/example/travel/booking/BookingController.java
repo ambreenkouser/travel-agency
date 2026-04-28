@@ -1,4 +1,4 @@
-﻿package com.example.travel.booking;
+package com.example.travel.booking;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -36,7 +36,7 @@ public class BookingController {
     @PostMapping("/{id}/confirm")
     @PreAuthorize("hasAuthority('bookings:confirm')")
     public String confirm(@PathVariable Long id) {
-        bookingService.confirm(id);
+        bookingService.confirm(id, null, null);
         return "redirect:/bookings";
     }
 }

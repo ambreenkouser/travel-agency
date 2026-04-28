@@ -1,5 +1,6 @@
-﻿package com.example.travel.tenancy;
+package com.example.travel.tenancy;
 
+import com.example.travel.auth.AuthUserDetails;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.FilterChain;
@@ -27,6 +28,9 @@ public class AgencyFilter extends OncePerRequestFilter {
         if (auth != null && auth.getPrincipal() instanceof TenantAwarePrincipal principal) {
             agencyId = principal.getAgencyId();
             AgencyContext.setCurrentAgencyId(agencyId);
+            if (principal instanceof AuthUserDetails d) {
+                AgencyContext.setSuperAdmin(d.getUserTypeLevel() == 1);
+            }
         }
 
         Session session = entityManager.unwrap(Session.class);

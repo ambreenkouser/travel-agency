@@ -1,6 +1,7 @@
-﻿package com.example.travel.booking;
+package com.example.travel.booking;
 
 public enum LedgerEntryType {
     DEBIT,
-    CREDIT
+    CREDIT,
+    ADJUSTMENT
 }

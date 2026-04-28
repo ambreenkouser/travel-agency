@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Travel Agency — User Flow Diagram</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1e293b; padding: 30px 20px; }
+
+h1 { text-align: center; font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+.subtitle { text-align: center; font-size: 13px; color: #64748b; margin-bottom: 36px; }
+
+/* ── Section titles ── */
+.section-title {
+  font-size: 13px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .8px; color: #94a3b8; margin: 32px 0 16px;
+  text-align: center;
+}
+
+/* ── User flow cards ── */
+.flow-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  max-width: 1280px;
+  margin: 0 auto 8px;
+}
+
+.user-card { background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+
+.user-card .uc-header {
+  padding: 16px 18px 14px;
+  color: #fff;
+  position: relative;
+}
+.uc-header .uc-icon   { font-size: 30px; margin-bottom: 6px; display: block; }
+.uc-header .uc-role   { font-size: 15px; font-weight: 700; }
+.uc-header .uc-email  { font-size: 11px; opacity: .8; margin-top: 3px; }
+.uc-header .uc-badge  { position: absolute; top: 14px; right: 14px; font-size: 10px; background: rgba(255,255,255,.25); border-radius: 20px; padding: 2px 8px; font-weight: 600; }
+
+.user-card .uc-body { padding: 14px 16px 16px; }
+
+.flow-step {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+.flow-step:last-child { border-bottom: none; }
+
+.step-num {
+  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: #fff;
+  flex-shrink: 0; margin-top: 1px;
+}
+
+.step-content { flex: 1; }
+.step-title   { font-size: 12px; font-weight: 600; color: #1e293b; }
+.step-detail  { font-size: 11px; color: #64748b; margin-top: 2px; line-height: 1.4; }
+
+.step-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.tag {
+  font-size: 10px; padding: 1px 7px; border-radius: 20px; font-weight: 500;
+}
+.tag-page    { background: #dbeafe; color: #2563eb; }
+.tag-action  { background: #dcfce7; color: #16a34a; }
+.tag-blocked { background: #fee2e2; color: #dc2626; }
+
+/* Color themes */
+.super  .uc-header { background: linear-gradient(135deg, #7c3aed, #4f46e5); }
+.master .uc-header { background: linear-gradient(135deg, #0ea5e9, #2563eb); }
+.agency .uc-header { background: linear-gradient(135deg, #059669, #0d9488); }
+.sub    .uc-header { background: linear-gradient(135deg, #d97706, #ea580c); }
+
+.super  .step-num { background: #7c3aed; }
+.master .step-num { background: #2563eb; }
+.agency .step-num { background: #059669; }
+.sub    .step-num { background: #d97706; }
+
+/* ── Coverage table ── */
+.coverage-wrap { max-width: 1280px; margin: 0 auto; }
+table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,.08); font-size: 12.5px; }
+thead tr { background: #0f172a; color: #fff; }
+thead th { padding: 11px 14px; text-align: center; font-size: 11px; font-weight: 600; letter-spacing: .3px; }
+thead th:first-child { text-align: left; }
+tbody tr:nth-child(even) { background: #f8fafc; }
+tbody td { padding: 9px 14px; border-bottom: 1px solid #f1f5f9; text-align: center; }
+tbody td:first-child { text-align: left; font-weight: 600; color: #334155; }
+.group-row td { background: #f1f5f9; font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; padding: 7px 14px; }
+.tick    { color: #22c55e; font-size: 15px; }
+.cross   { color: #cbd5e1; font-size: 15px; }
+.fe-tag  { font-size: 10px; background: #dbeafe; color: #2563eb; padding: 1px 7px; border-radius: 20px; font-weight: 600; display: inline-block; }
+.fe-miss { font-size: 10px; background: #fee2e2; color: #dc2626; padding: 1px 7px; border-radius: 20px; font-weight: 600; display: inline-block; }
+.fe-na   { font-size: 10px; background: #f1f5f9; color: #94a3b8; padding: 1px 7px; border-radius: 20px; font-weight: 600; display: inline-block; }
+
+.legend { display: flex; gap: 20px; justify-content: center; margin: 16px 0 24px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #64748b; }
+
+footer { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 28px; }
+</style>
+</head>
+<body>
+
+<h1>Travel Agency SaaS — User Flow Diagram</h1>
+<p class="subtitle">Step-by-step actions each user type can perform · Frontend coverage audit included</p>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section-title">What Each User Can Do — Step by Step</div>
+
+<div class="flow-grid">
+
+  <!-- ── SUPER ADMIN ── -->
+  <div class="user-card super">
+    <div class="uc-header">
+      <span class="uc-icon">👑</span>
+      <div class="uc-role">Super Admin</div>
+      <div class="uc-email">superadmin@demo.com / password</div>
+      <span class="uc-badge">Full Access</span>
+    </div>
+    <div class="uc-body">
+
+      <div class="flow-step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <div class="step-title">Login</div>
+          <div class="step-detail">Email + password → session created</div>
+          <div class="step-tags"><span class="tag tag-page">/login</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <div class="step-title">Manage Agencies</div>
+          <div class="step-detail">Create, edit, delete agencies + set subscription / expiry</div>
+          <div class="step-tags"><span class="tag tag-page">/agencies</span><span class="tag tag-action">CRUD</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">3</span>
+        <div class="step-content">
+          <div class="step-title">Manage Users</div>
+          <div class="step-detail">Create agents, assign roles, activate/deactivate</div>
+          <div class="step-tags"><span class="tag tag-page">/users</span><span class="tag tag-action">CRUD</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">4</span>
+        <div class="step-content">
+          <div class="step-title">Setup Airlines & Routes</div>
+          <div class="step-detail">Add carriers and define origin→destination routes</div>
+          <div class="step-tags"><span class="tag tag-page">/airlines</span><span class="tag tag-page">/routes</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">5</span>
+        <div class="step-content">
+          <div class="step-title">Manage Flights</div>
+          <div class="step-detail">Add flights with adult/child/infant fares, soft-delete</div>
+          <div class="step-tags"><span class="tag tag-page">/manage/flights</span><span class="tag tag-action">CRUD</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">6</span>
+        <div class="step-content">
+          <div class="step-title">Manage Umrah & Hajj Packages</div>
+          <div class="step-detail">Create packages with pricing, quota, dynamic config fields</div>
+          <div class="step-tags"><span class="tag tag-page">/manage/umrah</span><span class="tag tag-page">/manage/hajj</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">7</span>
+        <div class="step-content">
+          <div class="step-title">Configure Custom Package Types</div>
+          <div class="step-detail">Create package types (UAE Visa, UK Package…), assign to agencies — agency admins see them as sidebar items</div>
+          <div class="step-tags"><span class="tag tag-page">/manage/package-types</span><span class="tag tag-action">custom:manage</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">8</span>
+        <div class="step-content">
+          <div class="step-title">Search & Book Flights</div>
+          <div class="step-detail">Filter by route/airline/price → add passengers → submit</div>
+          <div class="step-tags"><span class="tag tag-page">/flights</span><span class="tag tag-page">/flights/:id/book</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">9</span>
+        <div class="step-content">
+          <div class="step-title">Book Packages</div>
+          <div class="step-detail">Browse Umrah/Hajj/Custom packages → add passengers → submit booking</div>
+          <div class="step-tags"><span class="tag tag-page">/packages</span><span class="tag tag-page">/bookings/new</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">10</span>
+        <div class="step-content">
+          <div class="step-title">Confirm / Cancel Bookings</div>
+          <div class="step-detail">Confirm → ledger DEBIT entry + PDF invoice generated</div>
+          <div class="step-tags"><span class="tag tag-page">/bookings</span><span class="tag tag-action">Confirm</span><span class="tag tag-action">Cancel</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">11</span>
+        <div class="step-content">
+          <div class="step-title">Download Invoice</div>
+          <div class="step-detail">PDF with agency branding, passenger list, pricing breakdown</div>
+          <div class="step-tags"><span class="tag tag-action">PDF Invoice</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">12</span>
+        <div class="step-content">
+          <div class="step-title">View Ledger</div>
+          <div class="step-detail">All DEBIT/CREDIT entries, balance summary per agency</div>
+          <div class="step-tags"><span class="tag tag-page">/ledger</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── MASTER AGENT ── -->
+  <div class="user-card master">
+    <div class="uc-header">
+      <span class="uc-icon">🧑‍💼</span>
+      <div class="uc-role">Master Agent</div>
+      <div class="uc-email">master@demo.com / password</div>
+      <span class="uc-badge">No Delete Agency</span>
+    </div>
+    <div class="uc-body">
+
+      <div class="flow-step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <div class="step-title">Login</div>
+          <div class="step-detail">Email + password → session created</div>
+          <div class="step-tags"><span class="tag tag-page">/login</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <div class="step-title">View & Edit Agencies</div>
+          <div class="step-detail">Can create and edit agencies — cannot delete</div>
+          <div class="step-tags"><span class="tag tag-page">/agencies</span><span class="tag tag-blocked">No Delete</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">3</span>
+        <div class="step-content">
+          <div class="step-title">Manage Users</div>
+          <div class="step-detail">Create agents, assign roles, activate/deactivate</div>
+          <div class="step-tags"><span class="tag tag-page">/users</span><span class="tag tag-action">CRUD</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">4</span>
+        <div class="step-content">
+          <div class="step-title">Setup Airlines & Routes</div>
+          <div class="step-detail">Full CRUD on airlines and routes</div>
+          <div class="step-tags"><span class="tag tag-page">/airlines</span><span class="tag tag-page">/routes</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">5</span>
+        <div class="step-content">
+          <div class="step-title">Manage Flights</div>
+          <div class="step-detail">Add/edit/delete flights with fares</div>
+          <div class="step-tags"><span class="tag tag-page">/manage/flights</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">6</span>
+        <div class="step-content">
+          <div class="step-title">Manage Packages</div>
+          <div class="step-detail">Full Umrah and Hajj package management</div>
+          <div class="step-tags"><span class="tag tag-page">/manage/umrah</span><span class="tag tag-page">/manage/hajj</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">7</span>
+        <div class="step-content">
+          <div class="step-title">Search & Book Flights</div>
+          <div class="step-detail">Full flight search, passenger form, pricing preview</div>
+          <div class="step-tags"><span class="tag tag-page">/flights</span><span class="tag tag-page">/flights/:id/book</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">8</span>
+        <div class="step-content">
+          <div class="step-title">Book Packages</div>
+          <div class="step-detail">Browse and book Umrah / Hajj packages</div>
+          <div class="step-tags"><span class="tag tag-page">/packages</span><span class="tag tag-page">/bookings/new</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">9</span>
+        <div class="step-content">
+          <div class="step-title">Confirm / Cancel Bookings</div>
+          <div class="step-detail">Confirm PENDING → auto ledger + invoice PDF</div>
+          <div class="step-tags"><span class="tag tag-page">/bookings</span><span class="tag tag-action">Confirm</span><span class="tag tag-action">Cancel</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">10</span>
+        <div class="step-content">
+          <div class="step-title">Ledger & Reports</div>
+          <div class="step-detail">Full financial ledger, balance cards</div>
+          <div class="step-tags"><span class="tag tag-page">/ledger</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── AGENCY ADMIN ── -->
+  <div class="user-card agency">
+    <div class="uc-header">
+      <span class="uc-icon">🏢</span>
+      <div class="uc-role">Agency Admin</div>
+      <div class="uc-email">agencyadmin@demo.com / password</div>
+      <span class="uc-badge">Own Agency Only</span>
+    </div>
+    <div class="uc-body">
+
+      <div class="flow-step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <div class="step-title">Login</div>
+          <div class="step-detail">Session scoped to own agency — multi-tenant isolated</div>
+          <div class="step-tags"><span class="tag tag-page">/login</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <div class="step-title">Manage Users</div>
+          <div class="step-detail">Create/edit sub-agents within own agency only</div>
+          <div class="step-tags"><span class="tag tag-page">/users</span><span class="tag tag-blocked">No Delete</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">3</span>
+        <div class="step-content">
+          <div class="step-title">Setup Airlines & Routes</div>
+          <div class="step-detail">Manage carriers and routes for own agency</div>
+          <div class="step-tags"><span class="tag tag-page">/airlines</span><span class="tag tag-page">/routes</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">4</span>
+        <div class="step-content">
+          <div class="step-title">Manage Flights</div>
+          <div class="step-detail">Add/edit/delete flights — agency-scoped only</div>
+          <div class="step-tags"><span class="tag tag-page">/manage/flights</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">5</span>
+        <div class="step-content">
+          <div class="step-title">Manage Packages</div>
+          <div class="step-detail">Umrah + Hajj package CRUD for own agency</div>
+          <div class="step-tags"><span class="tag tag-page">/manage/umrah</span><span class="tag tag-page">/manage/hajj</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">6</span>
+        <div class="step-content">
+          <div class="step-title">Manage Custom Package Types</div>
+          <div class="step-detail">Dynamic sidebar shows granted types — create packages, set pricing/quota, assign to specific sub-agents</div>
+          <div class="step-tags"><span class="tag tag-page">/manage/custom-packages/:typeDefId</span><span class="tag tag-action">custom:manage</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">7</span>
+        <div class="step-content">
+          <div class="step-title">Search & Book Flights</div>
+          <div class="step-detail">Full booking with passenger details and pricing</div>
+          <div class="step-tags"><span class="tag tag-page">/flights</span><span class="tag tag-page">/flights/:id/book</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">8</span>
+        <div class="step-content">
+          <div class="step-title">Book Packages</div>
+          <div class="step-detail">Browse and book Umrah / Hajj / Custom packages</div>
+          <div class="step-tags"><span class="tag tag-page">/packages</span><span class="tag tag-page">/bookings/new</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">9</span>
+        <div class="step-content">
+          <div class="step-title">Confirm / Cancel Bookings</div>
+          <div class="step-detail">Full booking lifecycle management + invoice download</div>
+          <div class="step-tags"><span class="tag tag-page">/bookings</span><span class="tag tag-action">Confirm</span><span class="tag tag-action">Cancel</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">10</span>
+        <div class="step-content">
+          <div class="step-title">View Ledger</div>
+          <div class="step-detail">Agency-scoped financial records and balance</div>
+          <div class="step-tags"><span class="tag tag-page">/ledger</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">✗</span>
+        <div class="step-content">
+          <div class="step-title">Cannot Access</div>
+          <div class="step-detail">Agencies page — no cross-agency visibility</div>
+          <div class="step-tags"><span class="tag tag-blocked">Hidden in sidebar</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── SUB AGENT ── -->
+  <div class="user-card sub">
+    <div class="uc-header">
+      <span class="uc-icon">👤</span>
+      <div class="uc-role">Sub Agent</div>
+      <div class="uc-email">agent@demo.com / password</div>
+      <span class="uc-badge">Read + Create Only</span>
+    </div>
+    <div class="uc-body">
+
+      <div class="flow-step">
+        <span class="step-num">1</span>
+        <div class="step-content">
+          <div class="step-title">Login</div>
+          <div class="step-detail">Session scoped to own agency</div>
+          <div class="step-tags"><span class="tag tag-page">/login</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">2</span>
+        <div class="step-content">
+          <div class="step-title">Search Flights</div>
+          <div class="step-detail">Filter by origin, destination, date, airline, price range</div>
+          <div class="step-tags"><span class="tag tag-page">/flights</span><span class="tag tag-action">Search Only</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">3</span>
+        <div class="step-content">
+          <div class="step-title">Book a Flight</div>
+          <div class="step-detail">Add adult/child/infant passengers → pricing preview → submit</div>
+          <div class="step-tags"><span class="tag tag-page">/flights/:id/book</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">4</span>
+        <div class="step-content">
+          <div class="step-title">Browse Packages</div>
+          <div class="step-detail">View Umrah, Hajj &amp; assigned custom packages (UAE Visa, UK Package…) — filtered by airline at top</div>
+          <div class="step-tags"><span class="tag tag-page">/packages</span><span class="tag tag-action">custom:view</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">5</span>
+        <div class="step-content">
+          <div class="step-title">Book a Package</div>
+          <div class="step-detail">Select Umrah/Hajj/Custom → add passengers → submit (quota enforced)</div>
+          <div class="step-tags"><span class="tag tag-page">/bookings/new</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">6</span>
+        <div class="step-content">
+          <div class="step-title">View My Bookings</div>
+          <div class="step-detail">See all bookings they created with status and passenger list</div>
+          <div class="step-tags"><span class="tag tag-page">/bookings</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">✗</span>
+        <div class="step-content">
+          <div class="step-title">Cannot Confirm / Cancel</div>
+          <div class="step-detail">Buttons hidden — shows "Awaiting confirmation" instead</div>
+          <div class="step-tags"><span class="tag tag-blocked">UI hidden</span><span class="tag tag-blocked">API 403</span></div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <span class="step-num">✗</span>
+        <div class="step-content">
+          <div class="step-title">No Admin Access</div>
+          <div class="step-detail">No Admin section in sidebar — cannot manage flights, packages, users, ledger</div>
+          <div class="step-tags"><span class="tag tag-blocked">Hidden in sidebar</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section-title" style="margin-top:40px;">Frontend Coverage Audit — All Features vs Pages</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="tick">✔</span> Backend permission granted</div>
+  <div class="legend-item"><span class="cross">—</span> Not permitted (backend 403)</div>
+  <div class="legend-item"><span class="fe-tag">page</span> Frontend page exists & wired</div>
+  <div class="legend-item"><span class="fe-miss">hidden</span> UI correctly hidden for this role</div>
+  <div class="legend-item"><span class="fe-na">n/a</span> Not applicable</div>
+</div>
+
+<div class="coverage-wrap">
+<table>
+  <thead>
+    <tr>
+      <th style="text-align:left;width:220px">Feature / Page</th>
+      <th>Frontend Route</th>
+      <th>👑 Super Admin</th>
+      <th>🧑‍💼 Master Agent</th>
+      <th>🏢 Agency Admin</th>
+      <th>👤 Sub Agent</th>
+    </tr>
+  </thead>
+  <tbody>
+
+    <tr class="group-row"><td colspan="6">Authentication</td></tr>
+    <tr>
+      <td>Login</td><td><span class="fe-tag">/login</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+    </tr>
+    <tr>
+      <td>Logout</td><td><span class="fe-tag">TopBar button</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+    </tr>
+
+    <tr class="group-row"><td colspan="6">Agency Management</td></tr>
+    <tr>
+      <td>View / Create / Edit Agencies</td><td><span class="fe-tag">/agencies</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+      <td><span class="fe-miss">hidden</span></td><td><span class="fe-miss">hidden</span>
+      </td>
+    </tr>
+    <tr>
+      <td>Delete Agency</td><td><span class="fe-tag">/agencies</span></td>
+      <td><span class="tick">✔</span></td><td><span class="cross">—</span></td>
+      <td><span class="fe-miss">hidden</span></td><td><span class="fe-miss">hidden</span></td>
+    </tr>
+
+    <tr class="group-row"><td colspan="6">User Management</td></tr>
+    <tr>
+      <td>View / Create / Edit Users</td><td><span class="fe-tag">/users</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+      <td><span class="fe-miss">hidden</span></td>
+    </tr>
+    <tr>
+      <td>Delete User</td><td><span class="fe-tag">/users</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+      <td><span class="cross">— (403)</span></td><td><span class="fe-miss">hidden</span></td>
+    </tr>
+    <tr>
+      <td>Activate / Deactivate User</td><td><span class="fe-tag">/users</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+      <td><span class="fe-miss">hidden</span></td>
+    </tr>
+
+    <tr class="group-row"><td colspan="6">Airlines & Routes</td></tr>
+    <tr>
+      <td>Manage Airlines (CRUD)</td><td><span class="fe-tag">/airlines</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+      <td><span class="fe-miss">hidden</span></td>
+    </tr>
+    <tr>
+      <td>Manage Routes (CRUD)</td><td><span class="fe-tag">/routes</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+      <td><span class="fe-miss">hidden</span></td>
+    </tr>
+
+    <tr class="group-row"><td colspan="6">Flights</td></tr>
+    <tr>
+      <td>Search Flights</td><td><span class="fe-tag">/flights</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+    </tr>
+    <tr>
+      <td>Admin Flight CRUD</td><td><span class="fe-tag">/manage/flights</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+      <td><span class="fe-miss">hidden</span></td>
+    </tr>
+    <tr>
+      <td>Book a Flight</td><td><span class="fe-tag">/flights/:id/book</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+    </tr>
+
+    <tr class="group-row"><td colspan="6">Packages</td></tr>
+    <tr>
+      <td>Browse Umrah, Hajj &amp; Custom Packages</td><td><span class="fe-tag">/packages</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+    </tr>
+    <tr>
+      <td>Manage Umrah Packages (CRUD)</td><td><span class="fe-tag">/manage/umrah</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+      <td><span class="fe-miss">hidden</span></td>
+    </tr>
+    <tr>
+      <td>Manage Hajj Packages (CRUD)</td><td><span class="fe-tag">/manage/hajj</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+      <td><span class="fe-miss">hidden</span></td>
+    </tr>
+    <tr>
+      <td>Configure Package Types (CRUD)</td><td><span class="fe-tag">/manage/package-types</span></td>
+      <td><span class="tick">✔</span></td><td><span class="fe-miss">hidden</span></td><td><span class="fe-miss">hidden</span></td>
+      <td><span class="fe-miss">hidden</span></td>
+    </tr>
+    <tr>
+      <td>Manage Custom Package Type Page</td><td><span class="fe-tag">/manage/custom-packages/:id</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+      <td><span class="fe-miss">hidden</span></td>
+    </tr>
+    <tr>
+      <td>Book a Package (incl. Custom)</td><td><span class="fe-tag">/bookings/new</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+    </tr>
+
+    <tr class="group-row"><td colspan="6">Bookings</td></tr>
+    <tr>
+      <td>View My Bookings</td><td><span class="fe-tag">/bookings</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+    </tr>
+    <tr>
+      <td>Confirm Booking</td><td><span class="fe-tag">/bookings (button)</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+      <td><span class="fe-miss">hidden</span></td>
+    </tr>
+    <tr>
+      <td>Cancel Booking</td><td><span class="fe-tag">/bookings (button)</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+      <td><span class="fe-miss">hidden</span></td>
+    </tr>
+    <tr>
+      <td>View Booking Detail</td><td><span class="fe-tag">/bookings/:id/confirm</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+    </tr>
+    <tr>
+      <td>Download Invoice PDF</td><td><span class="fe-tag">Invoice link (confirmed)</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+      <td><span class="fe-miss">hidden</span></td>
+    </tr>
+
+    <tr class="group-row"><td colspan="6">Reports & Billing</td></tr>
+    <tr>
+      <td>Ledger (DEBIT/CREDIT/Balance)</td><td><span class="fe-tag">/ledger</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+      <td><span class="fe-miss">hidden</span></td>
+    </tr>
+
+    <tr class="group-row"><td colspan="6">System / Subscription</td></tr>
+    <tr>
+      <td>Subscription expiry banner</td><td><span class="fe-tag">AppShell banner</span></td>
+      <td><span class="fe-na">bypassed</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+    </tr>
+    <tr>
+      <td>Grace period warning header</td><td><span class="fe-tag">AppShell yellow bar</span></td>
+      <td><span class="fe-na">bypassed</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+    </tr>
+    <tr>
+      <td>White-label branding (logo + name)</td><td><span class="fe-tag">Sidebar header</span></td>
+      <td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td><td><span class="tick">✔</span></td>
+    </tr>
+
+  </tbody>
+</table>
+</div>
+
+<footer>Travel Agency SaaS &nbsp;·&nbsp; 2026-04-20 &nbsp;·&nbsp; All data is multi-tenant (agency-scoped) &nbsp;·&nbsp; Backend enforces permissions via Spring Security @PreAuthorize</footer>
+</body>
+</html>

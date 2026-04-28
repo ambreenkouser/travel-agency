@@ -1,4 +1,4 @@
-﻿package com.example.travel.flight;
+package com.example.travel.flight;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -24,7 +24,8 @@ public class FlightController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('flights:view')")
-    public String search(@RequestParam(required = false) Long routeId,
+    public String search(@RequestParam(required = false) String origin,
+                         @RequestParam(required = false) String destination,
                          @RequestParam(required = false) Long airlineId,
                          @RequestParam(required = false) OffsetDateTime from,
                          @RequestParam(required = false) OffsetDateTime to,
@@ -32,7 +33,7 @@ public class FlightController {
                          @RequestParam(required = false) BigDecimal max,
                          Pageable pageable,
                          Model model) {
-        Page<Flight> flights = service.search(routeId, airlineId, from, to, min, max, pageable);
+        Page<Flight> flights = service.search(origin, destination, airlineId, from, to, min, max, null, pageable);
         model.addAttribute("flights", flights);
         return "flights/list";
     }

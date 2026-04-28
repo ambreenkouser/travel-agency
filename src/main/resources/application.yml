@@ -1,17 +1,20 @@
-﻿spring:
+spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/travel
     username: travel_user
-    password: change_me
+    password: test
   jpa:
     hibernate:
       ddl-auto: none
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         enable_lazy_load_no_trans: true
     open-in-view: false
+  flyway:
+    user: postgres
+    password: test
+    repair-on-migrate: true
   thymeleaf:
     cache: false
   redis:

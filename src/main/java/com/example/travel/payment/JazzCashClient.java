@@ -26,20 +26,20 @@ public class JazzCashClient {
 
     public String signPayload(Map<String, String> payload, String secretKey) {
         try {
-            String data = String.join(\"|\", payload.values());
-            Mac mac = Mac.getInstance(\"HmacSHA256\");
-            mac.init(new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), \"HmacSHA256\"));
+            String data = String.join("|", payload.values());
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
             byte[] raw = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
             return bytesToHex(raw);
         } catch (Exception e) {
-            throw new IllegalStateException(\"Unable to sign payload\", e);
+            throw new IllegalStateException("Unable to sign payload", e);
         }
     }
 
     private String bytesToHex(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
-            sb.append(String.format(\"%02x\", b));
+            sb.append(String.format("%02x", b));
         }
         return sb.toString();
     }

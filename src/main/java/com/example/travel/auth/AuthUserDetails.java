@@ -1,4 +1,4 @@
-﻿package com.example.travel.auth;
+package com.example.travel.auth;
 
 import com.example.travel.tenancy.TenantAwarePrincipal;
 import java.util.Collection;
@@ -21,9 +21,20 @@ public class AuthUserDetails implements UserDetails, TenantAwarePrincipal {
 
     private Set<GrantedAuthority> buildAuthorities(User user) {
         Set<GrantedAuthority> auths = new HashSet<>();
+        boolean isSuperAdmin = user.getRoles().stream()
+                .anyMatch(r -> r.getName().equals("super_admin"));
+
         for (Role role : user.getRoles()) {
             auths.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
-            auths.addAll(role.getPermissions().stream()
+            // super_admin keeps full role-based permissions; others use per-user permissions
+            if (isSuperAdmin) {
+                auths.addAll(role.getPermissions().stream()
+                        .map(p -> new SimpleGrantedAuthority(p.getName()))
+                        .collect(Collectors.toSet()));
+            }
+        }
+        if (!isSuperAdmin) {
+            auths.addAll(user.getCustomPermissions().stream()
                     .map(p -> new SimpleGrantedAuthority(p.getName()))
                     .collect(Collectors.toSet()));
         }
@@ -73,6 +84,21 @@ public class AuthUserDetails implements UserDetails, TenantAwarePrincipal {
     @Override
     public Long getUserId() {
         return user.getId();
+    }
+
+    /** Returns the hierarchy level (1–4) derived from the user's role. */
+    public int getUserTypeLevel() {
+        for (GrantedAuthority auth : authorities) {
+            String a = auth.getAuthority();
+            if (a.equals("ROLE_super_admin"))  return 1;
+            if (a.equals("ROLE_master_agent")) return 2;
+            if (a.equals("ROLE_agency_admin")) return 3;
+        }
+        return 4; // sub_agent / agency_agent
+    }
+
+    public Long getParentId() {
+        return user.getParentId();
     }
 
     public User getUser() {

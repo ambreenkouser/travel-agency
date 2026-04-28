@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TravelDesk — User Roles &amp; Flow Diagram</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0b1120;
+    color: #e2e8f0;
+    min-height: 100vh;
+    padding: 40px 24px 80px;
+  }
+
+  /* ── Page header ── */
+  .page-header { text-align: center; margin-bottom: 56px; }
+  .page-header h1 {
+    font-size: 2rem; font-weight: 800; letter-spacing: -0.04em;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa, #34d399);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin-bottom: 8px;
+  }
+  .page-header p { color: #64748b; font-size: 0.95rem; }
+
+  /* ── Section ── */
+  section { max-width: 1100px; margin: 0 auto 56px; }
+  .section-title {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #475569;
+    margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::after { content:''; flex:1; height:1px; background:rgba(255,255,255,0.06); }
+
+  /* ── Summary cards ── */
+  .summary-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+  @media(max-width:700px){.summary-grid{grid-template-columns:repeat(2,1fr);}}
+  .summary-card {
+    background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07);
+    border-radius:12px; padding:18px;
+  }
+  .summary-card .num { font-size:2.2rem; font-weight:800; line-height:1; margin-bottom:4px; }
+  .summary-card .lbl { font-size:0.75rem; color:#64748b; font-weight:500; }
+
+  /* ── Role cards ── */
+  .role-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+  @media(max-width:800px){.role-grid{grid-template-columns:repeat(2,1fr);}}
+  .role-card {
+    border-radius:16px; padding:22px 20px;
+    border:1px solid transparent; position:relative;
+  }
+  .role-card .level-badge {
+    display:inline-block; font-size:0.65rem; font-weight:800;
+    letter-spacing:0.08em; text-transform:uppercase;
+    padding:3px 8px; border-radius:20px; margin-bottom:10px;
+  }
+  .role-card h3 { font-size:1.1rem; font-weight:700; margin-bottom:4px; }
+  .role-card .role-sub { font-size:0.75rem; opacity:0.6; margin-bottom:14px; }
+  .role-card ul { list-style:none; display:flex; flex-direction:column; gap:5px; }
+  .role-card ul li { font-size:0.8rem; display:flex; align-items:flex-start; gap:6px; opacity:0.85; }
+  .role-card ul li .dot { margin-top:5px; width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+
+  .r1 { background:rgba(124,58,237,0.14); border-color:rgba(124,58,237,0.3); }
+  .r1 .level-badge { background:rgba(124,58,237,0.25); color:#c4b5fd; }
+  .r1 h3 { color:#c4b5fd; } .r1 .dot { background:#7c3aed; }
+
+  .r2 { background:rgba(37,99,235,0.14); border-color:rgba(37,99,235,0.3); }
+  .r2 .level-badge { background:rgba(37,99,235,0.25); color:#93c5fd; }
+  .r2 h3 { color:#93c5fd; } .r2 .dot { background:#2563eb; }
+
+  .r3 { background:rgba(13,148,136,0.14); border-color:rgba(13,148,136,0.3); }
+  .r3 .level-badge { background:rgba(13,148,136,0.25); color:#5eead4; }
+  .r3 h3 { color:#5eead4; } .r3 .dot { background:#0d9488; }
+
+  .r4 { background:rgba(22,163,74,0.14); border-color:rgba(22,163,74,0.3); }
+  .r4 .level-badge { background:rgba(22,163,74,0.25); color:#86efac; }
+  .r4 h3 { color:#86efac; } .r4 .dot { background:#16a34a; }
+
+  /* ── Hierarchy tree ── */
+  .tree-wrap {
+    background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07);
+    border-radius:16px; padding:36px 20px; overflow-x:auto;
+  }
+  .tree { display:flex; flex-direction:column; align-items:center; min-width:520px; }
+  .tree-box {
+    padding:12px 28px; border-radius:12px; font-size:0.85rem; font-weight:700;
+    text-align:center; min-width:160px; border:1px solid transparent;
+  }
+  .tree-box .sub { font-size:0.68rem; font-weight:400; opacity:0.55; margin-top:3px; }
+  .tb1 { background:rgba(124,58,237,0.18); border-color:rgba(124,58,237,0.5); color:#c4b5fd; }
+  .tb2 { background:rgba(37,99,235,0.18);  border-color:rgba(37,99,235,0.5);  color:#93c5fd; }
+  .tb3 { background:rgba(13,148,136,0.18); border-color:rgba(13,148,136,0.5); color:#5eead4; }
+  .tb4 { background:rgba(22,163,74,0.18);  border-color:rgba(22,163,74,0.5);  color:#86efac; }
+
+  .connector {
+    display:flex; flex-direction:column; align-items:center; gap:0;
+  }
+  .c-line  { width:2px; height:20px; background:rgba(255,255,255,0.1); }
+  .c-arrow { width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-top:8px solid rgba(255,255,255,0.2); }
+  .c-lbl   { font-size:0.62rem; color:#334155; margin:3px 0; white-space:nowrap; }
+
+  /* ── Permissions table ── */
+  .perm-wrap {
+    background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07);
+    border-radius:16px; overflow:hidden;
+  }
+  .perm-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+  .perm-table thead tr { background:rgba(255,255,255,0.05); }
+  .perm-table th {
+    padding:14px 16px; text-align:left; font-size:0.7rem; font-weight:700;
+    letter-spacing:0.06em; text-transform:uppercase; color:#64748b;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+  }
+  .perm-table th:not(:first-child) { text-align:center; min-width:110px; }
+  .perm-table td {
+    padding:11px 16px; border-bottom:1px solid rgba(255,255,255,0.04); color:#94a3b8;
+  }
+  .perm-table td:not(:first-child) { text-align:center; }
+  .perm-table tbody tr:hover { background:rgba(255,255,255,0.025); }
+  .perm-table tbody tr:last-child td { border-bottom:none; }
+  .perm-group td {
+    background:rgba(255,255,255,0.04); color:#475569;
+    font-size:0.7rem; font-weight:700; text-transform:uppercase;
+    letter-spacing:0.08em; padding:8px 16px;
+  }
+  .yes { color:#22c55e; font-size:1rem; font-weight:700; }
+  .no  { color:#1e293b; font-size:1.1rem; }
+  .th1 { color:#c4b5fd !important; }
+  .th2 { color:#93c5fd !important; }
+  .th3 { color:#5eead4 !important; }
+  .th4 { color:#86efac !important; }
+
+  /* ── Flow diagrams ── */
+  .flow-wrap {
+    background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07);
+    border-radius:16px; padding:32px; overflow-x:auto;
+    display:flex; flex-direction:column; gap:32px;
+  }
+  .flow-section-label {
+    font-size:0.72rem; font-weight:700; color:#475569;
+    text-transform:uppercase; letter-spacing:0.06em; margin-bottom:14px;
+  }
+  .flow-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+
+  .fbox {
+    padding:10px 18px; border-radius:10px; font-size:0.8rem;
+    font-weight:600; border:1px solid transparent; white-space:nowrap;
+  }
+  .farr {
+    display:flex; flex-direction:column; align-items:center; flex-shrink:0;
+  }
+  .farr-h { display:flex; align-items:center; }
+  .farr-line { height:2px; background:rgba(255,255,255,0.18); }
+  .farr-head { width:0; height:0; border-top:5px solid transparent; border-bottom:5px solid transparent; }
+  .farr-lbl  { font-size:0.62rem; color:#475569; white-space:nowrap; margin-top:3px; }
+
+  .fbranch { display:flex; flex-direction:column; gap:10px; }
+  .fbranch-row { display:flex; align-items:center; gap:10px; }
+
+  /* Status colours */
+  .s-pending   { background:rgba(245,158,11,0.15); border-color:rgba(245,158,11,0.35); color:#fcd34d; }
+  .s-confirmed { background:rgba(34,197,94,0.15);  border-color:rgba(34,197,94,0.35);  color:#86efac; }
+  .s-cancelled { background:rgba(239,68,68,0.15);  border-color:rgba(239,68,68,0.35);  color:#fca5a5; }
+  .s-canc-req  { background:rgba(168,85,247,0.15); border-color:rgba(168,85,247,0.35); color:#d8b4fe; }
+  .s-auto      { background:rgba(16,185,129,0.15); border-color:rgba(16,185,129,0.35); color:#6ee7b7; }
+
+  .a-super  { background:rgba(124,58,237,0.15); border-color:rgba(124,58,237,0.35); color:#c4b5fd; }
+  .a-master { background:rgba(37,99,235,0.15);  border-color:rgba(37,99,235,0.35);  color:#93c5fd; }
+  .a-admin  { background:rgba(13,148,136,0.15); border-color:rgba(13,148,136,0.35); color:#5eead4; }
+  .a-agent  { background:rgba(22,163,74,0.15);  border-color:rgba(22,163,74,0.35);  color:#86efac; }
+  .a-sys    { background:rgba(100,116,139,0.15);border-color:rgba(100,116,139,0.35);color:#94a3b8; }
+
+  /* ── Announcement grid ── */
+  .ann-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  @media(max-width:700px){.ann-grid{grid-template-columns:1fr;}}
+  .ann-card {
+    background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07);
+    border-radius:14px; padding:20px 18px;
+  }
+  .ann-sender { font-size:0.78rem; font-weight:700; margin-bottom:8px; }
+  .ann-badge {
+    display:inline-block; font-size:0.62rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.06em;
+    padding:2px 8px; border-radius:20px; margin-bottom:12px;
+  }
+  .badge-agency { background:rgba(99,102,241,0.2); color:#a5b4fc; }
+  .badge-child  { background:rgba(20,184,166,0.2);  color:#5eead4; }
+  .ann-divider { height:1px; background:rgba(255,255,255,0.06); margin:10px 0; }
+  .ann-receivers { display:flex; flex-direction:column; gap:6px; }
+  .ann-receiver {
+    font-size:0.78rem; padding:7px 10px; border-radius:8px;
+    border:1px solid rgba(255,255,255,0.07);
+    background:rgba(255,255,255,0.04); color:#94a3b8;
+  }
+
+  /* ── Info cards ── */
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media(max-width:700px){.two-col{grid-template-columns:1fr;}}
+  .info-card {
+    background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07);
+    border-radius:14px; padding:22px 20px;
+  }
+  .info-card h4 { font-size:0.82rem; font-weight:700; color:#94a3b8; margin-bottom:12px; }
+  .info-card ul { list-style:none; display:flex; flex-direction:column; gap:7px; }
+  .info-card ul li { font-size:0.8rem; color:#64748b; display:flex; align-items:flex-start; gap:8px; }
+  .info-card ul li::before { content:'→'; color:#334155; flex-shrink:0; }
+
+  code { font-family: monospace; font-size:0.78em; color:#7dd3fc; background:rgba(125,211,252,0.08); padding:1px 5px; border-radius:4px; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>✈ TravelDesk — User Roles &amp; Flow Diagram</h1>
+  <p>Complete hierarchy, permissions, booking flow, and announcement routing</p>
+</div>
+
+<!-- ── SUMMARY ── -->
+<section>
+  <div class="section-title">Overview</div>
+  <div class="summary-grid">
+    <div class="summary-card"><div class="num" style="color:#c4b5fd;">4</div><div class="lbl">User Roles</div></div>
+    <div class="summary-card"><div class="num" style="color:#93c5fd;">18</div><div class="lbl">Permissions</div></div>
+    <div class="summary-card"><div class="num" style="color:#5eead4;">5</div><div class="lbl">Booking Statuses</div></div>
+    <div class="summary-card"><div class="num" style="color:#86efac;">3</div><div class="lbl">Package Types</div></div>
+  </div>
+</section>
+
+<!-- ── HIERARCHY TREE ── -->
+<section>
+  <div class="section-title">User Hierarchy (Parent → Child)</div>
+  <div class="tree-wrap">
+    <div class="tree">
+      <div class="tree-box tb1">Super Admin<div class="sub">super_admin · Level 1 · parentId = null</div></div>
+      <div class="connector"><div class="c-line"></div><div class="c-arrow"></div><div class="c-lbl">creates &amp; manages</div><div class="c-line"></div></div>
+      <div class="tree-box tb2">Master Agent<div class="sub">master_agent · Level 2 · parentId = super_admin.id</div></div>
+      <div class="connector"><div class="c-line"></div><div class="c-arrow"></div><div class="c-lbl">manages agencies</div><div class="c-line"></div></div>
+      <div class="tree-box tb3">Agency Admin<div class="sub">agency_admin · Level 3 · parentId = master_agent.id</div></div>
+      <div class="connector"><div class="c-line"></div><div class="c-arrow"></div><div class="c-lbl">manages agents</div><div class="c-line"></div></div>
+      <div class="tree-box tb4">Sub Agent<div class="sub">sub_agent · Level 4 · parentId = agency_admin.id</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── ROLE CARDS ── -->
+<section>
+  <div class="section-title">Role Capabilities</div>
+  <div class="role-grid">
+
+    <div class="role-card r1">
+      <div class="level-badge">Level 1</div>
+      <h3>Super Admin</h3>
+      <div class="role-sub">Platform owner · Full access</div>
+      <ul>
+        <li><span class="dot"></span>Create, edit &amp; delete agencies</li>
+        <li><span class="dot"></span>Manage all flights, Umrah &amp; Hajj</li>
+        <li><span class="dot"></span>Define custom package types (UAE Visa, UK Visa…) &amp; assign to agencies</li>
+        <li><span class="dot"></span>View &amp; confirm all bookings</li>
+        <li><span class="dot"></span>Manage banks &amp; payment accounts</li>
+        <li><span class="dot"></span>Broadcast announcements to all L2 &amp; L3</li>
+        <li><span class="dot"></span>View all ledger &amp; reports</li>
+        <li><span class="dot"></span>Upload agency logos (binary in DB)</li>
+      </ul>
+    </div>
+
+    <div class="role-card r2">
+      <div class="level-badge">Level 2</div>
+      <h3>Master Agent</h3>
+      <div class="role-sub">Multi-agency manager</div>
+      <ul>
+        <li><span class="dot"></span>Create &amp; edit agencies (no delete)</li>
+        <li><span class="dot"></span>Manage flights, Umrah &amp; Hajj packages</li>
+        <li><span class="dot"></span>Approve/reject sub-agency-admin bookings</li>
+        <li><span class="dot"></span>Manage payment accounts</li>
+        <li><span class="dot"></span>Broadcast announcements to direct children</li>
+        <li><span class="dot"></span>Receives super_admin announcements</li>
+        <li><span class="dot"></span>View ledger &amp; reports</li>
+      </ul>
+    </div>
+
+    <div class="role-card r3">
+      <div class="level-badge">Level 3</div>
+      <h3>Agency Admin</h3>
+      <div class="role-sub">Single-agency manager</div>
+      <ul>
+        <li><span class="dot"></span>Manage own agency settings &amp; logo</li>
+        <li><span class="dot"></span>Manage flights, Umrah &amp; Hajj</li>
+        <li><span class="dot"></span>Manage granted custom package types (dynamic sidebar items)</li>
+        <li><span class="dot"></span>Assign custom packages to specific sub-agents</li>
+        <li><span class="dot"></span>Own bookings auto-confirmed instantly ⚡</li>
+        <li><span class="dot"></span>Approve/reject sub-agent bookings</li>
+        <li><span class="dot"></span>Manage payment accounts for agents</li>
+        <li><span class="dot"></span>Broadcast announcements to sub-agents</li>
+        <li><span class="dot"></span>Receives from super_admin &amp; master</li>
+      </ul>
+    </div>
+
+    <div class="role-card r4">
+      <div class="level-badge">Level 4</div>
+      <h3>Sub Agent</h3>
+      <div class="role-sub">Booking agent</div>
+      <ul>
+        <li><span class="dot"></span>View flights, Umrah, Hajj &amp; assigned custom packages</li>
+        <li><span class="dot"></span>Create bookings (stays PENDING)</li>
+        <li><span class="dot"></span>Submit payment slips (binary image)</li>
+        <li><span class="dot"></span>View own bookings &amp; ledger</li>
+        <li><span class="dot"></span>Request cancellation of confirmed bookings</li>
+        <li><span class="dot"></span>Receives announcements from agency admin</li>
+        <li><span class="dot"></span>Cannot confirm any booking</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── PERMISSIONS MATRIX ── -->
+<section>
+  <div class="section-title">Permissions Matrix</div>
+  <div class="perm-wrap">
+    <table class="perm-table">
+      <thead>
+        <tr>
+          <th>Permission</th>
+          <th class="th1">Super Admin</th>
+          <th class="th2">Master Agent</th>
+          <th class="th3">Agency Admin</th>
+          <th class="th4">Sub Agent</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="perm-group"><td colspan="5">Agencies</td></tr>
+        <tr><td>agencies:view</td>   <td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">—</span></td></tr>
+        <tr><td>agencies:create</td> <td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">—</span></td></tr>
+        <tr><td>agencies:edit</td>   <td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">—</span></td></tr>
+        <tr><td>agencies:delete</td> <td><span class="yes">✓</span></td><td><span class="no">—</span></td><td><span class="no">—</span></td><td><span class="no">—</span></td></tr>
+
+        <tr class="perm-group"><td colspan="5">Flights &amp; Packages</td></tr>
+        <tr><td>flights:view</td>    <td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+        <tr><td>flights:manage</td>  <td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">—</span></td></tr>
+        <tr><td>umrah:view</td>      <td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+        <tr><td>umrah:manage</td>    <td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">—</span></td></tr>
+        <tr><td>hajj:view</td>       <td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+        <tr><td>hajj:manage</td>     <td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">—</span></td></tr>
+        <tr><td>custom:view</td>     <td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+        <tr><td>custom:manage</td>   <td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">—</span></td></tr>
+
+        <tr class="perm-group"><td colspan="5">Bookings</td></tr>
+        <tr><td>bookings:view</td>   <td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+        <tr><td>bookings:create</td> <td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+        <tr><td>bookings:confirm</td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">—</span></td></tr>
+        <tr><td>bookings:cancel</td> <td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">—</span></td></tr>
+
+        <tr class="perm-group"><td colspan="5">Finance &amp; Reporting</td></tr>
+        <tr><td>accounts:manage</td> <td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">—</span></td></tr>
+        <tr><td>reports:view</td>    <td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">—</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ── BOOKING FLOW ── -->
+<section>
+  <div class="section-title">Booking Status Flow</div>
+  <div class="flow-wrap">
+
+    <!-- Flow A -->
+    <div>
+      <div class="flow-section-label">Flow A — Sub Agent creates booking (requires approval)</div>
+      <div class="flow-row">
+        <div class="fbox a-agent">Sub Agent</div>
+
+        <div class="farr">
+          <div class="farr-h"><div class="farr-line" style="width:32px;"></div><div class="farr-head" style="border-left-color:rgba(255,255,255,0.25);"></div></div>
+          <div class="farr-lbl">creates</div>
+        </div>
+
+        <div class="fbox s-pending">PENDING</div>
+
+        <div class="farr">
+          <div class="farr-h"><div class="farr-line" style="width:32px;"></div><div class="farr-head" style="border-left-color:rgba(255,255,255,0.2);"></div></div>
+          <div class="farr-lbl">parent reviews</div>
+        </div>
+
+        <div class="fbranch">
+          <div class="fbranch-row">
+            <div class="farr" style="margin-right:4px;">
+              <div class="farr-h"><div class="farr-line" style="width:28px;background:rgba(34,197,94,0.4);"></div><div class="farr-head" style="border-left-color:rgba(34,197,94,0.6);"></div></div>
+              <div class="farr-lbl">confirms</div>
+            </div>
+            <div class="fbox s-confirmed">CONFIRMED → Invoice + Ledger</div>
+          </div>
+          <div class="fbranch-row">
+            <div class="farr" style="margin-right:4px;">
+              <div class="farr-h"><div class="farr-line" style="width:28px;background:rgba(239,68,68,0.4);"></div><div class="farr-head" style="border-left-color:rgba(239,68,68,0.6);"></div></div>
+              <div class="farr-lbl">rejects</div>
+            </div>
+            <div class="fbox s-cancelled">CANCELLED</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flow B -->
+    <div>
+      <div class="flow-section-label">Flow B — Agency Admin creates booking (auto-confirmed ⚡)</div>
+      <div class="flow-row">
+        <div class="fbox a-admin">Agency Admin</div>
+
+        <div class="farr">
+          <div class="farr-h"><div class="farr-line" style="width:32px;"></div><div class="farr-head" style="border-left-color:rgba(255,255,255,0.25);"></div></div>
+          <div class="farr-lbl">creates</div>
+        </div>
+
+        <div class="fbox s-auto">AUTO-CONFIRM ⚡</div>
+
+        <div class="farr">
+          <div class="farr-h"><div class="farr-line" style="width:32px;background:rgba(34,197,94,0.4);"></div><div class="farr-head" style="border-left-color:rgba(34,197,94,0.6);"></div></div>
+          <div class="farr-lbl">instant</div>
+        </div>
+
+        <div class="fbox s-confirmed">CONFIRMED → Invoice + Ledger</div>
+
+        <div style="font-size:0.75rem;color:#334155;padding:4px 10px;">(no parent approval needed)</div>
+      </div>
+    </div>
+
+    <!-- Flow C -->
+    <div>
+      <div class="flow-section-label">Flow C — Cancellation of confirmed booking</div>
+      <div class="flow-row">
+        <div class="fbox s-confirmed">CONFIRMED</div>
+
+        <div class="farr">
+          <div class="farr-h"><div class="farr-line" style="width:32px;"></div><div class="farr-head" style="border-left-color:rgba(255,255,255,0.2);"></div></div>
+          <div class="farr-lbl">agent requests</div>
+        </div>
+
+        <div class="fbox s-canc-req">CANCELLATION_REQUESTED</div>
+
+        <div class="farr">
+          <div class="farr-h"><div class="farr-line" style="width:32px;"></div><div class="farr-head" style="border-left-color:rgba(255,255,255,0.2);"></div></div>
+          <div class="farr-lbl">parent decides</div>
+        </div>
+
+        <div class="fbranch">
+          <div class="fbranch-row">
+            <div class="farr" style="margin-right:4px;">
+              <div class="farr-h"><div class="farr-line" style="width:28px;background:rgba(239,68,68,0.4);"></div><div class="farr-head" style="border-left-color:rgba(239,68,68,0.6);"></div></div>
+              <div class="farr-lbl">approves</div>
+            </div>
+            <div class="fbox s-cancelled">CANCELLED + Ledger Reversal</div>
+          </div>
+          <div class="fbranch-row">
+            <div class="farr" style="margin-right:4px;">
+              <div class="farr-h"><div class="farr-line" style="width:28px;background:rgba(34,197,94,0.4);"></div><div class="farr-head" style="border-left-color:rgba(34,197,94,0.6);"></div></div>
+              <div class="farr-lbl">rejects</div>
+            </div>
+            <div class="fbox s-confirmed">CONFIRMED (restored)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── PAYMENT FLOW ── -->
+<section>
+  <div class="section-title">Payment Slip Flow</div>
+  <div class="flow-wrap" style="gap:0;">
+    <div class="flow-row">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <div class="fbox a-agent" style="min-width:130px;text-align:center;">Sub Agent</div>
+        <div style="font-size:0.7rem;color:#475569;text-align:center;max-width:130px;">selects parent's bank account, adds reference #</div>
+      </div>
+      <div class="farr">
+        <div class="farr-h"><div class="farr-line" style="width:36px;"></div><div class="farr-head" style="border-left-color:rgba(255,255,255,0.25);"></div></div>
+        <div class="farr-lbl">uploads slip</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <div class="fbox a-sys" style="min-width:150px;text-align:center;">DB Binary Storage</div>
+        <div style="font-size:0.7rem;color:#475569;text-align:center;max-width:150px;">slip image saved as BYTEA in booking_payments</div>
+      </div>
+      <div class="farr">
+        <div class="farr-h"><div class="farr-line" style="width:36px;"></div><div class="farr-head" style="border-left-color:rgba(255,255,255,0.25);"></div></div>
+        <div class="farr-lbl">parent reviews</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <div class="fbox a-admin" style="min-width:130px;text-align:center;">Agency Admin</div>
+        <div style="font-size:0.7rem;color:#475569;text-align:center;max-width:130px;">confirms booking → ledger debit for agent</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── ANNOUNCEMENT FLOW ── -->
+<section>
+  <div class="section-title">Announcement Routing</div>
+  <div class="ann-grid">
+
+    <div class="ann-card">
+      <div class="ann-sender" style="color:#c4b5fd;">✉ Super Admin sends</div>
+      <div class="ann-badge badge-agency">targetType: AGENCY_ADMINS</div>
+      <div class="ann-divider"></div>
+      <div class="ann-receivers">
+        <div class="ann-receiver" style="color:#93c5fd;">↳ All Master Agents (Level 2)</div>
+        <div class="ann-receiver" style="color:#5eead4;">↳ All Agency Admins (Level 3)</div>
+      </div>
+    </div>
+
+    <div class="ann-card">
+      <div class="ann-sender" style="color:#93c5fd;">✉ Master Agent sends</div>
+      <div class="ann-badge badge-child">targetType: CHILDREN</div>
+      <div class="ann-divider"></div>
+      <div class="ann-receivers">
+        <div class="ann-receiver" style="color:#5eead4;">↳ Agency Admins where<br/><code>parentId = master_agent.id</code></div>
+      </div>
+    </div>
+
+    <div class="ann-card">
+      <div class="ann-sender" style="color:#5eead4;">✉ Agency Admin sends</div>
+      <div class="ann-badge badge-child">targetType: CHILDREN</div>
+      <div class="ann-divider"></div>
+      <div class="ann-receivers">
+        <div class="ann-receiver" style="color:#86efac;">↳ Sub Agents where<br/><code>parentId = agency_admin.id</code></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── KEY RULES ── -->
+<section>
+  <div class="section-title">Key Business Rules</div>
+  <div class="two-col">
+
+    <div class="info-card">
+      <h4>Booking Rules</h4>
+      <ul>
+        <li>Sub Agent (L4) <strong>cannot</strong> confirm any booking</li>
+        <li>Agency Admin (L3) bookings are <strong>auto-confirmed</strong> instantly</li>
+        <li>No user can confirm their <strong>own</strong> booking</li>
+        <li>Approval queue shows only <strong>direct children's</strong> PENDING</li>
+        <li>Booking expires after agency-configured minutes (default 60)</li>
+        <li>Confirmation triggers PDF invoice + ledger DEBIT/CREDIT</li>
+      </ul>
+    </div>
+
+    <div class="info-card">
+      <h4>Announcement Rules</h4>
+      <ul>
+        <li>Sub Agent (L4) <strong>cannot</strong> create announcements</li>
+        <li>super_admin targets broadcast to <strong>all</strong> Level 2 &amp; Level 3</li>
+        <li>CHILDREN targets go to <strong>direct parentId</strong> matches only</li>
+        <li>Date filter: <code>validFrom</code> ≤ today ≤ <code>validUntil</code></li>
+        <li>Bell count tracked via <code>localStorage.readAnnouncements</code></li>
+        <li>Opening an announcement decrements bell count</li>
+      </ul>
+    </div>
+
+    <div class="info-card">
+      <h4>Image Storage (Binary DB)</h4>
+      <ul>
+        <li>All images stored as <code>BYTEA</code> in PostgreSQL — no filesystem</li>
+        <li>Announcement images → <code>announcements.image_data</code></li>
+        <li>Payment slips → <code>booking_payments.slip_image_data</code></li>
+        <li>Agency logos → <code>agencies.logo_data</code></li>
+        <li>Content-type column stored alongside each binary column</li>
+        <li>Served via <code>GET /api/.../image</code> endpoints (auth-gated)</li>
+      </ul>
+    </div>
+
+    <div class="info-card">
+      <h4>Permissions Model</h4>
+      <ul>
+        <li>super_admin uses <strong>role-based</strong> permissions (all 18)</li>
+        <li>All other roles use <strong>per-user custom permissions</strong></li>
+        <li>Custom permissions allow fine-grained user-level overrides</li>
+        <li>Hibernate <code>agencyFilter</code> scopes data by <code>agencyId</code></li>
+        <li>Native SQL used where agencyFilter must be bypassed (parentId lookup)</li>
+        <li><code>UserTypeLevel</code> (1–4) drives auto-confirm &amp; announcement logic</li>
+      </ul>
+    </div>
+
+    <div class="info-card">
+      <h4>Custom Package System</h4>
+      <ul>
+        <li>Super Admin defines <strong>Package Types</strong> (e.g. UAE Visa, UK Package)</li>
+        <li>Types are assigned per-agency via <code>agency_package_grants</code></li>
+        <li>Agency Admin sees dynamic sidebar items for each granted type</li>
+        <li>Agency Admin creates packages under a type, optionally restricts to specific sub-agents</li>
+        <li><code>visible_to_all=true</code> → all agency sub-agents see it</li>
+        <li><code>visible_to_all=false</code> → only listed users in <code>custom_package_user_grants</code></li>
+        <li>Booking uses <code>bookableType=custom</code> with quota enforcement</li>
+        <li>Quota full → 409 CONFLICT returned; UI disables button proactively</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<div style="text-align:center;color:#1e293b;font-size:0.75rem;margin-top:20px;">
+  TravelDesk Platform · Updated 2026-04-20
+</div>
+
+</body>
+</html>

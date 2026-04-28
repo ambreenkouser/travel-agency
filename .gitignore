@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Gradle build files
+.gradle/
+build/
+*.class
+
+# Line-ending normalisation
+* text=auto

@@ -1,38 +1,630 @@
 package com.example.travel.booking;
 
-import com.itextpdf.text.Document;
-import com.itextpdf.text.Paragraph;
-import com.itextpdf.text.pdf.PdfWriter;
+import com.example.travel.agency.Agency;
+import com.example.travel.agency.AgencyRepository;
+import com.example.travel.flight.Flight;
+import com.example.travel.flight.FlightLeg;
+import com.example.travel.flight.FlightLegRepository;
+import com.example.travel.flight.FlightRepository;
+import com.lowagie.text.Chunk;
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Element;
+import com.lowagie.text.Font;
+import com.lowagie.text.FontFactory;
+import com.lowagie.text.Image;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.Phrase;
+import com.lowagie.text.Rectangle;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
+import java.awt.Color;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 @Service
 public class InvoiceService {
 
+    private static final Color PRIMARY    = new Color(37, 99, 235);
+    private static final Color DARK       = new Color(17, 24, 39);
+    private static final Color MID        = new Color(107, 114, 128);
+    private static final Color LIGHT_BG   = new Color(243, 244, 246);
+    private static final Color WHITE      = Color.WHITE;
+    private static final Color BORDER     = new Color(209, 213, 219);
+    private static final Color GREEN      = new Color(22, 163, 74);
+    private static final Color RED        = new Color(220, 38, 38);
+    private static final Color AMBER      = new Color(202, 138, 4);
+    private static final Color TICKET_HDR = new Color(30, 64, 175); // blue-800
+
+    private static final DateTimeFormatter DT_FMT =
+            DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm").withZone(ZoneId.systemDefault());
+    private static final DateTimeFormatter DATE_FMT =
+            DateTimeFormatter.ofPattern("dd MMM yyyy").withZone(ZoneId.systemDefault());
+
+    private final AgencyRepository      agencyRepository;
+    private final PassengerRepository   passengerRepository;
+    private final FlightRepository      flightRepository;
+    private final FlightLegRepository   flightLegRepository;
+
+    public InvoiceService(AgencyRepository agencyRepository,
+                          PassengerRepository passengerRepository,
+                          FlightRepository flightRepository,
+                          FlightLegRepository flightLegRepository) {
+        this.agencyRepository    = agencyRepository;
+        this.passengerRepository = passengerRepository;
+        this.flightRepository    = flightRepository;
+        this.flightLegRepository = flightLegRepository;
+    }
+
+    @Transactional(readOnly = true)
     public String generateInvoicePdf(Long bookingId, Booking booking) {
         try {
             Path dir = Path.of("files", "invoices");
             Files.createDirectories(dir);
             Path pdfPath = dir.resolve(bookingId + ".pdf");
 
-            try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                 Document document = new Document()) {
-                PdfWriter.getInstance(document, baos);
-                document.open();
-                document.add(new Paragraph("Invoice #" + bookingId));
-                document.add(new Paragraph("Agency: " + booking.getAgencyId()));
-                document.add(new Paragraph("Bookable: " + booking.getBookableType() + " #" + booking.getBookableId()));
-                document.add(new Paragraph("Status: " + booking.getStatus()));
-                document.add(new Paragraph("Net Total: " + booking.getNetTotal() + " " + booking.getCurrency()));
-                document.add(new Paragraph("Tax: " + booking.getTaxTotal()));
-                document.close();
+            Agency         agency     = agencyRepository.findById(booking.getAgencyId()).orElse(null);
+            List<Passenger> passengers = passengerRepository.findByBookingId(bookingId);
+
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                Document doc = new Document(PageSize.A4, 40, 40, 50, 50);
+                PdfWriter.getInstance(doc, baos);
+                doc.open();
+
+                if ("flight".equalsIgnoreCase(booking.getBookableType())) {
+                    // JOIN FETCH ensures airline (and its logoUrl) is loaded in one query
+                    Flight flight = booking.getBookableId() != null
+                            ? flightRepository.findByIdWithAirline(booking.getBookableId()).orElse(null)
+                            : null;
+                    List<FlightLeg> legs = flight != null
+                            ? flightLegRepository.findByFlightIdOrderByLegOrder(flight.getId())
+                            : List.of();
+                    generateETicket(doc, booking, agency, passengers, flight, legs);
+                } else {
+                    generateInvoice(doc, booking, agency, passengers, bookingId);
+                }
+
+                doc.close();
                 Files.write(pdfPath, baos.toByteArray());
             }
             return pdfPath.toString();
+
         } catch (Exception e) {
-            throw new IllegalStateException("Failed to generate invoice", e);
+            throw new IllegalStateException("Failed to generate invoice for booking " + bookingId, e);
+        }
+    }
+
+    public byte[] getInvoiceBytes(Long bookingId) {
+        Path pdfPath = Path.of("files", "invoices").resolve(bookingId + ".pdf");
+        try {
+            if (!Files.exists(pdfPath)) {
+                throw new IllegalStateException("Invoice not yet generated for booking " + bookingId);
+            }
+            return Files.readAllBytes(pdfPath);
+        } catch (IllegalStateException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not read invoice file", e);
+        }
+    }
+
+    // ── E-Ticket Voucher ──────────────────────────────────────────────────────
+
+    private void generateETicket(Document doc, Booking booking, Agency agency,
+                                  List<Passenger> passengers, Flight flight,
+                                  List<FlightLeg> legs) throws DocumentException {
+
+        // ── Header ──
+        addETicketHeader(doc, booking, agency, flight, legs);
+        doc.add(gap(8));
+
+        // ── Tagline ──
+        Paragraph thanks = new Paragraph("Thank you for booking with us.", normal(10, MID));
+        thanks.setAlignment(Element.ALIGN_CENTER);
+        doc.add(thanks);
+        doc.add(gap(10));
+
+        // ── Passenger details ──
+        addTicketPassengersTable(doc, passengers);
+        doc.add(gap(10));
+
+        // ── Per-leg flight sections ──
+        for (FlightLeg leg : legs) {
+            addLegSection(doc, leg, flight);
+            doc.add(gap(6));
+        }
+
+        // ── Emergency Contact ──
+        addEmergencyContact(doc, agency);
+        doc.add(gap(10));
+
+        // ── Rules ──
+        addRules(doc);
+    }
+
+    private void addETicketHeader(Document doc, Booking booking, Agency agency,
+                                   Flight flight, List<FlightLeg> legs)
+            throws DocumentException {
+
+        // 3-column header: [logo + name] | [title + status] | [departure + PNR + flight]
+        PdfPTable top = new PdfPTable(3);
+        top.setWidthPercentage(100);
+        top.setWidths(new float[]{2f, 3f, 2f});
+
+        // ── Left: airline logo + name ──
+        PdfPCell leftCell = new PdfPCell();
+        leftCell.setBorder(Rectangle.NO_BORDER);
+        leftCell.setPadding(4);
+
+        String airlineName = (flight != null && flight.getAirline() != null)
+                ? flight.getAirline().getName()
+                : (agency != null ? agency.getName() : "Travel Agency");
+
+        if (flight != null && flight.getAirline() != null) {
+            String logoUrl = flight.getAirline().getLogoUrl();
+            Image img = loadImage(logoUrl);
+            if (img != null) {
+                img.scaleToFit(100, 45);
+                // Wrap image in Chunk inside Paragraph — required for OpenPDF to render
+                // images correctly inside PdfPCell composite mode
+                Paragraph imgPara = new Paragraph();
+                imgPara.add(new Chunk(img, 0, 0));
+                leftCell.addElement(imgPara);
+            }
+        }
+        leftCell.addElement(styledParagraph(airlineName, bold(9, DARK), Element.ALIGN_LEFT));
+        top.addCell(leftCell);
+
+        // ── Center: title + status ──
+        PdfPCell centerCell = new PdfPCell();
+        centerCell.setBorder(Rectangle.NO_BORDER);
+        centerCell.setPadding(4);
+        centerCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        centerCell.addElement(styledParagraph("E-Ticket Voucher", bold(16, TICKET_HDR), Element.ALIGN_CENTER));
+        Color sc = statusColor(booking.getStatus());
+        centerCell.addElement(styledParagraph(booking.getStatus().name(), bold(10, sc), Element.ALIGN_CENTER));
+        top.addCell(centerCell);
+
+        // ── Right: departure date + PNR + flight number ──
+        PdfPCell rightCell = new PdfPCell();
+        rightCell.setBorder(Rectangle.NO_BORDER);
+        rightCell.setPadding(4);
+
+        if (!legs.isEmpty() && legs.get(0).getDepartAt() != null) {
+            rightCell.addElement(styledParagraph(
+                    "Departure: " + DATE_FMT.format(legs.get(0).getDepartAt()),
+                    normal(9, DARK), Element.ALIGN_RIGHT));
+        }
+        if (flight != null && flight.getPnrCode() != null && !flight.getPnrCode().isBlank()) {
+            rightCell.addElement(styledParagraph("PNR: " + flight.getPnrCode(),
+                    bold(11, PRIMARY), Element.ALIGN_RIGHT));
+        }
+        if (flight != null && flight.getFlightNumber() != null && !flight.getFlightNumber().isBlank()) {
+            rightCell.addElement(styledParagraph("Flight: " + flight.getFlightNumber(),
+                    normal(9, MID), Element.ALIGN_RIGHT));
+        }
+        top.addCell(rightCell);
+
+        doc.add(top);
+
+        // ── Blue divider line ──
+        PdfPTable line = new PdfPTable(1);
+        line.setWidthPercentage(100);
+        PdfPCell lineCell = new PdfPCell(new Phrase(" "));
+        lineCell.setBackgroundColor(PRIMARY);
+        lineCell.setFixedHeight(3);
+        lineCell.setBorder(Rectangle.NO_BORDER);
+        line.addCell(lineCell);
+        doc.add(line);
+    }
+
+    private void addTicketPassengersTable(Document doc, List<Passenger> passengers)
+            throws DocumentException {
+        doc.add(styledParagraph("Passenger Details", bold(10, TICKET_HDR), Element.ALIGN_LEFT));
+        doc.add(gap(4));
+
+        PdfPTable t = new PdfPTable(3);
+        t.setWidthPercentage(100);
+        t.setWidths(new float[]{3f, 2f, 1.5f});
+
+        addTableHeader(t, "Passenger Name", "Passport No", "Status");
+        for (Passenger p : passengers) {
+            String name   = p.getFirstName() + " " + p.getLastName();
+            String pport  = nvl(p.getPassportNo());
+            String status = p.getType() != null ? p.getType().name() : "—";
+            addTableCell(t, name,   false);
+            addTableCell(t, pport,  false);
+            addTableCell(t, status, false);
+        }
+        if (passengers.isEmpty()) {
+            PdfPCell empty = new PdfPCell(new Phrase("—", normal(9, MID)));
+            empty.setColspan(3);
+            empty.setPadding(6);
+            empty.setBorderColor(BORDER);
+            t.addCell(empty);
+        }
+        doc.add(t);
+    }
+
+    private void addLegSection(Document doc, FlightLeg leg, Flight flight)
+            throws DocumentException {
+
+        String airlineCode = (flight != null && flight.getAirline() != null)
+                ? flight.getAirline().getCode() : "—";
+        String flightNo    = (flight != null && flight.getFlightNumber() != null)
+                ? flight.getFlightNumber() : "—";
+
+        // Section header: ✈ Departure from ORIGIN (Flight CODE:NUMBER)
+        String header = "✈ Departure from " + leg.getOrigin()
+                + " (Flight " + airlineCode + ":" + flightNo + ")";
+        Paragraph hdr = new Paragraph(header, bold(10, WHITE));
+        hdr.setAlignment(Element.ALIGN_LEFT);
+
+        PdfPTable hdrTable = new PdfPTable(1);
+        hdrTable.setWidthPercentage(100);
+        PdfPCell hdrCell = new PdfPCell(hdr);
+        hdrCell.setBackgroundColor(TICKET_HDR);
+        hdrCell.setPadding(6);
+        hdrCell.setBorder(Rectangle.NO_BORDER);
+        hdrTable.addCell(hdrCell);
+        doc.add(hdrTable);
+
+        // 3-column detail: Departure | Arrival | Class / Baggage / Seat
+        PdfPTable detail = new PdfPTable(3);
+        detail.setWidthPercentage(100);
+        detail.setWidths(new float[]{1f, 1f, 1f});
+
+        // Column headers
+        addTableHeader(detail, "Departure", "Arrival", "Baggage / Info");
+
+        // Column values
+        String depart  = leg.getDepartAt()  != null ? DT_FMT.format(leg.getDepartAt())  : "—";
+        String arrive  = leg.getArriveAt()  != null ? DT_FMT.format(leg.getArriveAt())  : "—";
+        String baggage = leg.getBaggageKg() != null ? leg.getBaggageKg() + " kg" : "—";
+        if (flight != null && flight.getBaggageInfo() != null && !flight.getBaggageInfo().isBlank()) {
+            baggage = baggage + " / " + flight.getBaggageInfo();
+        }
+
+        addTableCell(detail, depart,  false);
+        addTableCell(detail, arrive,  false);
+        addTableCell(detail, baggage, false);
+
+        doc.add(detail);
+
+        // From → To line
+        Paragraph route = new Paragraph(leg.getOrigin() + "  →  " + leg.getDestination(),
+                normal(9, MID));
+        route.setSpacingBefore(3);
+        doc.add(route);
+    }
+
+    private void addEmergencyContact(Document doc, Agency agency) throws DocumentException {
+        PdfPTable t = new PdfPTable(1);
+        t.setWidthPercentage(100);
+
+        PdfPCell cell = new PdfPCell();
+        cell.setBackgroundColor(LIGHT_BG);
+        cell.setBorderColor(BORDER);
+        cell.setPadding(10);
+
+        cell.addElement(styledParagraph("Emergency Contact", bold(10, TICKET_HDR), Element.ALIGN_LEFT));
+        cell.addElement(gap(4));
+
+        String agencyName = agency != null ? agency.getName()     : "Travel Agency";
+        String contactNo  = agency != null ? nvl(agency.getContactNo()) : "—";
+        String address    = agency != null ? nvl(agency.getAddress())   : "—";
+
+        cell.addElement(new Phrase("Agency: "     + agencyName, bold(9, DARK)));
+        cell.addElement(gap(2));
+        cell.addElement(new Phrase("Contact No: " + contactNo,  normal(9, DARK)));
+        cell.addElement(gap(2));
+        cell.addElement(new Phrase("Address: "    + address,    normal(9, DARK)));
+
+        t.addCell(cell);
+        doc.add(t);
+    }
+
+    private void addRules(Document doc) throws DocumentException {
+        doc.add(styledParagraph("Important Information", bold(10, TICKET_HDR), Element.ALIGN_LEFT));
+        doc.add(gap(4));
+
+        String[] rules = {
+            "Check-in at least 4 hours before departure for international flights.",
+            "Reconfirm your flight 48 hours prior to departure.",
+            "Passengers are responsible for obtaining valid visas and travel documents.",
+            "Group bookings are non-refundable once confirmed.",
+            "LLC fares are non-refundable and non-transferable."
+        };
+        for (String rule : rules) {
+            Paragraph p = new Paragraph("•  " + rule, normal(9, DARK));
+            p.setSpacingAfter(3);
+            doc.add(p);
+        }
+    }
+
+    // ── Standard Invoice (non-flight bookings) ────────────────────────────────
+
+    private void generateInvoice(Document doc, Booking booking, Agency agency,
+                                  List<Passenger> passengers, Long bookingId)
+            throws DocumentException {
+        addHeader(doc, agency, booking, bookingId);
+        doc.add(gap(12));
+        addBookingDetails(doc, booking);
+        doc.add(gap(12));
+        if (!passengers.isEmpty()) {
+            addPassengersTable(doc, passengers);
+            doc.add(gap(12));
+        }
+        addPricingTable(doc, booking);
+        doc.add(gap(20));
+        addFooter(doc, agency);
+    }
+
+    private void addHeader(Document doc, Agency agency, Booking booking, Long bookingId)
+            throws DocumentException {
+        PdfPTable header = new PdfPTable(2);
+        header.setWidthPercentage(100);
+        header.setWidths(new float[]{3f, 2f});
+
+        PdfPCell left = new PdfPCell();
+        left.setBorder(Rectangle.NO_BORDER);
+        left.setPaddingBottom(8);
+        Image agencyLogo = loadImage(agency != null ? agency.getLogoPath() : null);
+        if (agencyLogo != null) {
+            agencyLogo.scaleToFit(120, 50);
+            left.addElement(agencyLogo);
+            left.addElement(gap(4));
+        }
+        String agencyName = agency != null ? agency.getName() : "Travel Agency";
+        left.addElement(styledParagraph(agencyName, bold(16, PRIMARY), Element.ALIGN_LEFT));
+        if (agency != null && agency.getSubscriptionPlan() != null) {
+            left.addElement(styledParagraph(agency.getSubscriptionPlan(), normal(9, MID), Element.ALIGN_LEFT));
+        }
+        header.addCell(left);
+
+        PdfPCell right = new PdfPCell();
+        right.setBorder(Rectangle.NO_BORDER);
+        right.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        right.addElement(styledParagraph("INVOICE", bold(18, DARK), Element.ALIGN_RIGHT));
+        right.addElement(styledParagraph("# " + String.format("%06d", bookingId), normal(10, MID), Element.ALIGN_RIGHT));
+        right.addElement(styledParagraph("Status: " + booking.getStatus().name(),
+                bold(9, statusColor(booking.getStatus())), Element.ALIGN_RIGHT));
+        header.addCell(right);
+
+        PdfPTable divider = new PdfPTable(1);
+        divider.setWidthPercentage(100);
+        PdfPCell line = new PdfPCell(new Phrase(" "));
+        line.setBackgroundColor(PRIMARY);
+        line.setFixedHeight(3);
+        line.setBorder(Rectangle.NO_BORDER);
+        divider.addCell(line);
+
+        doc.add(header);
+        doc.add(divider);
+    }
+
+    private void addBookingDetails(Document doc, Booking booking) throws DocumentException {
+        doc.add(sectionTitle("BOOKING DETAILS"));
+        PdfPTable t = twoColTable();
+        addDetailRow(t, "Booking Type", capitalize(booking.getBookableType()));
+        addDetailRow(t, "Reference ID", "#" + booking.getBookableId());
+        addDetailRow(t, "Currency",     booking.getCurrency() != null ? booking.getCurrency() : "PKR");
+        doc.add(t);
+    }
+
+    private void addPassengersTable(Document doc, List<Passenger> passengers) throws DocumentException {
+        doc.add(sectionTitle("PASSENGERS"));
+        PdfPTable t = new PdfPTable(5);
+        t.setWidthPercentage(100);
+        t.setWidths(new float[]{0.5f, 2f, 1f, 1.5f, 1.5f});
+        addTableHeader(t, "#", "Full Name", "Type", "Passport No.", "Nationality");
+        int i = 1;
+        for (Passenger p : passengers) {
+            boolean shaded = (i % 2 == 0);
+            addTableCell(t, String.valueOf(i++),                          shaded);
+            addTableCell(t, p.getFirstName() + " " + p.getLastName(),    shaded);
+            addTableCell(t, p.getType() != null ? p.getType().name() : "—", shaded);
+            addTableCell(t, nvl(p.getPassportNo()),                       shaded);
+            addTableCell(t, nvl(p.getNationality()),                      shaded);
+        }
+        doc.add(t);
+    }
+
+    private void addPricingTable(Document doc, Booking booking) throws DocumentException {
+        doc.add(sectionTitle("PRICING BREAKDOWN"));
+        PdfPTable t = new PdfPTable(2);
+        t.setWidthPercentage(60);
+        t.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        t.setWidths(new float[]{3f, 1.5f});
+
+        Map<String, Object> snap = booking.getPricingSnapshot();
+        String currency = booking.getCurrency() != null ? booking.getCurrency() : "PKR";
+
+        if (snap != null) {
+            int adults   = intFrom(snap, "adults");
+            int children = intFrom(snap, "children");
+            int infants  = intFrom(snap, "infants");
+            if (adults   > 0) addPriceRow(t, "Adults   (" + adults   + " × " + fmt(snap, "fareAdult")  + ")", fmt(snap, "base"),   false, currency, false);
+            if (children > 0) addPriceRow(t, "Children (" + children + " × " + fmt(snap, "fareChild")  + ")", fmtMul(snap, "fareChild",  children), false, currency, false);
+            if (infants  > 0) addPriceRow(t, "Infants  (" + infants  + " × " + fmt(snap, "fareInfant") + ")", fmtMul(snap, "fareInfant", infants),  false, currency, false);
+            addPriceRow(t, "Base Fare",   fmt(snap, "base"),   false, currency, false);
+            addPriceRow(t, "Taxes",       fmt(snap, "taxes"),  false, currency, false);
+            addPriceRow(t, "Fees",        fmt(snap, "fees"),   false, currency, false);
+            addPriceRow(t, "Gross Total", fmt(snap, "gross"),  true,  currency, false);
+            addPriceRow(t, "Discounts", "- " + fmt(snap, "discounts"), false, currency, false);
+        }
+        addPriceRow(t, "NET TOTAL", money(booking.getNetTotal(), currency), true, currency, true);
+        doc.add(t);
+    }
+
+    private void addFooter(Document doc, Agency agency) throws DocumentException {
+        PdfPTable t = new PdfPTable(1);
+        t.setWidthPercentage(100);
+        PdfPCell cell = new PdfPCell();
+        cell.setBackgroundColor(LIGHT_BG);
+        cell.setBorderColor(BORDER);
+        cell.setPadding(10);
+        String agencyName = agency != null ? agency.getName() : "Travel Agency";
+        cell.addElement(styledParagraph(
+                "Thank you for choosing " + agencyName + ". This is a system-generated invoice.",
+                normal(9, MID), Element.ALIGN_CENTER));
+        t.addCell(cell);
+        doc.add(t);
+    }
+
+    // ── Shared helpers ────────────────────────────────────────────────────────
+
+    private PdfPTable twoColTable() throws DocumentException {
+        PdfPTable t = new PdfPTable(2);
+        t.setWidthPercentage(100);
+        t.setWidths(new float[]{1.5f, 3f});
+        return t;
+    }
+
+    private void addDetailRow(PdfPTable t, String label, String value) {
+        PdfPCell lc = new PdfPCell(new Phrase(label, bold(9, DARK)));
+        lc.setBorderColor(BORDER); lc.setPadding(6); lc.setBackgroundColor(LIGHT_BG);
+        t.addCell(lc);
+        PdfPCell vc = new PdfPCell(new Phrase(value, normal(9, DARK)));
+        vc.setBorderColor(BORDER); vc.setPadding(6);
+        t.addCell(vc);
+    }
+
+    private void addTableHeader(PdfPTable t, String... headers) {
+        for (String h : headers) {
+            PdfPCell c = new PdfPCell(new Phrase(h, bold(9, WHITE)));
+            c.setBackgroundColor(PRIMARY); c.setBorderColor(PRIMARY); c.setPadding(6);
+            t.addCell(c);
+        }
+    }
+
+    private void addTableCell(PdfPTable t, String value, boolean shaded) {
+        PdfPCell c = new PdfPCell(new Phrase(value, normal(9, DARK)));
+        c.setBackgroundColor(shaded ? LIGHT_BG : WHITE);
+        c.setBorderColor(BORDER); c.setPadding(5);
+        t.addCell(c);
+    }
+
+    private void addPriceRow(PdfPTable t, String label, String value,
+                              boolean isBold, String currency, boolean highlight) {
+        Color bg  = highlight ? PRIMARY : WHITE;
+        Color fg  = highlight ? WHITE   : DARK;
+        Color lFg = highlight ? WHITE   : MID;
+        PdfPCell lc = new PdfPCell(new Phrase(label, isBold ? bold(9, lFg) : normal(9, lFg)));
+        lc.setBackgroundColor(bg); lc.setBorderColor(BORDER); lc.setPadding(6);
+        t.addCell(lc);
+        PdfPCell vc = new PdfPCell(new Phrase(value, isBold ? bold(9, fg) : normal(9, fg)));
+        vc.setBackgroundColor(bg); vc.setBorderColor(BORDER); vc.setPadding(6);
+        vc.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        t.addCell(vc);
+    }
+
+    private Paragraph sectionTitle(String title) {
+        Paragraph p = new Paragraph(title, bold(10, PRIMARY));
+        p.setSpacingBefore(4); p.setSpacingAfter(6);
+        return p;
+    }
+
+    private Paragraph styledParagraph(String text, Font font, int align) {
+        Paragraph p = new Paragraph(text, font);
+        p.setAlignment(align);
+        return p;
+    }
+
+    private Chunk gap(float height) {
+        return new Chunk("\n");
+    }
+
+    private Font bold(int size, Color color) {
+        Font f = FontFactory.getFont(FontFactory.HELVETICA_BOLD, size);
+        f.setColor(color);
+        return f;
+    }
+
+    private Font normal(int size, Color color) {
+        Font f = FontFactory.getFont(FontFactory.HELVETICA, size);
+        f.setColor(color);
+        return f;
+    }
+
+    private Color statusColor(BookingStatus status) {
+        return switch (status) {
+            case CONFIRMED -> GREEN;
+            case CANCELLED -> RED;
+            default        -> AMBER;
+        };
+    }
+
+    private String capitalize(String s) {
+        if (s == null || s.isBlank()) return "—";
+        return Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase();
+    }
+
+    private String nvl(String s) {
+        return (s == null || s.isBlank()) ? "—" : s;
+    }
+
+    private String money(BigDecimal v, String currency) {
+        if (v == null) return currency + " 0.00";
+        return currency + " " + String.format("%,.2f", v);
+    }
+
+    private String fmt(Map<String, Object> snap, String key) {
+        Object v = snap.get(key);
+        if (v == null) return "0.00";
+        if (v instanceof BigDecimal bd) return String.format("%,.2f", bd);
+        return v.toString();
+    }
+
+    private String fmtMul(Map<String, Object> snap, String key, int qty) {
+        Object v = snap.get(key);
+        if (v instanceof BigDecimal bd) return String.format("%,.2f", bd.multiply(BigDecimal.valueOf(qty)));
+        return "0.00";
+    }
+
+    private int intFrom(Map<String, Object> snap, String key) {
+        Object v = snap.get(key);
+        if (v instanceof Number n) return n.intValue();
+        return 0;
+    }
+
+    /**
+     * Downloads an image from a URL (or loads from file path) and returns an iText Image.
+     * Uses HttpURLConnection with timeout and User-Agent to handle CDN-hosted logos reliably.
+     * Returns null if the URL is blank or cannot be loaded.
+     */
+    private Image loadImage(String urlOrPath) {
+        if (urlOrPath == null || urlOrPath.isBlank()) return null;
+        try {
+            if (urlOrPath.startsWith("http://") || urlOrPath.startsWith("https://")) {
+                HttpURLConnection conn = (HttpURLConnection) new URL(urlOrPath).openConnection();
+                conn.setConnectTimeout(6000);
+                conn.setReadTimeout(6000);
+                conn.setInstanceFollowRedirects(true);
+                conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+                try (InputStream in = conn.getInputStream()) {
+                    byte[] bytes = in.readAllBytes();
+                    return Image.getInstance(bytes);
+                }
+            } else {
+                // Local file path fallback
+                return Image.getInstance(urlOrPath);
+            }
+        } catch (Exception e) {
+            return null;
         }
     }
 }
