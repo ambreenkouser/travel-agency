@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-04-13T16:57:07+0500",
+    date = "2026-04-28T22:11:59+0500",
     comments = "version: 1.5.5.Final, compiler: IncrementalProcessingEnvironment from gradle-language-java-8.14.jar, environment: Java 18.0.2.1 (Oracle Corporation)"
 )
 @Component
@@ -59,8 +59,11 @@ public class BookingMapperImpl implements BookingMapper {
 
         String bookedByName = null;
         BookingPaymentDto payment = null;
+        String bookableTitle = null;
+        String flightNumber = null;
+        String pnrCode = null;
 
-        BookingDto bookingDto = new BookingDto( id, bookableType, bookableId, status, grossTotal, netTotal, taxTotal, currency, createdAt, expiresAt, passengers, bookedByUserId, bookedByName, paymentComment, approvedByUserId, payment );
+        BookingDto bookingDto = new BookingDto( id, bookableType, bookableId, status, grossTotal, netTotal, taxTotal, currency, createdAt, expiresAt, passengers, bookedByUserId, bookedByName, paymentComment, approvedByUserId, payment, bookableTitle, flightNumber, pnrCode );
 
         return bookingDto;
     }

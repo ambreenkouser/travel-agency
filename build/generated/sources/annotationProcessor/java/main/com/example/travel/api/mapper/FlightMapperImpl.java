@@ -1,19 +1,20 @@
 package com.example.travel.api.mapper;
 
 import com.example.travel.api.dto.FlightDto;
+import com.example.travel.api.dto.FlightLegDto;
 import com.example.travel.flight.Airline;
 import com.example.travel.flight.Flight;
-import com.example.travel.flight.Route;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import javax.annotation.processing.Generated;
 import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-04-10T16:42:43+0500",
+    date = "2026-04-28T22:11:58+0500",
     comments = "version: 1.5.5.Final, compiler: IncrementalProcessingEnvironment from gradle-language-java-8.14.jar, environment: Java 18.0.2.1 (Oracle Corporation)"
 )
 @Component
@@ -27,46 +28,58 @@ public class FlightMapperImpl implements FlightMapper {
 
         String airlineCode = null;
         String airlineName = null;
-        String origin = null;
-        String destination = null;
-        Integer durationMins = null;
-        String routeType = null;
         Long id = null;
-        OffsetDateTime departAt = null;
-        OffsetDateTime arriveAt = null;
         BigDecimal fareAdult = null;
         BigDecimal fareChild = null;
         BigDecimal fareInfant = null;
         BigDecimal taxTotal = null;
+        BigDecimal costAdult = null;
+        BigDecimal costChild = null;
+        BigDecimal costInfant = null;
         String baggageInfo = null;
+        String flightNumber = null;
+        String pnrCode = null;
+        String groupName = null;
         String status = null;
         Map<String, Object> extras = null;
         Integer seatQuota = null;
+        String contactPersonPhone = null;
+        String contactPersonEmail = null;
+        String flightClass = null;
 
         airlineCode = flightAirlineCode( flight );
         airlineName = flightAirlineName( flight );
-        origin = flightRouteOrigin( flight );
-        destination = flightRouteDestination( flight );
-        durationMins = flightRouteDurationMins( flight );
-        routeType = flightRouteRouteType( flight );
         id = flight.getId();
-        departAt = flight.getDepartAt();
-        arriveAt = flight.getArriveAt();
         fareAdult = flight.getFareAdult();
         fareChild = flight.getFareChild();
         fareInfant = flight.getFareInfant();
         taxTotal = flight.getTaxTotal();
+        costAdult = flight.getCostAdult();
+        costChild = flight.getCostChild();
+        costInfant = flight.getCostInfant();
         baggageInfo = flight.getBaggageInfo();
+        flightNumber = flight.getFlightNumber();
+        pnrCode = flight.getPnrCode();
+        groupName = flight.getGroupName();
         status = flight.getStatus();
         Map<String, Object> map = flight.getExtras();
         if ( map != null ) {
             extras = new LinkedHashMap<String, Object>( map );
         }
         seatQuota = flight.getSeatQuota();
+        contactPersonPhone = flight.getContactPersonPhone();
+        contactPersonEmail = flight.getContactPersonEmail();
+        flightClass = flight.getFlightClass();
 
+        String origin = null;
+        String destination = null;
+        OffsetDateTime departAt = null;
+        OffsetDateTime arriveAt = null;
         Integer availableSeats = null;
+        List<FlightLegDto> legs = null;
+        String airlineLogoUrl = null;
 
-        FlightDto flightDto = new FlightDto( id, airlineCode, airlineName, origin, destination, durationMins, departAt, arriveAt, fareAdult, fareChild, fareInfant, taxTotal, baggageInfo, status, routeType, extras, seatQuota, availableSeats );
+        FlightDto flightDto = new FlightDto( id, airlineCode, airlineName, airlineLogoUrl, origin, destination, departAt, arriveAt, fareAdult, fareChild, fareInfant, taxTotal, costAdult, costChild, costInfant, baggageInfo, flightNumber, pnrCode, groupName, status, extras, seatQuota, availableSeats, legs, contactPersonPhone, contactPersonEmail, flightClass );
 
         return flightDto;
     }
@@ -99,65 +112,5 @@ public class FlightMapperImpl implements FlightMapper {
             return null;
         }
         return name;
-    }
-
-    private String flightRouteOrigin(Flight flight) {
-        if ( flight == null ) {
-            return null;
-        }
-        Route route = flight.getRoute();
-        if ( route == null ) {
-            return null;
-        }
-        String origin = route.getOrigin();
-        if ( origin == null ) {
-            return null;
-        }
-        return origin;
-    }
-
-    private String flightRouteDestination(Flight flight) {
-        if ( flight == null ) {
-            return null;
-        }
-        Route route = flight.getRoute();
-        if ( route == null ) {
-            return null;
-        }
-        String destination = route.getDestination();
-        if ( destination == null ) {
-            return null;
-        }
-        return destination;
-    }
-
-    private Integer flightRouteDurationMins(Flight flight) {
-        if ( flight == null ) {
-            return null;
-        }
-        Route route = flight.getRoute();
-        if ( route == null ) {
-            return null;
-        }
-        Integer durationMins = route.getDurationMins();
-        if ( durationMins == null ) {
-            return null;
-        }
-        return durationMins;
-    }
-
-    private String flightRouteRouteType(Flight flight) {
-        if ( flight == null ) {
-            return null;
-        }
-        Route route = flight.getRoute();
-        if ( route == null ) {
-            return null;
-        }
-        String routeType = route.getRouteType();
-        if ( routeType == null ) {
-            return null;
-        }
-        return routeType;
     }
 }

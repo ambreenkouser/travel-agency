@@ -355,153 +355,159 @@ public class InvoiceService {
         }
     }
 
-    // ── Standard Invoice (non-flight bookings) ────────────────────────────────
+    // ── Package Voucher (non-flight bookings) ────────────────────────────────
 
     private void generateInvoice(Document doc, Booking booking, Agency agency,
                                   List<Passenger> passengers, Long bookingId)
             throws DocumentException {
-        addHeader(doc, agency, booking, bookingId);
-        doc.add(gap(12));
-        addBookingDetails(doc, booking);
-        doc.add(gap(12));
-        if (!passengers.isEmpty()) {
-            addPassengersTable(doc, passengers);
-            doc.add(gap(12));
-        }
-        addPricingTable(doc, booking);
-        doc.add(gap(20));
-        addFooter(doc, agency);
+
+        // ── Header (mirrors e-ticket layout) ──
+        addVoucherHeader(doc, booking, agency, bookingId);
+        doc.add(gap(8));
+
+        // ── Tagline ──
+        Paragraph thanks = new Paragraph("Thank you for booking with us.", normal(10, MID));
+        thanks.setAlignment(Element.ALIGN_CENTER);
+        doc.add(thanks);
+        doc.add(gap(10));
+
+        // ── Passengers ──
+        addTicketPassengersTable(doc, passengers);
+        doc.add(gap(10));
+
+        // ── Package details section ──
+        addPackageDetailsSection(doc, booking);
+        doc.add(gap(10));
+
+        // ── Emergency contact ──
+        addEmergencyContact(doc, agency);
+        doc.add(gap(10));
+
+        // ── Rules ──
+        addRules(doc);
     }
 
-    private void addHeader(Document doc, Agency agency, Booking booking, Long bookingId)
+    private void addVoucherHeader(Document doc, Booking booking, Agency agency, Long bookingId)
             throws DocumentException {
-        PdfPTable header = new PdfPTable(2);
-        header.setWidthPercentage(100);
-        header.setWidths(new float[]{3f, 2f});
 
-        PdfPCell left = new PdfPCell();
-        left.setBorder(Rectangle.NO_BORDER);
-        left.setPaddingBottom(8);
+        // 3-column: [agency logo + name] | [Package Voucher + status] | [booking ref + date + total]
+        PdfPTable top = new PdfPTable(3);
+        top.setWidthPercentage(100);
+        top.setWidths(new float[]{2f, 3f, 2f});
+
+        // ── Left: agency logo + name ──
+        PdfPCell leftCell = new PdfPCell();
+        leftCell.setBorder(Rectangle.NO_BORDER);
+        leftCell.setPadding(4);
+
+        String agencyName = agency != null ? agency.getName() : "Travel Agency";
         Image agencyLogo = loadImage(agency != null ? agency.getLogoPath() : null);
         if (agencyLogo != null) {
-            agencyLogo.scaleToFit(120, 50);
-            left.addElement(agencyLogo);
-            left.addElement(gap(4));
+            agencyLogo.scaleToFit(100, 45);
+            Paragraph imgPara = new Paragraph();
+            imgPara.add(new Chunk(agencyLogo, 0, 0));
+            leftCell.addElement(imgPara);
         }
-        String agencyName = agency != null ? agency.getName() : "Travel Agency";
-        left.addElement(styledParagraph(agencyName, bold(16, PRIMARY), Element.ALIGN_LEFT));
-        if (agency != null && agency.getSubscriptionPlan() != null) {
-            left.addElement(styledParagraph(agency.getSubscriptionPlan(), normal(9, MID), Element.ALIGN_LEFT));
+        leftCell.addElement(styledParagraph(agencyName, bold(9, DARK), Element.ALIGN_LEFT));
+        top.addCell(leftCell);
+
+        // ── Center: title + package type + status ──
+        PdfPCell centerCell = new PdfPCell();
+        centerCell.setBorder(Rectangle.NO_BORDER);
+        centerCell.setPadding(4);
+        centerCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        centerCell.addElement(styledParagraph("Package Voucher", bold(16, TICKET_HDR), Element.ALIGN_CENTER));
+        centerCell.addElement(styledParagraph(capitalize(booking.getBookableType()), normal(9, MID), Element.ALIGN_CENTER));
+        Color sc = statusColor(booking.getStatus());
+        centerCell.addElement(styledParagraph(booking.getStatus().name(), bold(10, sc), Element.ALIGN_CENTER));
+        top.addCell(centerCell);
+
+        // ── Right: booking ref + date + gross total ──
+        PdfPCell rightCell = new PdfPCell();
+        rightCell.setBorder(Rectangle.NO_BORDER);
+        rightCell.setPadding(4);
+
+        rightCell.addElement(styledParagraph(
+                "Booking #" + String.format("%06d", bookingId),
+                bold(11, PRIMARY), Element.ALIGN_RIGHT));
+
+        if (booking.getCreatedAt() != null) {
+            rightCell.addElement(styledParagraph(
+                    "Date: " + DATE_FMT.format(booking.getCreatedAt()),
+                    normal(9, DARK), Element.ALIGN_RIGHT));
         }
-        header.addCell(left);
 
-        PdfPCell right = new PdfPCell();
-        right.setBorder(Rectangle.NO_BORDER);
-        right.setHorizontalAlignment(Element.ALIGN_RIGHT);
-        right.addElement(styledParagraph("INVOICE", bold(18, DARK), Element.ALIGN_RIGHT));
-        right.addElement(styledParagraph("# " + String.format("%06d", bookingId), normal(10, MID), Element.ALIGN_RIGHT));
-        right.addElement(styledParagraph("Status: " + booking.getStatus().name(),
-                bold(9, statusColor(booking.getStatus())), Element.ALIGN_RIGHT));
-        header.addCell(right);
-
-        PdfPTable divider = new PdfPTable(1);
-        divider.setWidthPercentage(100);
-        PdfPCell line = new PdfPCell(new Phrase(" "));
-        line.setBackgroundColor(PRIMARY);
-        line.setFixedHeight(3);
-        line.setBorder(Rectangle.NO_BORDER);
-        divider.addCell(line);
-
-        doc.add(header);
-        doc.add(divider);
-    }
-
-    private void addBookingDetails(Document doc, Booking booking) throws DocumentException {
-        doc.add(sectionTitle("BOOKING DETAILS"));
-        PdfPTable t = twoColTable();
-        addDetailRow(t, "Booking Type", capitalize(booking.getBookableType()));
-        addDetailRow(t, "Reference ID", "#" + booking.getBookableId());
-        addDetailRow(t, "Currency",     booking.getCurrency() != null ? booking.getCurrency() : "PKR");
-        doc.add(t);
-    }
-
-    private void addPassengersTable(Document doc, List<Passenger> passengers) throws DocumentException {
-        doc.add(sectionTitle("PASSENGERS"));
-        PdfPTable t = new PdfPTable(5);
-        t.setWidthPercentage(100);
-        t.setWidths(new float[]{0.5f, 2f, 1f, 1.5f, 1.5f});
-        addTableHeader(t, "#", "Full Name", "Type", "Passport No.", "Nationality");
-        int i = 1;
-        for (Passenger p : passengers) {
-            boolean shaded = (i % 2 == 0);
-            addTableCell(t, String.valueOf(i++),                          shaded);
-            addTableCell(t, p.getFirstName() + " " + p.getLastName(),    shaded);
-            addTableCell(t, p.getType() != null ? p.getType().name() : "—", shaded);
-            addTableCell(t, nvl(p.getPassportNo()),                       shaded);
-            addTableCell(t, nvl(p.getNationality()),                      shaded);
-        }
-        doc.add(t);
-    }
-
-    private void addPricingTable(Document doc, Booking booking) throws DocumentException {
-        doc.add(sectionTitle("PRICING BREAKDOWN"));
-        PdfPTable t = new PdfPTable(2);
-        t.setWidthPercentage(60);
-        t.setHorizontalAlignment(Element.ALIGN_RIGHT);
-        t.setWidths(new float[]{3f, 1.5f});
-
-        Map<String, Object> snap = booking.getPricingSnapshot();
         String currency = booking.getCurrency() != null ? booking.getCurrency() : "PKR";
+        if (booking.getGrossTotal() != null) {
+            rightCell.addElement(styledParagraph(
+                    "Total: " + money(booking.getGrossTotal(), currency),
+                    bold(9, DARK), Element.ALIGN_RIGHT));
+        }
+        top.addCell(rightCell);
 
+        doc.add(top);
+
+        // ── Blue divider line ──
+        PdfPTable line = new PdfPTable(1);
+        line.setWidthPercentage(100);
+        PdfPCell lineCell = new PdfPCell(new Phrase(" "));
+        lineCell.setBackgroundColor(PRIMARY);
+        lineCell.setFixedHeight(3);
+        lineCell.setBorder(Rectangle.NO_BORDER);
+        line.addCell(lineCell);
+        doc.add(line);
+    }
+
+    private void addPackageDetailsSection(Document doc, Booking booking) throws DocumentException {
+
+        // Section header bar (same style as flight leg header)
+        String pkgType = capitalize(booking.getBookableType()) + " Package";
+        Paragraph hdr = new Paragraph("📦  " + pkgType + " Details", bold(10, WHITE));
+        hdr.setAlignment(Element.ALIGN_LEFT);
+
+        PdfPTable hdrTable = new PdfPTable(1);
+        hdrTable.setWidthPercentage(100);
+        PdfPCell hdrCell = new PdfPCell(hdr);
+        hdrCell.setBackgroundColor(TICKET_HDR);
+        hdrCell.setPadding(6);
+        hdrCell.setBorder(Rectangle.NO_BORDER);
+        hdrTable.addCell(hdrCell);
+        doc.add(hdrTable);
+
+        // Detail grid
+        PdfPTable detail = new PdfPTable(3);
+        detail.setWidthPercentage(100);
+        detail.setWidths(new float[]{1f, 1f, 1f});
+
+        addTableHeader(detail, "Package Type", "Reference ID", "Currency");
+
+        String currency = booking.getCurrency() != null ? booking.getCurrency() : "PKR";
+        addTableCell(detail, capitalize(booking.getBookableType()), false);
+        addTableCell(detail, "#" + booking.getBookableId(), false);
+        addTableCell(detail, currency, false);
+
+        doc.add(detail);
+
+        // Pricing snapshot extras (adults/children/infants counts)
+        Map<String, Object> snap = booking.getPricingSnapshot();
         if (snap != null) {
             int adults   = intFrom(snap, "adults");
             int children = intFrom(snap, "children");
             int infants  = intFrom(snap, "infants");
-            if (adults   > 0) addPriceRow(t, "Adults   (" + adults   + " × " + fmt(snap, "fareAdult")  + ")", fmt(snap, "base"),   false, currency, false);
-            if (children > 0) addPriceRow(t, "Children (" + children + " × " + fmt(snap, "fareChild")  + ")", fmtMul(snap, "fareChild",  children), false, currency, false);
-            if (infants  > 0) addPriceRow(t, "Infants  (" + infants  + " × " + fmt(snap, "fareInfant") + ")", fmtMul(snap, "fareInfant", infants),  false, currency, false);
-            addPriceRow(t, "Base Fare",   fmt(snap, "base"),   false, currency, false);
-            addPriceRow(t, "Taxes",       fmt(snap, "taxes"),  false, currency, false);
-            addPriceRow(t, "Fees",        fmt(snap, "fees"),   false, currency, false);
-            addPriceRow(t, "Gross Total", fmt(snap, "gross"),  true,  currency, false);
-            addPriceRow(t, "Discounts", "- " + fmt(snap, "discounts"), false, currency, false);
+            if (adults > 0 || children > 0 || infants > 0) {
+                PdfPTable paxTable = new PdfPTable(3);
+                paxTable.setWidthPercentage(100);
+                paxTable.setWidths(new float[]{1f, 1f, 1f});
+                addTableHeader(paxTable, "Adults", "Children", "Infants");
+                addTableCell(paxTable, String.valueOf(adults),   true);
+                addTableCell(paxTable, String.valueOf(children), true);
+                addTableCell(paxTable, String.valueOf(infants),  true);
+                doc.add(paxTable);
+            }
         }
-        addPriceRow(t, "NET TOTAL", money(booking.getNetTotal(), currency), true, currency, true);
-        doc.add(t);
-    }
-
-    private void addFooter(Document doc, Agency agency) throws DocumentException {
-        PdfPTable t = new PdfPTable(1);
-        t.setWidthPercentage(100);
-        PdfPCell cell = new PdfPCell();
-        cell.setBackgroundColor(LIGHT_BG);
-        cell.setBorderColor(BORDER);
-        cell.setPadding(10);
-        String agencyName = agency != null ? agency.getName() : "Travel Agency";
-        cell.addElement(styledParagraph(
-                "Thank you for choosing " + agencyName + ". This is a system-generated invoice.",
-                normal(9, MID), Element.ALIGN_CENTER));
-        t.addCell(cell);
-        doc.add(t);
     }
 
     // ── Shared helpers ────────────────────────────────────────────────────────
-
-    private PdfPTable twoColTable() throws DocumentException {
-        PdfPTable t = new PdfPTable(2);
-        t.setWidthPercentage(100);
-        t.setWidths(new float[]{1.5f, 3f});
-        return t;
-    }
-
-    private void addDetailRow(PdfPTable t, String label, String value) {
-        PdfPCell lc = new PdfPCell(new Phrase(label, bold(9, DARK)));
-        lc.setBorderColor(BORDER); lc.setPadding(6); lc.setBackgroundColor(LIGHT_BG);
-        t.addCell(lc);
-        PdfPCell vc = new PdfPCell(new Phrase(value, normal(9, DARK)));
-        vc.setBorderColor(BORDER); vc.setPadding(6);
-        t.addCell(vc);
-    }
 
     private void addTableHeader(PdfPTable t, String... headers) {
         for (String h : headers) {

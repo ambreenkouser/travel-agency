@@ -14,6 +14,7 @@ spring:
   flyway:
     user: postgres
     password: test
+    repair-on-migrate: true
   thymeleaf:
     cache: false
   redis:
