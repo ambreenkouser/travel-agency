@@ -3,28 +3,48 @@ spring:
     url: ${DATABASE_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 5
   jpa:
     hibernate:
       ddl-auto: none
     properties:
       hibernate:
+        format_sql: false
         enable_lazy_load_no_trans: true
     open-in-view: false
   flyway:
-    user: ${FLYWAY_USER}
-    password: ${FLYWAY_PASSWORD}
+    url: ${FLYWAY_URL}
+    user: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     repair-on-migrate: true
+    baseline-on-migrate: true
+  thymeleaf:
+    cache: true
   redis:
     host: ${REDIS_HOST}
     port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    ssl:
+      enabled: ${REDIS_SSL:false}
   mail:
     host: ${MAIL_HOST}
     port: ${MAIL_PORT:587}
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
     properties:
-      mail.smtp.auth: true
-      mail.smtp.starttls.enable: true
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 server:
   port: ${PORT:8080}
+
+logging:
+  level:
+    org.hibernate.SQL: warn
+    org.springframework.security: warn
