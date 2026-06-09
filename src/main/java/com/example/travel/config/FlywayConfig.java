@@ -11,8 +11,11 @@ import org.springframework.context.annotation.Profile;
 @Profile("prod")
 public class FlywayConfig {
 
-    @Value("${DATABASE_URL}")
-    private String databaseUrl;
+    @Value("${DB_HOST}")
+    private String dbHost;
+
+    @Value("${DB_NAME:neondb}")
+    private String dbName;
 
     @Value("${DB_USERNAME}")
     private String username;
@@ -23,27 +26,15 @@ public class FlywayConfig {
     @Bean
     public FlywayMigrationStrategy flywayMigrationStrategy() {
         return flyway -> {
-            String cleanUrl = buildCleanUrl(databaseUrl);
+            // Build a clean JDBC URL without embedded credentials
+            // Standard JDBC format: jdbc:postgresql://host/dbname?params
+            String cleanUrl = "jdbc:postgresql://" + dbHost + "/" + dbName + "?sslmode=require";
+
             Flyway configuredFlyway = Flyway.configure()
                     .dataSource(cleanUrl, username, password)
                     .baselineOnMigrate(true)
                     .load();
             configuredFlyway.migrate();
         };
-    }
-
-    /**
-     * Cleans Neon URLs for JDBC compatibility:
-     * - Removes .c-2 (or any .c-N) regional routing segment
-     * - Removes -pooler suffix
-     * - Removes &channel_binding=require parameter
-     *
-     * e.g. ep-xxx-pooler.c-2.ap-southeast-1.aws.neon.tech
-     *   -> ep-xxx.ap-southeast-1.aws.neon.tech
-     */
-    private String buildCleanUrl(String url) {
-        return url.replaceAll("\\.c-\\d+\\.ap-", ".ap-")
-                .replaceAll("&channel_binding=require", "")
-                .replaceAll("-pooler", "");
     }
 }
