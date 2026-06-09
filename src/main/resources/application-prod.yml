@@ -16,9 +16,7 @@ spring:
         enable_lazy_load_no_trans: true
     open-in-view: false
   flyway:
-    url: ${FLYWAY_URL}
-    user: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    enabled: true
     repair-on-migrate: true
     baseline-on-migrate: true
   thymeleaf:
