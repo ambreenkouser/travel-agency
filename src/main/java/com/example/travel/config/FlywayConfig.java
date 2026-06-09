@@ -11,32 +11,38 @@ import org.springframework.context.annotation.Profile;
 @Profile("prod")
 public class FlywayConfig {
 
-    @Value("${spring.flyway.clean-url:${DATABASE_URL}}")
-    private String flywayUrl;
+    @Value("${DATABASE_URL}")
+    private String databaseUrl;
 
-    @Value("${spring.datasource.username}")
+    @Value("${DB_USERNAME}")
     private String username;
 
-    @Value("${spring.datasource.password}")
+    @Value("${DB_PASSWORD}")
     private String password;
 
     @Bean
     public FlywayMigrationStrategy flywayMigrationStrategy() {
         return flyway -> {
-            String cleanUrl = buildCleanUrl(flywayUrl);
+            String cleanUrl = buildCleanUrl(databaseUrl);
             Flyway configuredFlyway = Flyway.configure()
                     .dataSource(cleanUrl, username, password)
                     .baselineOnMigrate(true)
-                    .repairOnMigrate(true)
                     .load();
             configuredFlyway.migrate();
         };
     }
 
+    /**
+     * Cleans Neon URLs for JDBC compatibility:
+     * - Removes .c-2 (or any .c-N) regional routing segment
+     * - Removes -pooler suffix
+     * - Removes &channel_binding=require parameter
+     *
+     * e.g. ep-xxx-pooler.c-2.ap-southeast-1.aws.neon.tech
+     *   -> ep-xxx.ap-southeast-1.aws.neon.tech
+     */
     private String buildCleanUrl(String url) {
-        // Remove .c-2 (or any .c-N) regional routing segment that breaks JDBC parser
-        // e.g. ep-xxx.c-2.ap-southeast-1.aws.neon.tech -> ep-xxx.ap-southeast-1.aws.neon.tech
-        return url.replaceAll("\\.c-\\d+\\.aws\\.neon\\.tech", ".aws.neon.tech")
+        return url.replaceAll("\\.c-\\d+\\.ap-", ".ap-")
                 .replaceAll("&channel_binding=require", "")
                 .replaceAll("-pooler", "");
     }
