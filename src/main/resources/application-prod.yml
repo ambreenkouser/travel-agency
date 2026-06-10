@@ -1,9 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST}/${DB_NAME:neondb}?sslmode=require
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME}
     username: ${DB_USERNAME}
-    # Neon SNI workaround: endpoint ID embedded in password field
-    password: "endpoint=${DB_ENDPOINT_ID};${DB_PASSWORD}"
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 30000
@@ -19,7 +18,9 @@ spring:
         enable_lazy_load_no_trans: true
     open-in-view: false
   flyway:
-    enabled: false
+    enabled: true
+    baseline-on-migrate: true
+    repair-on-migrate: true
   thymeleaf:
     cache: true
   redis:

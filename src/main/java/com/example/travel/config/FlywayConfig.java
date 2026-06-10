@@ -1,3 +1,4 @@
+/*
 package com.example.travel.config;
 
 import jakarta.annotation.PostConstruct;
@@ -51,4 +52,4 @@ public class FlywayConfig {
         flyway.migrate();
         System.out.println(">>> Flyway migration complete!");
     }
-}
+}*/
