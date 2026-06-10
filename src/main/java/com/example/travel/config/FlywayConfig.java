@@ -1,9 +1,8 @@
 package com.example.travel.config;
 
+import jakarta.annotation.PostConstruct;
 import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
@@ -23,18 +22,23 @@ public class FlywayConfig {
     @Value("${DB_PASSWORD}")
     private String password;
 
-    @Bean
-    public FlywayMigrationStrategy flywayMigrationStrategy() {
-        return flyway -> {
-            // Build a clean JDBC URL without embedded credentials
-            // Standard JDBC format: jdbc:postgresql://host/dbname?params
-            String cleanUrl = "jdbc:postgresql://" + dbHost + "/" + dbName + "?sslmode=require";
+    @PostConstruct
+    public void migrateFlyway() {
+        // Build clean JDBC URL - no credentials embedded, no broken segments
+        String url = "jdbc:postgresql://"
+                + dbHost.trim()
+                + "/" + dbName.trim()
+                + "?sslmode=require";
 
-            Flyway configuredFlyway = Flyway.configure()
-                    .dataSource(cleanUrl, username, password)
-                    .baselineOnMigrate(true)
-                    .load();
-            configuredFlyway.migrate();
-        };
+        System.out.println(">>> FlywayConfig: connecting to host = [" + dbHost.trim() + "]");
+        System.out.println(">>> FlywayConfig: username = [" + username.trim() + "]");
+        System.out.println(">>> FlywayConfig: url = [" + url + "]");
+
+        Flyway flyway = Flyway.configure()
+                .dataSource(url, username.trim(), password.trim())
+                .baselineOnMigrate(true)
+                .load();
+
+        flyway.migrate();
     }
 }
