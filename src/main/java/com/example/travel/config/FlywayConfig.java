@@ -24,15 +24,20 @@ public class FlywayConfig {
 
     @PostConstruct
     public void migrateFlyway() {
-        // Build clean JDBC URL - no credentials embedded, no broken segments
+        // Extract endpoint ID from host (everything before the first dot)
+        // e.g. ep-billowing-star-ao2e6beq.ap-southeast-1.aws.neon.tech -> ep-billowing-star-ao2e6beq
+        String endpointId = dbHost.trim().split("\\.")[0];
+
+        // Neon requires endpoint ID passed as options parameter for SNI routing
+        // Without this, Neon cannot identify the compute and returns "password auth failed"
         String url = "jdbc:postgresql://"
                 + dbHost.trim()
                 + "/" + dbName.trim()
-                + "?sslmode=require";
+                + "?sslmode=require"
+                + "&options=endpoint%3D" + endpointId;
 
-        System.out.println(">>> FlywayConfig: connecting to host = [" + dbHost.trim() + "]");
-        System.out.println(">>> FlywayConfig: username = [" + username.trim() + "]");
-        System.out.println(">>> FlywayConfig: url = [" + url + "]");
+        System.out.println(">>> FlywayConfig URL: " + url);
+        System.out.println(">>> FlywayConfig user: " + username.trim());
 
         Flyway flyway = Flyway.configure()
                 .dataSource(url, username.trim(), password.trim())
@@ -40,5 +45,6 @@ public class FlywayConfig {
                 .load();
 
         flyway.migrate();
+        System.out.println(">>> FlywayConfig: migration complete!");
     }
 }
