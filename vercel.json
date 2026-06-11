@@ -1,0 +1,24 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://travel-agency-yy4p.onrender.com/api/:path*"
+    },
+    {
+      "source": "/login",
+      "destination": "https://travel-agency-yy4p.onrender.com/login"
+    },
+    {
+      "source": "/logout",
+      "destination": "https://travel-agency-yy4p.onrender.com/logout"
+    },
+    {
+      "source": "/files/:path*",
+      "destination": "https://travel-agency-yy4p.onrender.com/files/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
