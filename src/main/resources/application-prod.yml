@@ -19,6 +19,8 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
+    user: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     baseline-on-migrate: true
     repair-on-migrate: true
   thymeleaf:
