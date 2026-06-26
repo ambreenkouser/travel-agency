@@ -11,3 +11,8 @@ body {
   border: none;
   min-height: 100svh;
 }
+
+@media print {
+  .print\:hidden { display: none !important; }
+  #main-scroll { width: 100% !important; }
+}

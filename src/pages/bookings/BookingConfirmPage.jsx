@@ -87,7 +87,6 @@ export default function BookingConfirmPage() {
   const [confirming, setConfirming]     = useState(false)
   const [error, setError]               = useState('')
   const [confirmed, setConfirmed]       = useState(false)
-  const [updateMsg, setUpdateMsg]       = useState('')
 
   // Payment slip state
   const [parentAccounts, setParentAccounts] = useState([])
@@ -137,6 +136,21 @@ export default function BookingConfirmPage() {
     setSlipError('')
     if (!slipForm.paymentAccountId) { setSlipError('Please select a payment account.'); return }
     if (!slipForm.referenceNumber.trim()) { setSlipError('Reference number is required.'); return }
+    if (slipForm.slipImage) {
+      const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']
+      if (!allowed.includes(slipForm.slipImage.type)) {
+        setSlipError('Invalid file format. Please upload JPG, JPEG, PNG, or PDF only.')
+        return
+      }
+      if (slipForm.slipImage.size < 50 * 1024) {
+        setSlipError('File is too small. Minimum allowed size is 50 KB.')
+        return
+      }
+      if (slipForm.slipImage.size > 10 * 1024 * 1024) {
+        setSlipError('File is too large. Maximum allowed size is 10 MB.')
+        return
+      }
+    }
     setSubmitting(true)
     try {
       const formData = new FormData()
@@ -335,18 +349,6 @@ export default function BookingConfirmPage() {
               </tbody>
             </table>
           </div>
-          <div className="p-3 flex justify-center border-t border-gray-200">
-            {updateMsg ? (
-              <span className="text-xs text-blue-600 font-medium">{updateMsg}</span>
-            ) : (
-              <button
-                onClick={() => setUpdateMsg('Passenger update feature coming soon.')}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded"
-              >
-                Update All
-              </button>
-            )}
-          </div>
         </div>
       )}
 
@@ -397,9 +399,12 @@ export default function BookingConfirmPage() {
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">Payment Slip Image</label>
-                      <input type="file" accept="image/*"
+                      <input type="file" accept="image/jpeg,image/jpg,image/png,application/pdf"
                         onChange={e => setSlipForm(f => ({ ...f, slipImage: e.target.files?.[0] ?? null }))}
                         className="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                      <p className="text-xs text-gray-400 mt-1">
+                        Accepted formats: JPG, JPEG, PNG, PDF &bull; File size: 50 KB – 10 MB
+                      </p>
                     </div>
                     <ErrorMessage message={slipError} />
                     <Button type="submit" variant="primary" disabled={submitting}>
