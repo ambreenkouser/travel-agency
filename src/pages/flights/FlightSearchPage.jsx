@@ -8,14 +8,31 @@ import Button from '../../components/ui/Button'
 import Spinner from '../../components/ui/Spinner'
 import ErrorMessage from '../../components/ui/ErrorMessage'
 
-function formatTime(dt) {
-  if (!dt) return '—'
-  return new Date(dt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
+function fmtLegDate(iso) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  return d.getDate().toString().padStart(2, '0') +
+    d.toLocaleString('en-GB', { month: 'short' }).toUpperCase()
 }
 
-function formatDate(dt) {
-  if (!dt) return '—'
-  return new Date(dt).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })
+function fmtTime(iso) {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+}
+
+function numDays(legs) {
+  if (!legs?.length) return '—'
+  const first = new Date(legs[0].departAt)
+  const last  = new Date(legs[legs.length - 1].arriveAt)
+  return Math.max(1, Math.round((last - first) / 86400000))
+}
+
+function headerRoute(f) {
+  const airline = f.legs?.[0]?.airlineName || f.airlineName || ''
+  const legs = f.legs ?? []
+  const stops = legs.length ? [legs[0].origin, ...legs.map(l => l.destination)] : []
+  return airline ? `${airline}-${stops.join('-')}` : stops.join('-')
 }
 
 
@@ -32,7 +49,6 @@ export default function FlightSearchPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showFilters, setShowFilters] = useState(false)
-  const [expandedId, setExpandedId] = useState(null)
 
   useEffect(() => {
     getAirlines().then(setAirlines).catch(() => {})
@@ -83,10 +99,6 @@ export default function FlightSearchPage() {
   function handleReset() {
     setForm({ origin: '', destination: '', date: '', airlineId: '', minPrice: '', maxPrice: '' })
     loadAll()
-  }
-
-  function handleBook(flight) {
-    navigate(`/flights/${flight.id}/book`)
   }
 
   return (
@@ -187,17 +199,127 @@ export default function FlightSearchPage() {
               No flights match your search. Try adjusting the filters.
             </Card>
           ) : (
-            <div className="space-y-3">
-              {flights.map(flight => (
-                <FlightCard
-                  key={flight.id}
-                  flight={flight}
-                  passengers={{ adults: 1, children: 0, infants: 0 }}
-                  onBook={() => handleBook(flight)}
-                  expanded={expandedId === flight.id}
-                  onToggle={() => setExpandedId(prev => prev === flight.id ? null : flight.id)}
-                />
-              ))}
+            <div className="space-y-5">
+              {flights.map(f => {
+                const legs = f.legs ?? []
+                const firstLeg = legs[0]
+                return (
+                  <div key={f.id} className="border border-gray-300 rounded-lg overflow-hidden shadow-sm bg-white">
+
+                    {/* ── Header ── */}
+                    <div className="bg-white border-b border-gray-200 px-5 py-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <span className="font-bold text-gray-800 text-sm uppercase tracking-wide">
+                        {(f.groupName || '—').toUpperCase()}
+                      </span>
+                      <span className="text-gray-300">|</span>
+                      <span className="text-green-600 font-semibold text-sm">{headerRoute(f)}</span>
+                      <span className="text-gray-300">|</span>
+                      <span className="text-sm text-gray-600">
+                        Number Of Days&nbsp;<span className="font-bold text-green-600">{numDays(legs)}</span>
+                      </span>
+                      <span className="text-gray-300">|</span>
+                      <span className="text-green-600 font-semibold text-sm">AG-{f.id}</span>
+                    </div>
+
+                    {/* ── Table ── */}
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="border-b border-gray-200">
+                            <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 border-r border-gray-200 w-44">Airline</th>
+                            <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 border-r border-gray-200">
+                              Sector Details&nbsp;
+                              <span className="text-xs font-normal text-gray-500">({f.groupName || '—'})</span>
+                            </th>
+                            <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 border-r border-gray-200 w-44">Seats</th>
+                            <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 border-r border-gray-200 w-36">Dep Date</th>
+                            <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 w-40">Price</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {legs.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="px-4 py-4 text-gray-400 text-xs italic">No legs defined</td>
+                            </tr>
+                          ) : (
+                            <tr className="align-top">
+                              {/* Airline — per-leg stacked */}
+                              <td className="px-4 py-3 border-r border-gray-200">
+                                {legs.map((leg, i) => (
+                                  <div key={i} className={i > 0 ? 'mt-4 pt-3 border-t border-gray-100' : ''}>
+                                    <div className="font-bold text-blue-700 text-sm uppercase leading-tight">
+                                      {leg.airlineName || leg.airlineCode || '—'}
+                                    </div>
+                                    {leg.airlineLogoUrl && (
+                                      <img src={leg.airlineLogoUrl} alt={leg.airlineCode}
+                                        className="h-8 object-contain mt-1" />
+                                    )}
+                                  </div>
+                                ))}
+                              </td>
+
+                              {/* Sector details — scrollable */}
+                              <td className="px-4 py-3 border-r border-gray-200">
+                                <div className="max-h-44 overflow-y-auto space-y-2 pr-1">
+                                  {legs.map((leg, i) => (
+                                    <div key={i} className="text-xs font-mono text-gray-700 flex flex-wrap items-baseline gap-x-1.5">
+                                      <span className="text-gray-400 shrink-0">{i + 1} )</span>
+                                      <span className="font-bold text-gray-900">{leg.flightNumber || '—'}</span>
+                                      <span className="font-semibold">{fmtLegDate(leg.departAt)}</span>
+                                      <span className="font-bold text-blue-700">{leg.origin}-{leg.destination}</span>
+                                      <span>{fmtTime(leg.departAt)}</span>
+                                      <span>{fmtTime(leg.arriveAt)}</span>
+                                      {leg.baggageKg != null && (
+                                        <span className="text-gray-600 whitespace-nowrap">{leg.baggageKg}-KG&nbsp;Baggage</span>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </td>
+
+                              {/* Seats */}
+                              <td className="px-4 py-3 border-r border-gray-200 text-sm">
+                                <div className="text-gray-700">
+                                  Total Seats:&nbsp;<span className="font-bold text-gray-900">{f.seatQuota ?? '—'}</span>
+                                </div>
+                                <div className="text-gray-700 mt-1">
+                                  Available Seats:&nbsp;
+                                  <span className={`font-bold ${f.availableSeats === 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                                    {f.availableSeats ?? '—'}
+                                  </span>
+                                </div>
+                              </td>
+
+                              {/* Dep Date */}
+                              <td className="px-4 py-3 border-r border-gray-200 text-sm font-bold text-green-700 whitespace-nowrap">
+                                {firstLeg?.departAt
+                                  ? new Date(firstLeg.departAt).toLocaleDateString('en-GB', {
+                                      weekday: 'short', day: '2-digit', month: 'short', year: 'numeric'
+                                    })
+                                  : '—'}
+                              </td>
+
+                              {/* Price + Book Now */}
+                              <td className="px-4 py-3">
+                                <div className="text-sm font-bold text-gray-800 mb-3">
+                                  PKR {Number(f.fareAdult).toLocaleString()}
+                                </div>
+                                <button
+                                  onClick={() => navigate(`/flights/${f.id}/book`)}
+                                  disabled={f.availableSeats === 0}
+                                  className="px-5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-md disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                >
+                                  {f.availableSeats === 0 ? 'Full' : 'Book Now'}
+                                </button>
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           )}
         </>
@@ -206,206 +328,6 @@ export default function FlightSearchPage() {
   )
 }
 
-function FlightCard({ flight, passengers, onBook, expanded, onToggle }) {
-  const total =
-    passengers.adults   * (Number(flight.fareAdult)  || 0) +
-    passengers.children * (Number(flight.fareChild)  || 0) +
-    passengers.infants  * (Number(flight.fareInfant) || 0)
-
-  const legs = flight.legs ?? []
-  const firstLeg = legs[0]
-  const lastLeg  = legs[legs.length - 1]
-  const origin      = firstLeg?.origin      ?? flight.origin
-  const destination = lastLeg?.destination  ?? flight.destination
-  const departAt    = firstLeg?.departAt    ?? flight.departAt
-  const arriveAt    = lastLeg?.arriveAt     ?? flight.arriveAt
-  const stops = legs.length > 1 ? legs.slice(0, -1).map(l => l.destination) : []
-
-  return (
-    <Card className="overflow-hidden">
-      {/* ── Summary row (always visible, clickable) ── */}
-      <div
-        className="p-5 cursor-pointer hover:bg-gray-50 transition-colors"
-        onClick={onToggle}
-      >
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          {/* Route */}
-          <div className="flex items-center gap-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-gray-900">{formatTime(departAt)}</div>
-              <div className="text-sm font-medium text-gray-700">{origin}</div>
-              <div className="text-xs text-gray-400">{formatDate(departAt)}</div>
-            </div>
-
-            <div className="text-center px-3">
-              {flight.airlineLogoUrl && (
-                <img src={flight.airlineLogoUrl} alt={flight.airlineCode}
-                  className="h-7 object-contain mx-auto mb-1" />
-              )}
-              <div className="relative flex items-center">
-                <div className="h-px w-20 bg-gray-300" />
-                <span className="mx-1 text-gray-400 text-xs">✈</span>
-                <div className="h-px w-20 bg-gray-300" />
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                {flight.airlineCode && <span className="font-mono">{flight.airlineCode}</span>}
-                {flight.airlineName && <span className="ml-1 text-gray-400">· {flight.airlineName}</span>}
-              </div>
-              {firstLeg?.flightNumber && (
-                <div className="text-xs text-gray-400 font-mono mt-0.5">{firstLeg.flightNumber}</div>
-              )}
-              {firstLeg?.pnrCode && (
-                <div className="text-xs font-medium mt-0.5">
-                  <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-mono">PNR: {firstLeg.pnrCode}</span>
-                </div>
-              )}
-              {stops.length > 0 && (
-                <div className="text-xs text-amber-600 font-medium mt-0.5">via {stops.join(', ')}</div>
-              )}
-            </div>
-
-            <div className="text-center">
-              <div className="text-2xl font-bold text-gray-900">{formatTime(arriveAt)}</div>
-              <div className="text-sm font-medium text-gray-700">{destination}</div>
-              <div className="text-xs text-gray-400">{formatDate(arriveAt)}</div>
-            </div>
-          </div>
-
-          {/* Pricing + actions */}
-          <div className="flex items-center gap-6">
-            <div className="text-right space-y-0.5">
-              {flight.groupName && (
-                <div className="text-xs font-medium text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full mb-1 inline-block">
-                  {flight.groupName}
-                </div>
-              )}
-              <div className="text-xl font-bold text-blue-600">
-                PKR {Number(flight.fareAdult).toLocaleString()}
-              </div>
-              <div className="text-xs text-gray-400">per adult</div>
-              {flight.fareChild != null && (
-                <div className="text-xs text-gray-500">Child: PKR {Number(flight.fareChild).toLocaleString()}</div>
-              )}
-              {flight.fareInfant != null && (
-                <div className="text-xs text-gray-500">Infant: PKR {Number(flight.fareInfant).toLocaleString()}</div>
-              )}
-              {total > 0 && (passengers.adults + passengers.children + passengers.infants > 1) && (
-                <div className="text-xs font-medium text-gray-700 pt-1 border-t border-gray-100">
-                  Total: PKR {total.toLocaleString()}
-                </div>
-              )}
-              {flight.seatQuota != null && (
-                <SeatBadge available={flight.availableSeats} quota={flight.seatQuota} />
-              )}
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <Button onClick={e => { e.stopPropagation(); onBook() }}>Book</Button>
-              <span className="text-xs text-gray-400">{expanded ? '▲ Less' : '▼ Details'}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Expanded detail panel ── */}
-      {expanded && (
-        <div className="border-t border-gray-100 bg-gray-50 px-5 py-4 space-y-4 text-sm">
-
-          {/* Legs table */}
-          {legs.length > 0 && (
-            <div>
-              <div className="text-xs text-gray-400 uppercase tracking-wide mb-2">Flight Itinerary</div>
-              <table className="w-full text-xs border border-gray-200 rounded overflow-hidden">
-                <thead className="bg-gray-100">
-                  <tr>
-                    {['Leg', 'Airline', 'Flight #', 'From', 'To', 'Departure', 'Arrival', 'Class', 'Baggage', 'Hand Carry'].map(h => (
-                      <th key={h} className="text-left px-3 py-2 font-medium text-gray-500">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 bg-white">
-                  {legs.map((leg, i) => (
-                    <tr key={i}>
-                      <td className="px-3 py-2 text-gray-400">{i + 1}</td>
-                      <td className="px-3 py-2 text-gray-600">
-                        {leg.airlineLogoUrl && <img src={leg.airlineLogoUrl} alt={leg.airlineCode} className="h-5 inline mr-1 object-contain" />}
-                        {leg.airlineCode || leg.airlineName || '—'}
-                      </td>
-                      <td className="px-3 py-2 font-mono text-gray-600">{leg.flightNumber || '—'}</td>
-                      <td className="px-3 py-2 font-medium text-gray-800">{leg.origin}</td>
-                      <td className="px-3 py-2 font-medium text-gray-800">{leg.destination}</td>
-                      <td className="px-3 py-2 text-gray-600">{leg.departAt ? new Date(leg.departAt).toLocaleString() : '—'}</td>
-                      <td className="px-3 py-2 text-gray-600">{leg.arriveAt ? new Date(leg.arriveAt).toLocaleString() : '—'}</td>
-                      <td className="px-3 py-2 text-gray-600 capitalize">{leg.flightClass || '—'}</td>
-                      <td className="px-3 py-2 text-gray-600">{leg.baggageKg != null ? `${leg.baggageKg} kg` : '—'}</td>
-                      <td className="px-3 py-2 text-gray-600">{leg.handCarryKg != null ? `${leg.handCarryKg} kg` : '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {/* Taxes */}
-            {flight.taxTotal != null && (
-              <div>
-                <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">Taxes & Fees</div>
-                <div className="text-gray-700">PKR {Number(flight.taxTotal).toLocaleString()}</div>
-              </div>
-            )}
-
-            {/* Flight identifiers (from first leg) */}
-            {firstLeg?.flightNumber && (
-              <div>
-                <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">Flight Number</div>
-                <div className="font-mono text-gray-800">{firstLeg.flightNumber}</div>
-              </div>
-            )}
-            {firstLeg?.pnrCode && (
-              <div>
-                <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">PNR Code</div>
-                <div className="font-mono text-gray-800">{firstLeg.pnrCode}</div>
-              </div>
-            )}
-
-            {/* Baggage */}
-            {flight.baggageInfo && (
-              <div>
-                <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">Baggage</div>
-                <div className="text-gray-700">{flight.baggageInfo}</div>
-              </div>
-            )}
-
-            {/* Status */}
-            <div>
-              <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">Status</div>
-              <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                flight.status === 'active' ? 'bg-green-100 text-green-700' :
-                flight.status === 'draft'  ? 'bg-yellow-100 text-yellow-700' :
-                'bg-red-100 text-red-700'
-              }`}>{flight.status}</span>
-            </div>
-          </div>
-
-        </div>
-      )}
-    </Card>
-  )
-}
-
-function SeatBadge({ available, quota }) {
-  const pct = quota > 0 ? available / quota : 0
-  const cls = available === 0
-    ? 'bg-red-100 text-red-600'
-    : pct <= 0.2
-    ? 'bg-orange-100 text-orange-600'
-    : 'bg-green-100 text-green-700'
-  return (
-    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>
-      {available === 0 ? 'Full' : `${available} / ${quota} seats`}
-    </span>
-  )
-}
 
 function Field({ label, value, onChange, type = 'text', placeholder, min, max, required, className = '' }) {
   return (

@@ -424,103 +424,128 @@ export default function FlightManagementPage() {
       ) : flights.length === 0 ? (
         <p className="text-sm text-gray-400 text-center py-12">No flights found</p>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-5">
           {flights.map(f => {
             const legs = f.legs ?? []
             const firstLeg = legs[0]
-            const headerColor = f.status === 'active'
-              ? 'bg-green-700' : f.status === 'cancelled'
-              ? 'bg-red-700' : 'bg-amber-600'
 
             return (
-              <div key={f.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+              <div key={f.id} className="border border-gray-300 rounded-lg overflow-hidden shadow-sm bg-white">
 
-                {/* ── Header bar ── */}
-                <div className={`${headerColor} text-white text-xs font-semibold px-4 py-2 flex flex-wrap items-center gap-x-3 gap-y-1`}>
-                  <span className="tracking-wide">{(f.groupName || '—').toUpperCase()}</span>
-                  <span className="opacity-50">|</span>
-                  <span className="font-normal">{headerRoute(f)}</span>
-                  <span className="opacity-50">|</span>
-                  <span className="font-normal">Number of Days: {numDays(legs)}</span>
-                  <span className="opacity-50">|</span>
-                  <span className="font-mono">AG-{f.id}</span>
+                {/* ── Header bar — white bg, coloured text (matches reference image) ── */}
+                <div className="bg-white border-b border-gray-200 px-5 py-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <span className="font-bold text-gray-800 text-sm uppercase tracking-wide">
+                    {(f.groupName || '—').toUpperCase()}
+                  </span>
+                  <span className="text-gray-300 font-light">|</span>
+                  <span className="text-green-600 font-semibold text-sm">{headerRoute(f)}</span>
+                  <span className="text-gray-300 font-light">|</span>
+                  <span className="text-sm text-gray-600">
+                    Number Of Days&nbsp;<span className="font-bold text-green-600">{numDays(legs)}</span>
+                  </span>
+                  <span className="text-gray-300 font-light">|</span>
+                  <span className="text-green-600 font-semibold text-sm">AG-{f.id}</span>
                 </div>
 
-                {/* ── Body table ── */}
+                {/* ── Body — ONE row per flight, sector details scrollable ── */}
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50 border-b border-gray-200">
-                      <tr>
-                        <th className="text-left px-4 py-2 text-xs font-semibold text-gray-600 w-36">Airline</th>
-                        <th className="text-left px-4 py-2 text-xs font-semibold text-gray-600">
+                  <table className="w-full border-collapse">
+                    {/* Column headers */}
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 border-r border-gray-200 w-44">Airline</th>
+                        <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 border-r border-gray-200">
                           Sector Details&nbsp;
-                          <span className="font-normal text-indigo-600">({f.groupName || '—'})</span>
+                          <span className="text-xs font-normal text-gray-500">({f.groupName || '—'})</span>
                         </th>
-                        <th className="text-left px-4 py-2 text-xs font-semibold text-gray-600 w-32">Seats</th>
-                        <th className="text-left px-4 py-2 text-xs font-semibold text-gray-600 w-32">Dep Date</th>
-                        <th className="text-left px-4 py-2 text-xs font-semibold text-gray-600 w-32">Price</th>
-                        <th className="text-right px-4 py-2 text-xs font-semibold text-gray-600 w-36"></th>
+                        <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 border-r border-gray-200 w-44">Seats</th>
+                        <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 border-r border-gray-200 w-36">Dep Date</th>
+                        <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 border-r border-gray-200 w-36">Price</th>
+                        <th className="px-4 py-2 w-36"></th>
                       </tr>
                     </thead>
+
                     <tbody>
                       {legs.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="px-4 py-3 text-gray-400 text-xs italic">No legs defined</td>
+                          <td colSpan={6} className="px-4 py-4 text-gray-400 text-xs italic">No legs defined</td>
                         </tr>
-                      ) : legs.map((leg, i) => (
-                        <tr key={i} className="border-t border-gray-100">
+                      ) : (
+                        <tr className="align-top">
 
-                          {/* Airline — per leg */}
-                          <td className="px-4 py-3 align-top">
-                            {leg.airlineLogoUrl
-                              ? <img src={leg.airlineLogoUrl} alt={leg.airlineCode} className="h-8 object-contain mb-0.5" />
-                              : <span className="font-mono text-xs text-gray-500">{leg.airlineCode || '—'}</span>}
-                            {leg.airlineName && (
-                              <div className="text-xs text-gray-600 font-semibold uppercase leading-tight mt-0.5">
-                                {leg.airlineName}
-                              </div>
-                            )}
-                          </td>
-
-                          {/* Sector details — per leg */}
-                          <td className="px-4 py-3 align-top font-mono text-xs text-gray-700 whitespace-nowrap">
-                            {i + 1})&nbsp;
-                            <span className="font-semibold">{leg.flightNumber || '—'}</span>
-                            &nbsp;{fmtLegDate(leg.departAt)}
-                            &nbsp;{leg.origin}-{leg.destination}
-                            &nbsp;{fmtTime(leg.departAt)}&nbsp;{fmtTime(leg.arriveAt)}
-                            {leg.baggageKg != null && <>&nbsp;&nbsp;<span className="text-gray-500">{leg.baggageKg}-KG Baggage</span></>}
-                          </td>
-
-                          {/* Seats, Dep Date, Price, Actions — first leg only, rowSpan for the rest */}
-                          {i === 0 && (
-                            <>
-                              <td className="px-4 py-3 align-top text-xs text-gray-700" rowSpan={legs.length}>
-                                <div>Total Seats: <span className="font-semibold">{f.seatQuota ?? '—'}</span></div>
-                                <div className="mt-0.5">
-                                  Available Seats:&nbsp;
-                                  <span className={`font-semibold ${f.availableSeats === 0 ? 'text-red-600' : 'text-green-700'}`}>
-                                    {f.availableSeats ?? '—'}
-                                  </span>
+                          {/* Airline — per-leg stacked (name above logo per leg) */}
+                          <td className="px-4 py-3 border-r border-gray-200">
+                            {legs.map((leg, i) => (
+                              <div key={i} className={`${i > 0 ? 'mt-4 pt-3 border-t border-gray-100' : ''}`}>
+                                <div className="font-bold text-blue-700 text-sm uppercase leading-tight">
+                                  {leg.airlineName || leg.airlineCode || '—'}
                                 </div>
-                              </td>
-                              <td className="px-4 py-3 align-top text-xs font-semibold text-green-700 whitespace-nowrap" rowSpan={legs.length}>
-                                {firstLeg?.departAt
-                                  ? new Date(firstLeg.departAt).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
-                                  : '—'}
-                              </td>
-                              <td className="px-4 py-3 align-top text-xs font-bold text-blue-700 whitespace-nowrap" rowSpan={legs.length}>
-                                PKR {Number(f.fareAdult).toLocaleString()}
-                              </td>
-                              <td className="px-4 py-3 align-top text-right whitespace-nowrap" rowSpan={legs.length}>
-                                <button onClick={() => setDetailFlight(f)} className="text-gray-500 hover:underline mr-3 text-xs">Details</button>
-                                <button onClick={() => openEdit(f)} className="text-blue-600 hover:underline mr-3 text-xs">Edit</button>
-                                <button onClick={() => handleDelete(f.id)} className="text-red-500 hover:underline text-xs">Delete</button>
-                              </td>
-                            </>
-                          )}
+                                {leg.airlineLogoUrl && (
+                                  <img src={leg.airlineLogoUrl} alt={leg.airlineCode}
+                                    className="h-8 object-contain mt-1" />
+                                )}
+                              </div>
+                            ))}
+                          </td>
+
+                          {/* Sector details — all legs in a scrollable div */}
+                          <td className="px-4 py-3 border-r border-gray-200">
+                            <div className="max-h-44 overflow-y-auto space-y-2 pr-1">
+                              {legs.map((leg, i) => (
+                                <div key={i} className="text-xs font-mono text-gray-700 flex flex-wrap items-baseline gap-x-1.5">
+                                  <span className="text-gray-400 shrink-0">{i + 1} )</span>
+                                  <span className="font-bold text-gray-900">{leg.flightNumber || '—'}</span>
+                                  <span className="font-semibold">{fmtLegDate(leg.departAt)}</span>
+                                  <span className="font-bold text-blue-700">{leg.origin}-{leg.destination}</span>
+                                  <span>{fmtTime(leg.departAt)}</span>
+                                  <span>{fmtTime(leg.arriveAt)}</span>
+                                  {leg.baggageKg != null && (
+                                    <span className="text-gray-600 whitespace-nowrap">{leg.baggageKg}-KG&nbsp;Baggage</span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+
+                          {/* Seats */}
+                          <td className="px-4 py-3 border-r border-gray-200 text-sm">
+                            <div className="text-gray-700">
+                              Total Seats:&nbsp;<span className="font-bold text-gray-900">{f.seatQuota ?? '—'}</span>
+                            </div>
+                            <div className="text-gray-700 mt-1">
+                              Available Seats:&nbsp;
+                              <span className={`font-bold ${f.availableSeats === 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                                {f.availableSeats ?? '—'}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Dep Date */}
+                          <td className="px-4 py-3 border-r border-gray-200 text-sm font-bold text-green-700 whitespace-nowrap">
+                            {firstLeg?.departAt
+                              ? new Date(firstLeg.departAt).toLocaleDateString('en-GB', {
+                                  weekday: 'short', day: '2-digit', month: 'short', year: 'numeric'
+                                })
+                              : '—'}
+                          </td>
+
+                          {/* Price */}
+                          <td className="px-4 py-3 border-r border-gray-200 whitespace-nowrap">
+                            <div className="text-sm font-bold text-gray-800">
+                              PKR {Number(f.fareAdult).toLocaleString()}
+                            </div>
+                          </td>
+
+                          {/* Actions */}
+                          <td className="px-4 py-3 text-right whitespace-nowrap">
+                            <div className="flex flex-col items-end gap-1.5">
+                              <button onClick={() => setDetailFlight(f)} className="text-xs text-gray-600 hover:text-gray-900 font-medium">Details</button>
+                              <button onClick={() => openEdit(f)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">Edit</button>
+                              <button onClick={() => handleDelete(f.id)} className="text-xs text-red-500 hover:text-red-700 font-medium">Delete</button>
+                            </div>
+                          </td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
                 </div>
