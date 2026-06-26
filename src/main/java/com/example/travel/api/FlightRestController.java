@@ -5,6 +5,8 @@ import com.example.travel.api.dto.FlightLegDto;
 import com.example.travel.booking.BookingRepository;
 import com.example.travel.booking.BookingStatus;
 import com.example.travel.booking.PassengerRepository;
+import com.example.travel.flight.Airline;
+import com.example.travel.flight.AirlineRepository;
 import com.example.travel.flight.Flight;
 import com.example.travel.flight.FlightLeg;
 import com.example.travel.flight.FlightLegRepository;
@@ -18,6 +20,8 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,17 +45,20 @@ public class FlightRestController {
     private final FlightService flightService;
     private final FlightRepository flightRepository;
     private final FlightLegRepository flightLegRepository;
+    private final AirlineRepository airlineRepository;
     private final BookingRepository bookingRepository;
     private final PassengerRepository passengerRepository;
 
     public FlightRestController(FlightService flightService,
                                 FlightRepository flightRepository,
                                 FlightLegRepository flightLegRepository,
+                                AirlineRepository airlineRepository,
                                 BookingRepository bookingRepository,
                                 PassengerRepository passengerRepository) {
         this.flightService = flightService;
         this.flightRepository = flightRepository;
         this.flightLegRepository = flightLegRepository;
+        this.airlineRepository = airlineRepository;
         this.bookingRepository = bookingRepository;
         this.passengerRepository = passengerRepository;
     }
@@ -120,21 +127,43 @@ public class FlightRestController {
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private FlightDto buildDto(Flight flight, List<FlightLeg> legs, Integer availableSeats) {
-        String airlineCode    = flight.getAirline() != null ? flight.getAirline().getCode()    : null;
-        String airlineName    = flight.getAirline() != null ? flight.getAirline().getName()    : null;
-        String airlineLogoUrl = flight.getAirline() != null ? flight.getAirline().getLogoUrl() : null;
+        // Bulk-load airlines referenced by any leg to avoid N+1
+        Set<Long> airlineIds = legs.stream()
+                .map(FlightLeg::getAirlineId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        Map<Long, Airline> airlineMap = airlineRepository.findAllById(airlineIds)
+                .stream().collect(Collectors.toMap(Airline::getId, a -> a));
+
         String origin      = legs.isEmpty() ? null : legs.get(0).getOrigin();
         String destination = legs.isEmpty() ? null : legs.get(legs.size() - 1).getDestination();
         OffsetDateTime departAt = legs.isEmpty() ? null : legs.get(0).getDepartAt();
         OffsetDateTime arriveAt = legs.isEmpty() ? null : legs.get(legs.size() - 1).getArriveAt();
-        List<FlightLegDto> legDtos = legs.stream()
-                .map(l -> new FlightLegDto(l.getLegOrder(), l.getOrigin(), l.getDestination(),
-                                           l.getDepartAt(), l.getArriveAt(), l.getBaggageKg()))
-                .collect(Collectors.toList());
-        // Cost/buying prices shown to anyone who can manage flights (not sub_agents)
+
+        // Derive flight-level airline display from first leg for the list table
+        Airline firstAirline = legs.isEmpty() ? null : airlineMap.get(legs.get(0).getAirlineId());
+        String airlineCode    = firstAirline != null ? firstAirline.getCode()    : (legs.isEmpty() ? null : legs.get(0).getAirlineCode());
+        String airlineName    = firstAirline != null ? firstAirline.getName()    : null;
+        String airlineLogoUrl = firstAirline != null ? firstAirline.getLogoUrl() : null;
+
+        List<FlightLegDto> legDtos = legs.stream().map(l -> {
+            Airline a = l.getAirlineId() != null ? airlineMap.get(l.getAirlineId()) : null;
+            return new FlightLegDto(
+                    l.getLegOrder(), l.getOrigin(), l.getDestination(),
+                    l.getDepartAt(), l.getArriveAt(), l.getBaggageKg(),
+                    l.getAirlineId(),
+                    a != null ? a.getName()    : null,
+                    a != null ? a.getLogoUrl() : null,
+                    a != null ? a.getCode()    : l.getAirlineCode(),
+                    l.getFlightNumber(), l.getPnrCode(),
+                    l.getFlightClass(), l.getHandCarryKg()
+            );
+        }).collect(Collectors.toList());
+
         boolean canSeeCost = SecurityContextHolder.getContext().getAuthentication()
                 .getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("flights:manage"));
+
         return new FlightDto(
                 flight.getId(), airlineCode, airlineName, airlineLogoUrl,
                 origin, destination, departAt, arriveAt,
@@ -144,13 +173,11 @@ public class FlightRestController {
                 canSeeCost ? flight.getCostChild()  : null,
                 canSeeCost ? flight.getCostInfant() : null,
                 flight.getBaggageInfo(),
-                flight.getFlightNumber(), flight.getPnrCode(),
                 flight.getGroupName(),
                 flight.getStatus(), flight.getExtras(),
                 flight.getSeatQuota(), availableSeats, legDtos,
                 flight.getContactPersonPhone(),
-                flight.getContactPersonEmail(),
-                flight.getFlightClass()
+                flight.getContactPersonEmail()
         );
     }
 

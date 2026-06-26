@@ -52,7 +52,14 @@ public final class FlightSpecifications {
     }
 
     public static Specification<Flight> byAirline(Long airlineId) {
-        return (root, query, cb) -> airlineId == null ? null : cb.equal(root.get("airline").get("id"), airlineId);
+        return (root, query, cb) -> {
+            if (airlineId == null) return null;
+            Subquery<Long> sub = query.subquery(Long.class);
+            Root<FlightLeg> leg = sub.from(FlightLeg.class);
+            sub.select(leg.get("flightId"))
+               .where(cb.equal(leg.get("airlineId"), airlineId));
+            return root.get("id").in(sub);
+        };
     }
 
     public static Specification<Flight> betweenDates(OffsetDateTime from, OffsetDateTime to) {

@@ -8,5 +8,13 @@ public record FlightLegDto(
         String destination,
         OffsetDateTime departAt,
         OffsetDateTime arriveAt,
-        Integer baggageKg
+        Integer baggageKg,
+        Long airlineId,
+        String airlineName,
+        String airlineLogoUrl,
+        String airlineCode,
+        String flightNumber,
+        String pnrCode,
+        String flightClass,
+        Integer handCarryKg
 ) {}

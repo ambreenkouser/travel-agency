@@ -34,6 +34,24 @@ public class FlightLeg {
     @Column(name = "baggage_kg")
     private Integer baggageKg;
 
+    @Column(name = "airline_id")
+    private Long airlineId;
+
+    @Column(name = "flight_number", length = 20)
+    private String flightNumber;
+
+    @Column(name = "pnr_code", length = 20)
+    private String pnrCode;
+
+    @Column(name = "airline_code", length = 10)
+    private String airlineCode;
+
+    @Column(name = "flight_class", length = 20)
+    private String flightClass;
+
+    @Column(name = "hand_carry_kg")
+    private Integer handCarryKg;
+
     public Long getId() { return id; }
     public Long getFlightId() { return flightId; }
     public void setFlightId(Long flightId) { this.flightId = flightId; }
@@ -49,4 +67,16 @@ public class FlightLeg {
     public void setArriveAt(OffsetDateTime arriveAt) { this.arriveAt = arriveAt; }
     public Integer getBaggageKg() { return baggageKg; }
     public void setBaggageKg(Integer baggageKg) { this.baggageKg = baggageKg; }
+    public Long getAirlineId() { return airlineId; }
+    public void setAirlineId(Long airlineId) { this.airlineId = airlineId; }
+    public String getFlightNumber() { return flightNumber; }
+    public void setFlightNumber(String flightNumber) { this.flightNumber = flightNumber; }
+    public String getPnrCode() { return pnrCode; }
+    public void setPnrCode(String pnrCode) { this.pnrCode = pnrCode; }
+    public String getAirlineCode() { return airlineCode; }
+    public void setAirlineCode(String airlineCode) { this.airlineCode = airlineCode; }
+    public String getFlightClass() { return flightClass; }
+    public void setFlightClass(String flightClass) { this.flightClass = flightClass; }
+    public Integer getHandCarryKg() { return handCarryKg; }
+    public void setHandCarryKg(Integer handCarryKg) { this.handCarryKg = handCarryKg; }
 }

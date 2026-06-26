@@ -19,16 +19,13 @@ import org.springframework.web.server.ResponseStatusException;
 public class FlightService {
 
     private final FlightRepository flightRepository;
-    private final AirlineRepository airlineRepository;
     private final FlightLegRepository flightLegRepository;
     private final ContentShareRepository shareRepository;
 
     public FlightService(FlightRepository flightRepository,
-                         AirlineRepository airlineRepository,
                          FlightLegRepository flightLegRepository,
                          ContentShareRepository shareRepository) {
         this.flightRepository = flightRepository;
-        this.airlineRepository = airlineRepository;
         this.flightLegRepository = flightLegRepository;
         this.shareRepository = shareRepository;
     }
@@ -114,10 +111,6 @@ public class FlightService {
     }
 
     private void applyRequest(Flight flight, FlightRequest req) {
-        if (req.getAirlineId() != null) {
-            flight.setAirline(airlineRepository.findById(req.getAirlineId())
-                    .orElseThrow(() -> new EntityNotFoundException("Airline not found: " + req.getAirlineId())));
-        }
         flight.setFareAdult(req.getFareAdult());
         flight.setFareChild(req.getFareChild());
         flight.setFareInfant(req.getFareInfant());
@@ -126,15 +119,12 @@ public class FlightService {
         flight.setCostChild(req.getCostChild());
         flight.setCostInfant(req.getCostInfant());
         flight.setBaggageInfo(req.getBaggageInfo());
-        flight.setFlightNumber(req.getFlightNumber());
-        flight.setPnrCode(req.getPnrCode());
         flight.setExtras(req.getExtras());
         flight.setGroupName(req.getGroupName());
         flight.setStatus(req.getStatus() != null ? req.getStatus() : "draft");
         flight.setSeatQuota(req.getSeatQuota());
         flight.setContactPersonPhone(req.getContactPersonPhone());
         flight.setContactPersonEmail(req.getContactPersonEmail());
-        flight.setFlightClass(req.getFlightClass() != null ? req.getFlightClass() : "economy");
     }
 
     private void saveLegs(Long flightId, List<FlightRequest.LegRequest> legReqs) {
@@ -152,6 +142,12 @@ public class FlightService {
             leg.setDepartAt(lr.getDepartAt());
             leg.setArriveAt(lr.getArriveAt());
             leg.setBaggageKg(lr.getBaggageKg());
+            leg.setAirlineId(lr.getAirlineId());
+            leg.setFlightNumber(lr.getFlightNumber());
+            leg.setPnrCode(lr.getPnrCode());
+            leg.setAirlineCode(lr.getAirlineCode());
+            leg.setFlightClass(lr.getFlightClass() != null ? lr.getFlightClass() : "economy");
+            leg.setHandCarryKg(lr.getHandCarryKg());
             flightLegRepository.save(leg);
         }
     }
