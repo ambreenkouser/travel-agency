@@ -4,8 +4,9 @@ import { getPackageTypeDefs } from '../../api/packageTypeDefs'
 import Spinner from '../../components/ui/Spinner'
 
 const BUILTIN_GROUPS = [
-  { key: 'umrah', label: 'Umrah Group', icon: '🕌', description: 'Umrah pilgrimage packages', gradient: 'from-emerald-500 to-teal-600', href: '/packages?group=umrah' },
-  { key: 'hajj',  label: 'Hajj Group',  icon: '🕋', description: 'Hajj pilgrimage packages',  gradient: 'from-amber-500 to-orange-600',  href: '/packages?group=hajj'  },
+  { key: 'umrah',    label: 'Umrah Group',  icon: '🕌', description: 'Umrah pilgrimage packages',    gradient: 'from-emerald-500 to-teal-600',  href: '/packages?group=umrah' },
+  { key: 'hajj',    label: 'Hajj Group',   icon: '🕋', description: 'Hajj pilgrimage packages',     gradient: 'from-amber-500 to-orange-600',  href: '/packages?group=hajj'  },
+  { key: 'flights', label: 'All Flights',  icon: '✈️', description: 'Browse all available flights', gradient: 'from-blue-500 to-indigo-600',   href: '/flights' },
 ]
 const CUSTOM_GRADIENTS = [
   'from-blue-500 to-indigo-600', 'from-purple-500 to-violet-600',
