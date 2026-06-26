@@ -90,7 +90,6 @@ public class InvoiceService {
                 doc.open();
 
                 if ("flight".equalsIgnoreCase(booking.getBookableType())) {
-                    // JOIN FETCH ensures airline (and its logoUrl) is loaded in one query
                     Flight flight = booking.getBookableId() != null
                             ? flightRepository.findByIdWithAirline(booking.getBookableId()).orElse(null)
                             : null;

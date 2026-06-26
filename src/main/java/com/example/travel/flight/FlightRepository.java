@@ -9,8 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface FlightRepository extends JpaRepository<Flight, Long>, JpaSpecificationExecutor<Flight> {
 
-    /** Eagerly fetches airline so logo is available without an open session (e.g. PDF generation). */
-    @Query("SELECT f FROM Flight f LEFT JOIN FETCH f.airline WHERE f.id = :id AND f.deleted = false")
+    @Query("SELECT f FROM Flight f WHERE f.id = :id AND f.deleted = false")
     Optional<Flight> findByIdWithAirline(@Param("id") Long id);
 
     /** Super_admin: only own flights. */

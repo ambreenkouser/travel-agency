@@ -251,12 +251,12 @@ function FlightCard({ flight, passengers, onBook, expanded, onToggle }) {
                 {flight.airlineCode && <span className="font-mono">{flight.airlineCode}</span>}
                 {flight.airlineName && <span className="ml-1 text-gray-400">· {flight.airlineName}</span>}
               </div>
-              {flight.flightNumber && (
-                <div className="text-xs text-gray-400 font-mono mt-0.5">{flight.flightNumber}</div>
+              {firstLeg?.flightNumber && (
+                <div className="text-xs text-gray-400 font-mono mt-0.5">{firstLeg.flightNumber}</div>
               )}
-              {flight.pnrCode && (
+              {firstLeg?.pnrCode && (
                 <div className="text-xs font-medium mt-0.5">
-                  <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-mono">PNR: {flight.pnrCode}</span>
+                  <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-mono">PNR: {firstLeg.pnrCode}</span>
                 </div>
               )}
               {stops.length > 0 && (
@@ -317,7 +317,7 @@ function FlightCard({ flight, passengers, onBook, expanded, onToggle }) {
               <table className="w-full text-xs border border-gray-200 rounded overflow-hidden">
                 <thead className="bg-gray-100">
                   <tr>
-                    {['Leg', 'From', 'To', 'Departure', 'Arrival', 'Baggage'].map(h => (
+                    {['Leg', 'Airline', 'Flight #', 'From', 'To', 'Departure', 'Arrival', 'Class', 'Baggage', 'Hand Carry'].map(h => (
                       <th key={h} className="text-left px-3 py-2 font-medium text-gray-500">{h}</th>
                     ))}
                   </tr>
@@ -326,11 +326,18 @@ function FlightCard({ flight, passengers, onBook, expanded, onToggle }) {
                   {legs.map((leg, i) => (
                     <tr key={i}>
                       <td className="px-3 py-2 text-gray-400">{i + 1}</td>
+                      <td className="px-3 py-2 text-gray-600">
+                        {leg.airlineLogoUrl && <img src={leg.airlineLogoUrl} alt={leg.airlineCode} className="h-5 inline mr-1 object-contain" />}
+                        {leg.airlineCode || leg.airlineName || '—'}
+                      </td>
+                      <td className="px-3 py-2 font-mono text-gray-600">{leg.flightNumber || '—'}</td>
                       <td className="px-3 py-2 font-medium text-gray-800">{leg.origin}</td>
                       <td className="px-3 py-2 font-medium text-gray-800">{leg.destination}</td>
                       <td className="px-3 py-2 text-gray-600">{leg.departAt ? new Date(leg.departAt).toLocaleString() : '—'}</td>
                       <td className="px-3 py-2 text-gray-600">{leg.arriveAt ? new Date(leg.arriveAt).toLocaleString() : '—'}</td>
+                      <td className="px-3 py-2 text-gray-600 capitalize">{leg.flightClass || '—'}</td>
                       <td className="px-3 py-2 text-gray-600">{leg.baggageKg != null ? `${leg.baggageKg} kg` : '—'}</td>
+                      <td className="px-3 py-2 text-gray-600">{leg.handCarryKg != null ? `${leg.handCarryKg} kg` : '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -347,17 +354,17 @@ function FlightCard({ flight, passengers, onBook, expanded, onToggle }) {
               </div>
             )}
 
-            {/* Flight identifiers */}
-            {flight.flightNumber && (
+            {/* Flight identifiers (from first leg) */}
+            {firstLeg?.flightNumber && (
               <div>
                 <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">Flight Number</div>
-                <div className="font-mono text-gray-800">{flight.flightNumber}</div>
+                <div className="font-mono text-gray-800">{firstLeg.flightNumber}</div>
               </div>
             )}
-            {flight.pnrCode && (
+            {firstLeg?.pnrCode && (
               <div>
                 <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">PNR Code</div>
-                <div className="font-mono text-gray-800">{flight.pnrCode}</div>
+                <div className="font-mono text-gray-800">{firstLeg.pnrCode}</div>
               </div>
             )}
 
