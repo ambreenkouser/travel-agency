@@ -16,6 +16,10 @@ public interface BookingMapper {
     @Mapping(target = "bookableTitle",  ignore = true)
     @Mapping(target = "flightNumber",   ignore = true)
     @Mapping(target = "pnrCode",        ignore = true)
+    @Mapping(target = "groupName",      ignore = true)
+    @Mapping(target = "airlineName",    ignore = true)
+    @Mapping(target = "airlineLogoUrl", ignore = true)
+    @Mapping(target = "departureDate",  ignore = true)
     BookingDto toDto(Booking booking);
 
     @Mapping(source = "type", target = "type", qualifiedByName = "passengerTypeToString")

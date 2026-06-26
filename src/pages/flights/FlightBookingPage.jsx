@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getFlight } from '../../api/flights'
 import { createBooking } from '../../api/bookings'
+import { getParentAccounts } from '../../api/accounts'
 import { getHotels } from '../../api/hotels'
 import { EXTRAS_CONFIG, extraPaxCount } from '../../components/ui/ExtrasEditor'
 import Button from '../../components/ui/Button'
@@ -81,6 +82,8 @@ export default function FlightBookingPage() {
   const [selectedHotelId, setSelectedHotelId] = useState('')
   const [error, setError]                 = useState('')
   const [submitting, setSubmitting]       = useState(false)
+  const [successBooking, setSuccessBooking] = useState(null)
+  const [parentAccounts, setParentAccounts] = useState([])
 
   const passengerList = buildList(adults, children, infants)
 
@@ -160,7 +163,8 @@ export default function FlightBookingPage() {
         extrasFee: extrasTotal,
         passengers,
       })
-      navigate(`/bookings/${booking.id}/confirm`)
+      setSuccessBooking(booking)
+      getParentAccounts().then(setParentAccounts).catch(() => {})
     } catch {
       setError('Failed to create booking. Please try again.')
     } finally {
@@ -282,24 +286,18 @@ export default function FlightBookingPage() {
                 <span className="text-white text-sm font-bold uppercase tracking-wide">Total Price</span>
               </div>
               <div className="bg-slate-700 px-4 py-3">
-                {adults > 0 && (
-                  <div className="flex justify-between py-1.5 border-b border-slate-600">
-                    <span className="text-sm text-slate-200">Adults</span>
-                    <span className="text-sm font-bold text-white">PKR {(adults * fareAdult).toLocaleString()}</span>
-                  </div>
-                )}
-                {children > 0 && (
-                  <div className="flex justify-between py-1.5 border-b border-slate-600">
-                    <span className="text-sm text-slate-200">Child</span>
-                    <span className="text-sm font-bold text-white">PKR {(children * fareChild).toLocaleString()}</span>
-                  </div>
-                )}
-                {infants > 0 && (
-                  <div className="flex justify-between py-1.5 border-b border-slate-600">
-                    <span className="text-sm text-slate-200">Infants</span>
-                    <span className="text-sm font-bold text-white">PKR {(infants * fareInfant).toLocaleString()}</span>
-                  </div>
-                )}
+                <div className="flex justify-between py-1.5 border-b border-slate-600">
+                  <span className="text-sm text-slate-200">Adults</span>
+                  <span className="text-sm font-bold text-white">PKR {(adults * fareAdult).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-slate-600">
+                  <span className="text-sm text-slate-200">Child</span>
+                  <span className="text-sm font-bold text-white">PKR {(children * fareChild).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-slate-600">
+                  <span className="text-sm text-slate-200">Infants</span>
+                  <span className="text-sm font-bold text-white">PKR {(infants * fareInfant).toLocaleString()}</span>
+                </div>
                 <div className="flex justify-between py-1.5 mt-1">
                   <span className="text-sm font-bold text-white">Total Price</span>
                   <span className="text-sm font-bold text-green-400">PKR {grandTotal.toLocaleString()}</span>
@@ -443,6 +441,104 @@ export default function FlightBookingPage() {
           </Button>
         </div>
       </form>
+
+      {/* ── Success Modal ── */}
+      {successBooking && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl p-8 max-h-[90vh] overflow-y-auto">
+
+            {/* Header */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 rounded-full border-4 border-green-500 flex items-center justify-center shrink-0">
+                <span className="text-green-500 text-2xl font-bold">✓</span>
+              </div>
+              <h2 className="text-xl font-bold text-gray-800 uppercase tracking-wide">
+                BOOKING SUCCESSFULLY MADE
+              </h2>
+            </div>
+
+            <div className="space-y-3 text-gray-700 mb-6 text-sm">
+              <p>
+                This is to inform you that your ticket reservation has been successfully placed{' '}
+                <strong>on hold</strong>
+              </p>
+              {successBooking.expiresAt && (
+                <p>
+                  We request you to make the payment by{' '}
+                  <strong>
+                    {new Date(successBooking.expiresAt).toLocaleString('en-GB', {
+                      weekday: 'short', day: '2-digit', month: 'short', year: 'numeric',
+                      hour: '2-digit', minute: '2-digit',
+                    })}
+                  </strong>.
+                </p>
+              )}
+              <p>
+                You can download your demo ticket print from this link&nbsp;
+                <a
+                  href={`/bookings/${successBooking.id}/ticket`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-blue-600 font-semibold hover:underline"
+                >
+                  Print
+                </a>
+                &nbsp;or you can view all your bookings from this link&nbsp;
+                <button
+                  onClick={() => navigate('/bookings')}
+                  className="text-blue-600 hover:underline font-medium"
+                >
+                  view all bookings
+                </button>
+              </p>
+            </div>
+
+            {parentAccounts.length > 0 && (
+              <>
+                <p className="text-gray-700 text-sm mb-3">Below are our account details:</p>
+                <div className="overflow-x-auto mb-6 rounded border border-gray-200">
+                  <table className="w-full border-collapse text-sm">
+                    <tbody>
+                      {parentAccounts.map((acc, i) => (
+                        <tr key={acc.id} className="bg-blue-500 text-white border-b border-blue-400 last:border-0">
+                          <td className="px-3 py-2.5 font-bold border-r border-blue-400 whitespace-nowrap">
+                            Bank {i + 1}
+                          </td>
+                          <td className="px-3 py-2.5 border-r border-blue-400">
+                            <div className="text-xs text-blue-200">Bank Name:</div>
+                            <div className="font-semibold">{acc.bankName || '—'}</div>
+                          </td>
+                          <td className="px-3 py-2.5 border-r border-blue-400">
+                            <div className="text-xs text-blue-200">Account Title:</div>
+                            <div className="font-semibold">{acc.accountTitle || '—'}</div>
+                          </td>
+                          <td className="px-3 py-2.5 border-r border-blue-400">
+                            <div className="text-xs text-blue-200">Account#:</div>
+                            <div className="font-semibold font-mono">{acc.bankAccountNumber || '—'}</div>
+                          </td>
+                          <td className="px-3 py-2.5">
+                            <div className="text-xs text-blue-200">IBAN#:</div>
+                            <div className="font-semibold font-mono">{acc.iban || acc.bankAccountNumber || '—'}</div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+
+            <div className="border-t pt-4 flex justify-end">
+              <button
+                onClick={() => navigate('/bookings')}
+                className="px-6 py-2 text-sm text-gray-600 hover:text-gray-900 font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

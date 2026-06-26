@@ -25,6 +25,8 @@ import com.example.travel.booking.Passenger;
 import com.example.travel.booking.PassengerRepository;
 import com.example.travel.booking.PassengerType;
 import com.example.travel.booking.PricingInput;
+import com.example.travel.flight.Airline;
+import com.example.travel.flight.AirlineRepository;
 import com.example.travel.flight.Flight;
 import com.example.travel.flight.FlightLeg;
 import com.example.travel.flight.FlightLegRepository;
@@ -83,6 +85,7 @@ public class BookingRestController {
     private final BookingPaymentRepository bookingPaymentRepository;
     private final PaymentAccountRepository paymentAccountRepository;
     private final BankRepository bankRepository;
+    private final AirlineRepository airlineRepository;
     private final OfferRepository offerRepository;
     private final BookingCancellationRequestRepository cancellationRequestRepository;
 
@@ -102,6 +105,7 @@ public class BookingRestController {
                                  BookingPaymentRepository bookingPaymentRepository,
                                  PaymentAccountRepository paymentAccountRepository,
                                  BankRepository bankRepository,
+                                 AirlineRepository airlineRepository,
                                  OfferRepository offerRepository,
                                  BookingCancellationRequestRepository cancellationRequestRepository) {
         this.bookingService = bookingService;
@@ -120,6 +124,7 @@ public class BookingRestController {
         this.bookingPaymentRepository = bookingPaymentRepository;
         this.paymentAccountRepository = paymentAccountRepository;
         this.bankRepository = bankRepository;
+        this.airlineRepository = airlineRepository;
         this.offerRepository = offerRepository;
         this.cancellationRequestRepository = cancellationRequestRepository;
     }
@@ -475,13 +480,31 @@ public class BookingRestController {
         String bookableTitle = resolveBookableTitle(dto.bookableType(), dto.bookableId());
         String flightNumber = null;
         String pnrCode = null;
+        String groupName = null;
+        String airlineName = null;
+        String airlineLogoUrl = null;
+        java.time.Instant departureDate = null;
         if ("flight".equalsIgnoreCase(dto.bookableType()) && dto.bookableId() != null) {
             List<com.example.travel.flight.FlightLeg> fLegs =
                     flightLegRepository.findByFlightIdOrderByLegOrder(dto.bookableId());
             if (!fLegs.isEmpty()) {
-                flightNumber = fLegs.get(0).getFlightNumber();
-                pnrCode      = fLegs.get(0).getPnrCode();
+                FlightLeg leg0 = fLegs.get(0);
+                flightNumber  = leg0.getFlightNumber();
+                pnrCode       = leg0.getPnrCode();
+                if (leg0.getDepartAt() != null) {
+                    departureDate = leg0.getDepartAt().toInstant();
+                }
+                if (leg0.getAirlineId() != null) {
+                    Airline al = airlineRepository.findById(leg0.getAirlineId()).orElse(null);
+                    if (al != null) {
+                        airlineName    = al.getName();
+                        airlineLogoUrl = al.getLogoUrl();
+                    }
+                }
+                if (airlineName == null) airlineName = leg0.getAirlineCode();
             }
+            Flight fl = flightRepository.findById(dto.bookableId()).orElse(null);
+            if (fl != null) groupName = fl.getGroupName();
         }
         return new BookingDto(
                 dto.id(), dto.bookableType(), dto.bookableId(), dto.status(),
@@ -489,7 +512,8 @@ public class BookingRestController {
                 dto.createdAt(), dto.expiresAt(), dto.passengers(),
                 dto.bookedByUserId(), name,
                 dto.paymentComment(), dto.approvedByUserId(), payment,
-                bookableTitle, flightNumber, pnrCode
+                bookableTitle, flightNumber, pnrCode,
+                groupName, airlineName, airlineLogoUrl, departureDate
         );
     }
 
