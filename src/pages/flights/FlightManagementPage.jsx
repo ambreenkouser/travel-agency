@@ -192,6 +192,33 @@ export default function FlightManagementPage() {
     return flight.legs.map(l => l.origin).join(' → ') + ' → ' + flight.legs[flight.legs.length - 1].destination
   }
 
+  function fmtLegDate(iso) {
+    if (!iso) return '—'
+    const d = new Date(iso)
+    return d.getDate().toString().padStart(2, '0') +
+      d.toLocaleString('en-GB', { month: 'short' }).toUpperCase()
+  }
+
+  function fmtTime(iso) {
+    if (!iso) return '—'
+    return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+  }
+
+  function numDays(legs) {
+    if (!legs?.length) return '—'
+    const first = new Date(legs[0].departAt)
+    const last  = new Date(legs[legs.length - 1].arriveAt)
+    const days  = Math.round((last - first) / 86400000)
+    return Math.max(1, days)
+  }
+
+  function headerRoute(f) {
+    const airline = f.legs?.[0]?.airlineName || f.airlineName || ''
+    const legs = f.legs ?? []
+    const stops = legs.length ? [legs[0].origin, ...legs.map(l => l.destination)] : []
+    return airline ? `${airline} · ${stops.join('-')}` : stops.join('-')
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -391,52 +418,115 @@ export default function FlightManagementPage() {
         </div>
       )}
 
-      {/* Table */}
+      {/* Flight Cards */}
       {loading ? (
         <p className="text-sm text-gray-500">Loading...</p>
+      ) : flights.length === 0 ? (
+        <p className="text-sm text-gray-400 text-center py-12">No flights found</p>
       ) : (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                {['Logo', 'Airline', 'Group', 'Route', 'Depart', 'Adult', 'Status', ''].map(h => (
-                  <th key={h} className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {flights.length === 0 && (
-                <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">No flights found</td></tr>
-              )}
-              {flights.map(f => {
-                const firstLeg = f.legs?.[0]
-                return (
-                  <tr key={f.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      {f.airlineLogoUrl
-                        ? <img src={f.airlineLogoUrl} alt={f.airlineCode} className="h-8 w-14 object-contain" />
-                        : <span className="text-gray-300 text-xs">—</span>}
-                    </td>
-                    <td className="px-4 py-3 font-mono text-gray-700">
-                      <div>{f.airlineCode ?? '—'}</div>
-                      {firstLeg?.flightNumber && <div className="text-xs text-gray-400">{firstLeg.flightNumber}</div>}
-                      {firstLeg?.pnrCode && <div className="text-xs text-blue-500">PNR: {firstLeg.pnrCode}</div>}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{f.groupName || '—'}</td>
-                    <td className="px-4 py-3 text-gray-700 whitespace-nowrap font-medium">{legChain(f)}</td>
-                    <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{fmtDt(f.departAt)}</td>
-                    <td className="px-4 py-3 text-gray-700">{f.fareAdult}</td>
-                    <td className="px-4 py-3"><StatusBadge status={f.status} /></td>
-                    <td className="px-4 py-3 text-right whitespace-nowrap">
-                      <button onClick={() => setDetailFlight(f)} className="text-gray-500 hover:underline mr-3 text-xs">Details</button>
-                      <button onClick={() => openEdit(f)} className="text-blue-600 hover:underline mr-3 text-xs">Edit</button>
-                      <button onClick={() => handleDelete(f.id)} className="text-red-500 hover:underline text-xs">Delete</button>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+        <div className="space-y-4">
+          {flights.map(f => {
+            const legs = f.legs ?? []
+            const firstLeg = legs[0]
+            const headerColor = f.status === 'active'
+              ? 'bg-green-700' : f.status === 'cancelled'
+              ? 'bg-red-700' : 'bg-amber-600'
+
+            return (
+              <div key={f.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+
+                {/* ── Header bar ── */}
+                <div className={`${headerColor} text-white text-xs font-semibold px-4 py-2 flex flex-wrap items-center gap-x-3 gap-y-1`}>
+                  <span className="tracking-wide">{(f.groupName || '—').toUpperCase()}</span>
+                  <span className="opacity-50">|</span>
+                  <span className="font-normal">{headerRoute(f)}</span>
+                  <span className="opacity-50">|</span>
+                  <span className="font-normal">Number of Days: {numDays(legs)}</span>
+                  <span className="opacity-50">|</span>
+                  <span className="font-mono">AG-{f.id}</span>
+                </div>
+
+                {/* ── Body table ── */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                      <tr>
+                        <th className="text-left px-4 py-2 text-xs font-semibold text-gray-600 w-36">Airline</th>
+                        <th className="text-left px-4 py-2 text-xs font-semibold text-gray-600">
+                          Sector Details&nbsp;
+                          <span className="font-normal text-indigo-600">({f.groupName || '—'})</span>
+                        </th>
+                        <th className="text-left px-4 py-2 text-xs font-semibold text-gray-600 w-32">Seats</th>
+                        <th className="text-left px-4 py-2 text-xs font-semibold text-gray-600 w-32">Dep Date</th>
+                        <th className="text-left px-4 py-2 text-xs font-semibold text-gray-600 w-32">Price</th>
+                        <th className="text-right px-4 py-2 text-xs font-semibold text-gray-600 w-36"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {legs.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="px-4 py-3 text-gray-400 text-xs italic">No legs defined</td>
+                        </tr>
+                      ) : legs.map((leg, i) => (
+                        <tr key={i} className="border-t border-gray-100">
+
+                          {/* Airline — per leg */}
+                          <td className="px-4 py-3 align-top">
+                            {leg.airlineLogoUrl
+                              ? <img src={leg.airlineLogoUrl} alt={leg.airlineCode} className="h-8 object-contain mb-0.5" />
+                              : <span className="font-mono text-xs text-gray-500">{leg.airlineCode || '—'}</span>}
+                            {leg.airlineName && (
+                              <div className="text-xs text-gray-600 font-semibold uppercase leading-tight mt-0.5">
+                                {leg.airlineName}
+                              </div>
+                            )}
+                          </td>
+
+                          {/* Sector details — per leg */}
+                          <td className="px-4 py-3 align-top font-mono text-xs text-gray-700 whitespace-nowrap">
+                            {i + 1})&nbsp;
+                            <span className="font-semibold">{leg.flightNumber || '—'}</span>
+                            &nbsp;{fmtLegDate(leg.departAt)}
+                            &nbsp;{leg.origin}-{leg.destination}
+                            &nbsp;{fmtTime(leg.departAt)}&nbsp;{fmtTime(leg.arriveAt)}
+                            {leg.baggageKg != null && <>&nbsp;&nbsp;<span className="text-gray-500">{leg.baggageKg}-KG Baggage</span></>}
+                          </td>
+
+                          {/* Seats, Dep Date, Price, Actions — first leg only, rowSpan for the rest */}
+                          {i === 0 && (
+                            <>
+                              <td className="px-4 py-3 align-top text-xs text-gray-700" rowSpan={legs.length}>
+                                <div>Total Seats: <span className="font-semibold">{f.seatQuota ?? '—'}</span></div>
+                                <div className="mt-0.5">
+                                  Available Seats:&nbsp;
+                                  <span className={`font-semibold ${f.availableSeats === 0 ? 'text-red-600' : 'text-green-700'}`}>
+                                    {f.availableSeats ?? '—'}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 align-top text-xs font-semibold text-green-700 whitespace-nowrap" rowSpan={legs.length}>
+                                {firstLeg?.departAt
+                                  ? new Date(firstLeg.departAt).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+                                  : '—'}
+                              </td>
+                              <td className="px-4 py-3 align-top text-xs font-bold text-blue-700 whitespace-nowrap" rowSpan={legs.length}>
+                                PKR {Number(f.fareAdult).toLocaleString()}
+                              </td>
+                              <td className="px-4 py-3 align-top text-right whitespace-nowrap" rowSpan={legs.length}>
+                                <button onClick={() => setDetailFlight(f)} className="text-gray-500 hover:underline mr-3 text-xs">Details</button>
+                                <button onClick={() => openEdit(f)} className="text-blue-600 hover:underline mr-3 text-xs">Edit</button>
+                                <button onClick={() => handleDelete(f.id)} className="text-red-500 hover:underline text-xs">Delete</button>
+                              </td>
+                            </>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
 
