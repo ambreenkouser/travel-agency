@@ -461,7 +461,7 @@ export default function FlightManagementPage() {
                         <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 border-r border-gray-200 w-44">Seats</th>
                         <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 border-r border-gray-200 w-36">Dep Date</th>
                         <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 border-r border-gray-200 w-36">Price</th>
-                        <th className="px-4 py-2 w-36"></th>
+                        <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 w-36">Actions</th>
                       </tr>
                     </thead>
 
@@ -473,19 +473,15 @@ export default function FlightManagementPage() {
                       ) : (
                         <tr className="align-top">
 
-                          {/* Airline — per-leg stacked (name above logo per leg) */}
+                          {/* Airline — first leg only */}
                           <td className="px-4 py-3 border-r border-gray-200">
-                            {legs.map((leg, i) => (
-                              <div key={i} className={`${i > 0 ? 'mt-4 pt-3 border-t border-gray-100' : ''}`}>
-                                <div className="font-bold text-blue-700 text-sm uppercase leading-tight">
-                                  {leg.airlineName || leg.airlineCode || '—'}
-                                </div>
-                                {leg.airlineLogoUrl && (
-                                  <img src={leg.airlineLogoUrl} alt={leg.airlineCode}
-                                    className="h-8 object-contain mt-1" />
-                                )}
-                              </div>
-                            ))}
+                            <div className="font-bold text-blue-700 text-sm uppercase leading-tight">
+                              {firstLeg?.airlineName || firstLeg?.airlineCode || '—'}
+                            </div>
+                            {firstLeg?.airlineLogoUrl && (
+                              <img src={firstLeg.airlineLogoUrl} alt={firstLeg.airlineCode}
+                                className="h-8 object-contain mt-1" />
+                            )}
                           </td>
 
                           {/* Sector details — all legs in a scrollable div */}
@@ -495,12 +491,12 @@ export default function FlightManagementPage() {
                                 <div key={i} className="text-xs font-mono text-gray-700 flex flex-wrap items-baseline gap-x-1.5">
                                   <span className="text-gray-400 shrink-0">{i + 1} )</span>
                                   <span className="font-bold text-gray-900">{leg.flightNumber || '—'}</span>
-                                  <span className="font-semibold">{fmtLegDate(leg.departAt)}</span>
+                                  <span className="font-bold">{fmtLegDate(leg.departAt)}</span>
                                   <span className="font-bold text-blue-700">{leg.origin}-{leg.destination}</span>
-                                  <span>{fmtTime(leg.departAt)}</span>
-                                  <span>{fmtTime(leg.arriveAt)}</span>
+                                  <span className="font-bold">{fmtTime(leg.departAt)}</span>
+                                  <span className="font-bold">{fmtTime(leg.arriveAt)}</span>
                                   {leg.baggageKg != null && (
-                                    <span className="text-gray-600 whitespace-nowrap">{leg.baggageKg}-KG&nbsp;Baggage</span>
+                                    <span className="font-bold text-gray-700 whitespace-nowrap">{leg.baggageKg}-KG&nbsp;Baggage</span>
                                   )}
                                 </div>
                               ))}

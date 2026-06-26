@@ -189,6 +189,8 @@ public class BookingRestController {
             p.setPassportNo(pr.passportNo());
             p.setNationality(pr.nationality());
             p.setDateOfBirth(pr.dateOfBirth());
+            p.setTitle(pr.title());
+            p.setPassportExpiry(pr.passportExpiry());
             return p;
         }).collect(Collectors.toList());
 

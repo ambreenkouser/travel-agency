@@ -37,6 +37,12 @@ public class Passenger extends AuditableEntity {
     private String nationality;
     private String seatNo;
 
+    @Column(name = "title", length = 10)
+    private String title;
+
+    @Column(name = "passport_expiry")
+    private LocalDate passportExpiry;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> extras;
@@ -59,4 +65,8 @@ public class Passenger extends AuditableEntity {
     public void setSeatNo(String seatNo) { this.seatNo = seatNo; }
     public Map<String, Object> getExtras() { return extras; }
     public void setExtras(Map<String, Object> extras) { this.extras = extras; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public LocalDate getPassportExpiry() { return passportExpiry; }
+    public void setPassportExpiry(LocalDate passportExpiry) { this.passportExpiry = passportExpiry; }
 }
