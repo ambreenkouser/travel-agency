@@ -448,18 +448,18 @@ export default function FlightManagementPage() {
 
                 {/* ── Body table ── */}
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50 border-b border-gray-200">
-                      <tr>
-                        <th className="text-left px-4 py-2 text-xs font-semibold text-gray-600 w-36">Airline</th>
-                        <th className="text-left px-4 py-2 text-xs font-semibold text-gray-600">
+                  <table className="w-full text-sm border-collapse">
+                    <thead className="border-b-2 border-gray-300">
+                      <tr className="bg-blue-50">
+                        <th className="text-left px-4 py-2 text-xs font-bold text-gray-800 uppercase tracking-wide border-r border-gray-300 w-44">Airline</th>
+                        <th className="text-left px-4 py-2 text-xs font-bold text-gray-800 uppercase tracking-wide border-r border-gray-300">
                           Sector Details&nbsp;
-                          <span className="font-normal text-indigo-600">({f.groupName || '—'})</span>
+                          <span className="normal-case font-normal text-indigo-600">({f.groupName || '—'})</span>
                         </th>
-                        <th className="text-left px-4 py-2 text-xs font-semibold text-gray-600 w-32">Seats</th>
-                        <th className="text-left px-4 py-2 text-xs font-semibold text-gray-600 w-32">Dep Date</th>
-                        <th className="text-left px-4 py-2 text-xs font-semibold text-gray-600 w-32">Price</th>
-                        <th className="text-right px-4 py-2 text-xs font-semibold text-gray-600 w-36"></th>
+                        <th className="text-left px-4 py-2 text-xs font-bold text-gray-800 uppercase tracking-wide border-r border-gray-300 w-36">Seats</th>
+                        <th className="text-left px-4 py-2 text-xs font-bold text-gray-800 uppercase tracking-wide border-r border-gray-300 w-36">Dep Date</th>
+                        <th className="text-left px-4 py-2 text-xs font-bold text-gray-800 uppercase tracking-wide border-r border-gray-300 w-32">Price</th>
+                        <th className="text-right px-4 py-2 text-xs font-bold text-gray-800 uppercase tracking-wide w-36"></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -468,54 +468,62 @@ export default function FlightManagementPage() {
                           <td colSpan={6} className="px-4 py-3 text-gray-400 text-xs italic">No legs defined</td>
                         </tr>
                       ) : legs.map((leg, i) => (
-                        <tr key={i} className="border-t border-gray-100">
+                        <tr key={i} className="border-t border-gray-200">
 
                           {/* Airline — per leg */}
-                          <td className="px-4 py-3 align-top">
+                          <td className="px-4 py-3 align-top border-r border-gray-200">
                             {leg.airlineLogoUrl
-                              ? <img src={leg.airlineLogoUrl} alt={leg.airlineCode} className="h-8 object-contain mb-0.5" />
-                              : <span className="font-mono text-xs text-gray-500">{leg.airlineCode || '—'}</span>}
+                              ? <img src={leg.airlineLogoUrl} alt={leg.airlineCode} className="h-10 object-contain mb-1" />
+                              : <span className="font-mono text-sm font-bold text-gray-700">{leg.airlineCode || '—'}</span>}
                             {leg.airlineName && (
-                              <div className="text-xs text-gray-600 font-semibold uppercase leading-tight mt-0.5">
+                              <div className="text-xs font-bold text-gray-800 uppercase leading-tight mt-0.5">
                                 {leg.airlineName}
                               </div>
                             )}
                           </td>
 
                           {/* Sector details — per leg */}
-                          <td className="px-4 py-3 align-top font-mono text-xs text-gray-700 whitespace-nowrap">
-                            {i + 1})&nbsp;
-                            <span className="font-semibold">{leg.flightNumber || '—'}</span>
-                            &nbsp;{fmtLegDate(leg.departAt)}
-                            &nbsp;{leg.origin}-{leg.destination}
-                            &nbsp;{fmtTime(leg.departAt)}&nbsp;{fmtTime(leg.arriveAt)}
-                            {leg.baggageKg != null && <>&nbsp;&nbsp;<span className="text-gray-500">{leg.baggageKg}-KG Baggage</span></>}
+                          <td className="px-4 py-3 align-top border-r border-gray-200">
+                            <div className="flex flex-wrap items-center gap-x-2 text-xs font-mono">
+                              <span className="text-gray-400">{i + 1})</span>
+                              <span className="font-bold text-gray-900">{leg.flightNumber || '—'}</span>
+                              <span className="font-semibold text-gray-700">{fmtLegDate(leg.departAt)}</span>
+                              <span className="font-bold text-blue-800">{leg.origin}–{leg.destination}</span>
+                              <span className="text-gray-700">{fmtTime(leg.departAt)}</span>
+                              <span className="text-gray-400">→</span>
+                              <span className="text-gray-700">{fmtTime(leg.arriveAt)}</span>
+                              {leg.baggageKg != null && (
+                                <span className="text-gray-500 whitespace-nowrap">{leg.baggageKg}-KG Baggage</span>
+                              )}
+                            </div>
                           </td>
 
                           {/* Seats, Dep Date, Price, Actions — first leg only, rowSpan for the rest */}
                           {i === 0 && (
                             <>
-                              <td className="px-4 py-3 align-top text-xs text-gray-700" rowSpan={legs.length}>
-                                <div>Total Seats: <span className="font-semibold">{f.seatQuota ?? '—'}</span></div>
-                                <div className="mt-0.5">
-                                  Available Seats:&nbsp;
-                                  <span className={`font-semibold ${f.availableSeats === 0 ? 'text-red-600' : 'text-green-700'}`}>
+                              <td className="px-4 py-3 align-top border-r border-gray-200 text-xs" rowSpan={legs.length}>
+                                <div className="text-gray-500">Total Seats:&nbsp;
+                                  <span className="font-bold text-gray-900">{f.seatQuota ?? '—'}</span>
+                                </div>
+                                <div className="text-gray-500 mt-1">Available:&nbsp;
+                                  <span className={`font-bold ${f.availableSeats === 0 ? 'text-red-600' : 'text-green-700'}`}>
                                     {f.availableSeats ?? '—'}
                                   </span>
                                 </div>
                               </td>
-                              <td className="px-4 py-3 align-top text-xs font-semibold text-green-700 whitespace-nowrap" rowSpan={legs.length}>
+                              <td className="px-4 py-3 align-top border-r border-gray-200 text-xs font-bold text-green-700 whitespace-nowrap" rowSpan={legs.length}>
                                 {firstLeg?.departAt
                                   ? new Date(firstLeg.departAt).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
                                   : '—'}
                               </td>
-                              <td className="px-4 py-3 align-top text-xs font-bold text-blue-700 whitespace-nowrap" rowSpan={legs.length}>
-                                PKR {Number(f.fareAdult).toLocaleString()}
+                              <td className="px-4 py-3 align-top border-r border-gray-200 whitespace-nowrap" rowSpan={legs.length}>
+                                <div className="text-xs text-gray-500">PKR</div>
+                                <div className="text-base font-bold text-blue-700">{Number(f.fareAdult).toLocaleString()}</div>
                               </td>
                               <td className="px-4 py-3 align-top text-right whitespace-nowrap" rowSpan={legs.length}>
-                                <button onClick={() => setDetailFlight(f)} className="text-gray-500 hover:underline mr-3 text-xs">Details</button>
-                                <button onClick={() => openEdit(f)} className="text-blue-600 hover:underline mr-3 text-xs">Edit</button>
-                                <button onClick={() => handleDelete(f.id)} className="text-red-500 hover:underline text-xs">Delete</button>
+                                <button onClick={() => setDetailFlight(f)} className="text-xs text-gray-600 hover:text-gray-900 font-medium mr-3">Details</button>
+                                <button onClick={() => openEdit(f)} className="text-xs text-blue-600 hover:text-blue-800 font-medium mr-3">Edit</button>
+                                <button onClick={() => handleDelete(f.id)} className="text-xs text-red-500 hover:text-red-700 font-medium">Delete</button>
                               </td>
                             </>
                           )}
