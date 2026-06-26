@@ -72,7 +72,7 @@ export default function AppShell() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-      <div className="print:hidden"><Sidebar /></div>
+      <Sidebar />
       <div id="main-scroll" className="flex-1 flex flex-col overflow-y-auto">
         <div className="print:hidden"><TopBar announcementCount={unread.length} /></div>
 

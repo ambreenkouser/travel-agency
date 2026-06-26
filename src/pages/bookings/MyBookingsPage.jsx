@@ -157,7 +157,7 @@ export default function MyBookingsPage() {
                       <td className="px-3 py-3 text-gray-500 border-r border-gray-100">{idx + 1}</td>
 
                       {/* Booking No */}
-                      <td className="px-3 py-3 border-r border-gray-100 min-w-[200px]">
+                      <td className="px-3 py-3 border-r border-gray-100 min-w-[150px]">
                         <div>
                           <Link to={`/bookings/${b.id}/confirm`}
                             className="text-blue-600 font-semibold hover:underline text-sm">
@@ -193,7 +193,7 @@ export default function MyBookingsPage() {
                       </td>
 
                       {/* Group */}
-                      <td className="px-3 py-3 border-r border-gray-100 min-w-[220px]">
+                      <td className="px-3 py-3 border-r border-gray-100 min-w-[170px]">
                         {b.bookableTitle && (
                           <div className="text-gray-700 text-xs mb-1">{b.bookableTitle}</div>
                         )}
@@ -225,25 +225,25 @@ export default function MyBookingsPage() {
                         <table className="text-xs border border-gray-300 border-collapse">
                           <thead>
                             <tr className="bg-gray-800 text-white">
-                              {['Status', 'Adults', 'Child', 'Infant', 'Total'].map(h => (
-                                <th key={h} className="px-2 py-1 border border-gray-600 font-semibold">{h}</th>
+                              {['', 'ADT', 'CHD', 'INF', 'TOT'].map(h => (
+                                <th key={h} className="px-1.5 py-1 border border-gray-600 font-semibold">{h}</th>
                               ))}
                             </tr>
                           </thead>
                           <tbody>
                             <tr className="border border-gray-200">
-                              <td className="px-2 py-1 border border-gray-200 font-semibold text-orange-600">Req</td>
-                              <td className="px-2 py-1 border border-gray-200 text-center">{adults}</td>
-                              <td className="px-2 py-1 border border-gray-200 text-center">{children}</td>
-                              <td className="px-2 py-1 border border-gray-200 text-center">{infants}</td>
-                              <td className="px-2 py-1 border border-gray-200 text-center font-semibold">{total}</td>
+                              <td className="px-1.5 py-1 border border-gray-200 font-semibold text-orange-600">Req</td>
+                              <td className="px-1.5 py-1 border border-gray-200 text-center">{adults}</td>
+                              <td className="px-1.5 py-1 border border-gray-200 text-center">{children}</td>
+                              <td className="px-1.5 py-1 border border-gray-200 text-center">{infants}</td>
+                              <td className="px-1.5 py-1 border border-gray-200 text-center font-semibold">{total}</td>
                             </tr>
                             <tr className="border border-gray-200">
-                              <td className="px-2 py-1 border border-gray-200 font-semibold text-green-600">Cnf</td>
-                              <td className="px-2 py-1 border border-gray-200 text-center">{cnf.adults}</td>
-                              <td className="px-2 py-1 border border-gray-200 text-center">{cnf.children}</td>
-                              <td className="px-2 py-1 border border-gray-200 text-center">{cnf.infants}</td>
-                              <td className="px-2 py-1 border border-gray-200 text-center font-semibold">{cnf.total}</td>
+                              <td className="px-1.5 py-1 border border-gray-200 font-semibold text-green-600">Cnf</td>
+                              <td className="px-1.5 py-1 border border-gray-200 text-center">{cnf.adults}</td>
+                              <td className="px-1.5 py-1 border border-gray-200 text-center">{cnf.children}</td>
+                              <td className="px-1.5 py-1 border border-gray-200 text-center">{cnf.infants}</td>
+                              <td className="px-1.5 py-1 border border-gray-200 text-center font-semibold">{cnf.total}</td>
                             </tr>
                           </tbody>
                         </table>
