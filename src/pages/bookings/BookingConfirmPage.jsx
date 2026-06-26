@@ -305,7 +305,7 @@ export default function BookingConfirmPage() {
             <table className="w-full text-xs border-collapse">
               <thead>
                 <tr className="bg-gray-100 text-gray-700">
-                  {['Title', 'Surname', 'Given Name', 'Type', 'Passport', 'DOB', 'DOI', 'DOE', 'Attachment', 'PNR', 'Ticket No', 'Price', 'Status', 'Ticket'].map(h => (
+                  {['Title', 'Surname', 'Given Name', 'Type', 'Passport', 'DOB', 'DOI', 'DOE', 'PNR', 'Ticket No', 'Price', 'Status', 'Ticket'].map(h => (
                     <th key={h} className="px-2 py-2 text-left font-semibold border-r border-gray-200 last:border-0 whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -325,9 +325,6 @@ export default function BookingConfirmPage() {
                     <td className="px-2 py-2 border-r border-gray-100 whitespace-nowrap">{p.dateOfBirth ? fmtDate(p.dateOfBirth) : 'N/A'}</td>
                     <td className="px-2 py-2 border-r border-gray-100 text-gray-400">N/A</td>
                     <td className="px-2 py-2 border-r border-gray-100 whitespace-nowrap">{p.passportExpiry ? fmtDate(p.passportExpiry) : 'N/A'}</td>
-                    <td className="px-2 py-2 border-r border-gray-100">
-                      <input type="file" accept="image/*" className="text-[10px] w-20" disabled />
-                    </td>
                     <td className="px-2 py-2 border-r border-gray-100 font-mono text-gray-600">
                       {booking.pnrCode ? (
                         <div>

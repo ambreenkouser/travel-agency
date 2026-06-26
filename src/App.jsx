@@ -36,6 +36,8 @@ export default function App() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          {/* Standalone ticket page — no app shell so it prints cleanly */}
+          <Route path="/bookings/:id/ticket" element={<ProtectedRoute><FlightTicketPage /></ProtectedRoute>} />
           <Route
             path="/"
             element={
@@ -51,7 +53,6 @@ export default function App() {
             <Route path="bookings"            element={<MyBookingsPage />} />
             <Route path="bookings/new"         element={<PackageBookingPage />} />
             <Route path="bookings/:id/confirm" element={<BookingConfirmPage />} />
-            <Route path="bookings/:id/ticket"  element={<FlightTicketPage />} />
             <Route path="packages" element={<PackagesPage />} />
             <Route path="agencies" element={<AgenciesPage />} />
             <Route path="airlines"       element={<AirlinesPage />} />

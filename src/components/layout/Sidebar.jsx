@@ -82,21 +82,27 @@ export default function Sidebar() {
   )
 
   return (
-    <aside className="w-56 h-screen bg-gray-900 text-white flex flex-col overflow-y-auto shrink-0">
+    <aside className="group w-14 hover:w-56 transition-[width] duration-200 ease-in-out
+                      h-screen bg-gray-900 text-white flex flex-col overflow-y-auto
+                      overflow-x-hidden shrink-0 print:hidden">
       {/* Branding */}
-      <div className="px-6 py-5 border-b border-gray-700 flex items-center gap-3">
+      <div className="px-3 py-5 border-b border-gray-700 flex items-center gap-3 overflow-hidden">
         {branding.logoUrl ? (
-          <img src={branding.logoUrl} alt="logo" className="h-7 w-7 rounded object-cover" />
+          <img src={branding.logoUrl} alt="logo" className="h-7 w-7 rounded object-cover shrink-0" />
         ) : (
-          <div className="h-7 w-7 rounded bg-blue-600 flex items-center justify-center text-xs font-bold">
+          <div className="h-7 w-7 rounded bg-blue-600 flex items-center justify-center text-xs font-bold shrink-0">
             {branding.agencyName?.charAt(0) ?? 'T'}
           </div>
         )}
-        <span className="text-sm font-bold tracking-tight truncate">{branding.agencyName}</span>
+        <span className="text-sm font-bold tracking-tight whitespace-nowrap overflow-hidden
+                         max-w-0 opacity-0 group-hover:max-w-[160px] group-hover:opacity-100
+                         transition-all duration-200">
+          {branding.agencyName}
+        </span>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <nav className="flex-1 px-2 py-4 space-y-1">
         {navItems.map(item => <NavItem key={item.to} {...item} />)}
 
         {/* Approval queue — visible to admins who can confirm bookings */}
@@ -106,7 +112,13 @@ export default function Sidebar() {
 
         {isAdmin && (
           <>
-            <div className="pt-4 pb-1 px-3 text-xs text-gray-500 uppercase tracking-wider">Admin</div>
+            <div className="pt-4 pb-1 px-1 text-xs text-gray-500 uppercase tracking-wider overflow-hidden">
+              <span className="whitespace-nowrap max-w-0 opacity-0 inline-block overflow-hidden
+                               group-hover:max-w-[160px] group-hover:opacity-100 transition-all duration-200">
+                Admin
+              </span>
+              <span className="block group-hover:hidden border-t border-gray-700 mt-1" />
+            </div>
             {visibleAdminItems.map(item => <NavItem key={item.to} {...item} />)}
             {/* Dynamic package type pages for agency admins */}
             {isAgencyAdmin && packageTypes.map(t => (
@@ -129,15 +141,21 @@ function NavItem({ to, label, icon, badge = 0 }) {
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+        `flex items-center gap-2 px-2 py-2 rounded-md text-sm font-medium transition-colors ${
           isActive ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white'
         }`
       }
     >
-      <span>{icon}</span>
-      <span className="flex-1">{label}</span>
+      <span className="text-base shrink-0 w-6 text-center">{icon}</span>
+      <span className="flex-1 whitespace-nowrap overflow-hidden
+                       max-w-0 opacity-0
+                       group-hover:max-w-[160px] group-hover:opacity-100
+                       transition-all duration-200">
+        {label}
+      </span>
       {badge > 0 && (
-        <span className="min-w-[1.25rem] h-5 px-1 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+        <span className="min-w-[1.25rem] h-5 px-1 bg-red-500 text-white text-xs font-bold
+                         rounded-full flex items-center justify-center shrink-0">
           {badge > 99 ? '99+' : badge}
         </span>
       )}
