@@ -23,5 +23,9 @@ public record BookingDto(
         BookingPaymentDto payment,  // null if no slip submitted yet
         String bookableTitle,       // resolved item name; null unless enriched
         String flightNumber,        // null for non-flight bookings
-        String pnrCode              // null for non-flight bookings
+        String pnrCode,             // null for non-flight bookings
+        String groupName,           // flight groupName (e.g. "UMRAH GROUP")
+        String airlineName,         // first-leg airline name
+        String airlineLogoUrl,      // first-leg airline logo URL
+        Instant departureDate       // first-leg departAt
 ) {}

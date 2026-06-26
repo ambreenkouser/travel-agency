@@ -8,6 +8,7 @@ import FlightSearchPage from './pages/flights/FlightSearchPage'
 import FlightBookingPage from './pages/flights/FlightBookingPage'
 import MyBookingsPage from './pages/bookings/MyBookingsPage'
 import BookingConfirmPage from './pages/bookings/BookingConfirmPage'
+import FlightTicketPage from './pages/bookings/FlightTicketPage'
 import PackagesPage from './pages/packages/PackagesPage'
 import AgenciesPage from './pages/agencies/AgenciesPage'
 import PackageBookingPage from './pages/bookings/PackageBookingPage'
@@ -50,6 +51,7 @@ export default function App() {
             <Route path="bookings"            element={<MyBookingsPage />} />
             <Route path="bookings/new"         element={<PackageBookingPage />} />
             <Route path="bookings/:id/confirm" element={<BookingConfirmPage />} />
+            <Route path="bookings/:id/ticket"  element={<FlightTicketPage />} />
             <Route path="packages" element={<PackagesPage />} />
             <Route path="agencies" element={<AgenciesPage />} />
             <Route path="airlines"       element={<AirlinesPage />} />
