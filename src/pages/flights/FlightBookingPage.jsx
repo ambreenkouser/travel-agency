@@ -191,9 +191,9 @@ export default function FlightBookingPage() {
                 {flight.airlineCode}{flight.airlineName ? ` · ${flight.airlineName}` : ''}
               </div>
               <div className="flex flex-wrap gap-3 mt-1 text-xs text-gray-500">
-                {flight.flightNumber && (
+                {flight.legs?.[0]?.flightNumber && (
                   <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded">
-                    Flight {flight.flightNumber}
+                    Flight {flight.legs[0].flightNumber}
                   </span>
                 )}
                 {flight.groupName && (
@@ -248,7 +248,7 @@ export default function FlightBookingPage() {
                 <table className="w-full text-xs border border-gray-200 rounded overflow-hidden">
                   <thead className="bg-gray-50">
                     <tr>
-                      {['Leg', 'From', 'To', 'Departure', 'Arrival', 'Baggage'].map(h => (
+                      {['Leg', 'Airline', 'Flight #', 'From', 'To', 'Departure', 'Arrival', 'Class', 'Baggage', 'Hand Carry'].map(h => (
                         <th key={h} className="text-left px-2 py-1.5 font-medium text-gray-500">{h}</th>
                       ))}
                     </tr>
@@ -257,6 +257,11 @@ export default function FlightBookingPage() {
                     {flight.legs.map((leg, i) => (
                       <tr key={i}>
                         <td className="px-2 py-1.5 text-gray-400">{leg.legOrder ?? i + 1}</td>
+                        <td className="px-2 py-1.5 text-gray-600">
+                          {leg.airlineLogoUrl && <img src={leg.airlineLogoUrl} alt={leg.airlineCode} className="h-4 inline mr-1 object-contain" />}
+                          {leg.airlineCode || leg.airlineName || '—'}
+                        </td>
+                        <td className="px-2 py-1.5 font-mono text-gray-600">{leg.flightNumber || '—'}</td>
                         <td className="px-2 py-1.5 font-medium text-gray-800">{leg.origin}</td>
                         <td className="px-2 py-1.5 font-medium text-gray-800">{leg.destination}</td>
                         <td className="px-2 py-1.5 text-gray-600">
@@ -265,8 +270,12 @@ export default function FlightBookingPage() {
                         <td className="px-2 py-1.5 text-gray-600">
                           {leg.arriveAt ? new Date(leg.arriveAt).toLocaleString() : '—'}
                         </td>
+                        <td className="px-2 py-1.5 text-gray-600 capitalize">{leg.flightClass || '—'}</td>
                         <td className="px-2 py-1.5 text-gray-600">
                           {leg.baggageKg != null ? `${leg.baggageKg} kg` : '—'}
+                        </td>
+                        <td className="px-2 py-1.5 text-gray-600">
+                          {leg.handCarryKg != null ? `${leg.handCarryKg} kg` : '—'}
                         </td>
                       </tr>
                     ))}
