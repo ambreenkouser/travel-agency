@@ -7,6 +7,7 @@ import java.util.Map;
 
 public record FlightDto(
         Long id,
+        // Derived from first leg's airline for list/table display
         String airlineCode,
         String airlineName,
         String airlineLogoUrl,
@@ -23,8 +24,6 @@ public record FlightDto(
         BigDecimal costChild,
         BigDecimal costInfant,
         String baggageInfo,
-        String flightNumber,
-        String pnrCode,
         String groupName,
         String status,
         Map<String, Object> extras,
@@ -32,6 +31,5 @@ public record FlightDto(
         Integer availableSeats,
         List<FlightLegDto> legs,
         String contactPersonPhone,
-        String contactPersonEmail,
-        String flightClass
+        String contactPersonEmail
 ) {}

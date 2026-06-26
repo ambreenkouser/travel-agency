@@ -8,7 +8,6 @@ import java.util.Map;
 
 public class FlightRequest {
 
-    private Long airlineId;
     private BigDecimal fareAdult;
     private BigDecimal fareChild;
     private BigDecimal fareInfant;
@@ -17,15 +16,12 @@ public class FlightRequest {
     private BigDecimal costChild;
     private BigDecimal costInfant;
     private String baggageInfo;
-    private String flightNumber;
-    private String pnrCode;
     private Map<String, Object> extras;
     private String status = "draft";
     private Integer seatQuota;
     private String groupName;
     private String contactPersonPhone;
     private String contactPersonEmail;
-    private String flightClass = "economy";
     private List<Long> sharedWith = new ArrayList<>();
     private List<LegRequest> legs = new ArrayList<>();
 
@@ -35,6 +31,12 @@ public class FlightRequest {
         private OffsetDateTime departAt;
         private OffsetDateTime arriveAt;
         private Integer baggageKg;
+        private Long airlineId;
+        private String flightNumber;
+        private String pnrCode;
+        private String airlineCode;
+        private String flightClass;
+        private Integer handCarryKg;
 
         public String getOrigin() { return origin; }
         public void setOrigin(String origin) { this.origin = origin; }
@@ -46,10 +48,20 @@ public class FlightRequest {
         public void setArriveAt(OffsetDateTime arriveAt) { this.arriveAt = arriveAt; }
         public Integer getBaggageKg() { return baggageKg; }
         public void setBaggageKg(Integer baggageKg) { this.baggageKg = baggageKg; }
+        public Long getAirlineId() { return airlineId; }
+        public void setAirlineId(Long airlineId) { this.airlineId = airlineId; }
+        public String getFlightNumber() { return flightNumber; }
+        public void setFlightNumber(String flightNumber) { this.flightNumber = flightNumber; }
+        public String getPnrCode() { return pnrCode; }
+        public void setPnrCode(String pnrCode) { this.pnrCode = pnrCode; }
+        public String getAirlineCode() { return airlineCode; }
+        public void setAirlineCode(String airlineCode) { this.airlineCode = airlineCode; }
+        public String getFlightClass() { return flightClass; }
+        public void setFlightClass(String flightClass) { this.flightClass = flightClass; }
+        public Integer getHandCarryKg() { return handCarryKg; }
+        public void setHandCarryKg(Integer handCarryKg) { this.handCarryKg = handCarryKg; }
     }
 
-    public Long getAirlineId() { return airlineId; }
-    public void setAirlineId(Long airlineId) { this.airlineId = airlineId; }
     public BigDecimal getFareAdult() { return fareAdult; }
     public void setFareAdult(BigDecimal fareAdult) { this.fareAdult = fareAdult; }
     public BigDecimal getFareChild() { return fareChild; }
@@ -66,10 +78,6 @@ public class FlightRequest {
     public void setCostInfant(BigDecimal costInfant) { this.costInfant = costInfant; }
     public String getBaggageInfo() { return baggageInfo; }
     public void setBaggageInfo(String baggageInfo) { this.baggageInfo = baggageInfo; }
-    public String getFlightNumber() { return flightNumber; }
-    public void setFlightNumber(String flightNumber) { this.flightNumber = flightNumber; }
-    public String getPnrCode() { return pnrCode; }
-    public void setPnrCode(String pnrCode) { this.pnrCode = pnrCode; }
     public Map<String, Object> getExtras() { return extras; }
     public void setExtras(Map<String, Object> extras) { this.extras = extras; }
     public String getStatus() { return status; }
@@ -82,8 +90,6 @@ public class FlightRequest {
     public void setContactPersonPhone(String contactPersonPhone) { this.contactPersonPhone = contactPersonPhone; }
     public String getContactPersonEmail() { return contactPersonEmail; }
     public void setContactPersonEmail(String contactPersonEmail) { this.contactPersonEmail = contactPersonEmail; }
-    public String getFlightClass() { return flightClass; }
-    public void setFlightClass(String flightClass) { this.flightClass = flightClass; }
     public List<Long> getSharedWith() { return sharedWith; }
     public void setSharedWith(List<Long> sharedWith) { this.sharedWith = sharedWith != null ? sharedWith : new ArrayList<>(); }
     public List<LegRequest> getLegs() { return legs; }

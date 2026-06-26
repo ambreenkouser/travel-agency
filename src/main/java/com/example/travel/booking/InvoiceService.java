@@ -2,6 +2,8 @@ package com.example.travel.booking;
 
 import com.example.travel.agency.Agency;
 import com.example.travel.agency.AgencyRepository;
+import com.example.travel.flight.Airline;
+import com.example.travel.flight.AirlineRepository;
 import com.example.travel.flight.Flight;
 import com.example.travel.flight.FlightLeg;
 import com.example.travel.flight.FlightLegRepository;
@@ -58,15 +60,18 @@ public class InvoiceService {
     private final PassengerRepository   passengerRepository;
     private final FlightRepository      flightRepository;
     private final FlightLegRepository   flightLegRepository;
+    private final AirlineRepository     airlineRepository;
 
     public InvoiceService(AgencyRepository agencyRepository,
                           PassengerRepository passengerRepository,
                           FlightRepository flightRepository,
-                          FlightLegRepository flightLegRepository) {
+                          FlightLegRepository flightLegRepository,
+                          AirlineRepository airlineRepository) {
         this.agencyRepository    = agencyRepository;
         this.passengerRepository = passengerRepository;
         this.flightRepository    = flightRepository;
         this.flightLegRepository = flightLegRepository;
+        this.airlineRepository   = airlineRepository;
     }
 
     @Transactional(readOnly = true)
@@ -169,12 +174,15 @@ public class InvoiceService {
         leftCell.setBorder(Rectangle.NO_BORDER);
         leftCell.setPadding(4);
 
-        String airlineName = (flight != null && flight.getAirline() != null)
-                ? flight.getAirline().getName()
+        FlightLeg firstLeg = legs.isEmpty() ? null : legs.get(0);
+        Airline firstAirline = (firstLeg != null && firstLeg.getAirlineId() != null)
+                ? airlineRepository.findById(firstLeg.getAirlineId()).orElse(null) : null;
+        String airlineName = (firstAirline != null)
+                ? firstAirline.getName()
                 : (agency != null ? agency.getName() : "Travel Agency");
 
-        if (flight != null && flight.getAirline() != null) {
-            String logoUrl = flight.getAirline().getLogoUrl();
+        if (firstAirline != null) {
+            String logoUrl = firstAirline.getLogoUrl();
             Image img = loadImage(logoUrl);
             if (img != null) {
                 img.scaleToFit(100, 45);
@@ -208,12 +216,12 @@ public class InvoiceService {
                     "Departure: " + DATE_FMT.format(legs.get(0).getDepartAt()),
                     normal(9, DARK), Element.ALIGN_RIGHT));
         }
-        if (flight != null && flight.getPnrCode() != null && !flight.getPnrCode().isBlank()) {
-            rightCell.addElement(styledParagraph("PNR: " + flight.getPnrCode(),
+        if (firstLeg != null && firstLeg.getPnrCode() != null && !firstLeg.getPnrCode().isBlank()) {
+            rightCell.addElement(styledParagraph("PNR: " + firstLeg.getPnrCode(),
                     bold(11, PRIMARY), Element.ALIGN_RIGHT));
         }
-        if (flight != null && flight.getFlightNumber() != null && !flight.getFlightNumber().isBlank()) {
-            rightCell.addElement(styledParagraph("Flight: " + flight.getFlightNumber(),
+        if (firstLeg != null && firstLeg.getFlightNumber() != null && !firstLeg.getFlightNumber().isBlank()) {
+            rightCell.addElement(styledParagraph("Flight: " + firstLeg.getFlightNumber(),
                     normal(9, MID), Element.ALIGN_RIGHT));
         }
         top.addCell(rightCell);
@@ -262,10 +270,11 @@ public class InvoiceService {
     private void addLegSection(Document doc, FlightLeg leg, Flight flight)
             throws DocumentException {
 
-        String airlineCode = (flight != null && flight.getAirline() != null)
-                ? flight.getAirline().getCode() : "—";
-        String flightNo    = (flight != null && flight.getFlightNumber() != null)
-                ? flight.getFlightNumber() : "—";
+        Airline legAirline = (leg.getAirlineId() != null)
+                ? airlineRepository.findById(leg.getAirlineId()).orElse(null) : null;
+        String airlineCode = legAirline != null ? legAirline.getCode()
+                : (leg.getAirlineCode() != null ? leg.getAirlineCode() : "—");
+        String flightNo    = leg.getFlightNumber() != null ? leg.getFlightNumber() : "—";
 
         // Section header: ✈ Departure from ORIGIN (Flight CODE:NUMBER)
         String header = "✈ Departure from " + leg.getOrigin()

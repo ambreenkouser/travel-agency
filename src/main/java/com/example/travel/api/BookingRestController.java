@@ -474,10 +474,11 @@ public class BookingRestController {
         String flightNumber = null;
         String pnrCode = null;
         if ("flight".equalsIgnoreCase(dto.bookableType()) && dto.bookableId() != null) {
-            var flightOpt = flightRepository.findById(dto.bookableId());
-            if (flightOpt.isPresent()) {
-                flightNumber = flightOpt.get().getFlightNumber();
-                pnrCode      = flightOpt.get().getPnrCode();
+            List<com.example.travel.flight.FlightLeg> fLegs =
+                    flightLegRepository.findByFlightIdOrderByLegOrder(dto.bookableId());
+            if (!fLegs.isEmpty()) {
+                flightNumber = fLegs.get(0).getFlightNumber();
+                pnrCode      = fLegs.get(0).getPnrCode();
             }
         }
         return new BookingDto(
@@ -495,8 +496,8 @@ public class BookingRestController {
         return switch (bookableType.toLowerCase()) {
             case "flight" -> flightRepository.findById(bookableId)
                     .map(f -> {
-                        String airline = (f.getAirline() != null) ? f.getAirline().getCode() + " " : "";
                         List<FlightLeg> legs = flightLegRepository.findByFlightIdOrderByLegOrder(f.getId());
+                        String airline = (!legs.isEmpty() && legs.get(0).getAirlineCode() != null) ? legs.get(0).getAirlineCode() + " " : "";
                         String route = legs.isEmpty() ? "?" : legs.stream()
                                 .map(FlightLeg::getOrigin).collect(Collectors.joining("→"))
                                 + "→" + legs.get(legs.size() - 1).getDestination();

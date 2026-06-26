@@ -198,8 +198,8 @@ public class LedgerRestController {
         return switch (bookableType.toLowerCase()) {
             case "flight" -> flightRepository.findById(bookableId)
                     .map(f -> {
-                        String airline = (f.getAirline() != null) ? f.getAirline().getCode() + " " : "";
                         var legs = flightLegRepository.findByFlightIdOrderByLegOrder(f.getId());
+                        String airline = (!legs.isEmpty() && legs.get(0).getAirlineCode() != null) ? legs.get(0).getAirlineCode() + " " : "";
                         String route = legs.isEmpty() ? "?"
                                 : legs.stream().map(l -> l.getOrigin()).reduce((a, b) -> a + " → " + b).orElse("?")
                                   + " → " + legs.get(legs.size() - 1).getDestination();
