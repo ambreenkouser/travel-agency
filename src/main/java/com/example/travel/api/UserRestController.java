@@ -85,7 +85,7 @@ public class UserRestController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAuthority('agencies:create')")
+    @PreAuthorize("isAuthenticated()")
     public UserListDto create(@RequestBody CreateUserRequest req,
                               @AuthenticationPrincipal AuthUserDetails principal) {
         if (userRepository.findByEmail(req.email()).isPresent()) {

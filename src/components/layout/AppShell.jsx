@@ -72,9 +72,9 @@ export default function AppShell() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-      <Sidebar />
+      <div className="print:hidden"><Sidebar /></div>
       <div id="main-scroll" className="flex-1 flex flex-col overflow-y-auto">
-        <TopBar announcementCount={unread.length} />
+        <div className="print:hidden"><TopBar announcementCount={unread.length} /></div>
 
         {expired && (
           <div className="bg-red-600 text-white text-sm text-center px-4 py-2 font-medium">
@@ -122,7 +122,7 @@ export default function AppShell() {
           </div>
         )}
 
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-6 print:p-0">
           <Outlet />
         </main>
       </div>
