@@ -90,6 +90,7 @@ public class FlightService {
     @Transactional
     public void updateShares(Long flightId, List<Long> agencyIds) {
         shareRepository.deleteByContentTypeAndContentId("flight", flightId);
+        shareRepository.flush(); // force DELETE before re-INSERT to avoid unique(content_type, content_id, target_agency_id) violation
         if (agencyIds != null) {
             for (Long agencyId : agencyIds) {
                 ContentShare share = new ContentShare();

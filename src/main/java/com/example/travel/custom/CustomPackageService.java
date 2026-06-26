@@ -86,6 +86,7 @@ public class CustomPackageService {
     @Transactional
     public void updateShares(Long packageId, List<Long> agencyIds) {
         shareRepository.deleteByContentTypeAndContentId("custom", packageId);
+        shareRepository.flush();
         if (agencyIds != null) {
             for (Long agencyId : agencyIds) {
                 ContentShare share = new ContentShare();
