@@ -257,14 +257,6 @@ export default function MyBookingsPage() {
                       {/* Status */}
                       <td className="px-3 py-3 border-r border-gray-100">
                         <StatusBadge status={b.status} />
-                        {b.status === 'CONFIRMED' && (
-                          <div className="mt-1">
-                            <a href={`/api/bookings/${b.id}/invoice`} target="_blank" rel="noreferrer"
-                              className="inline-flex px-2 py-0.5 bg-yellow-400 text-gray-900 text-xs font-bold rounded hover:bg-yellow-500">
-                              Print
-                            </a>
-                          </div>
-                        )}
                       </td>
 
                       {/* Action */}
@@ -282,12 +274,6 @@ export default function MyBookingsPage() {
                             <button onClick={() => handleCancel(b.id)}
                               className="inline-flex items-center justify-center px-3 py-1 border border-red-400 text-red-600 text-xs font-semibold rounded hover:bg-red-50">
                               Cancel
-                            </button>
-                          )}
-                          {b.status === 'CONFIRMED' && (
-                            <button onClick={() => handleRequestCancellation(b.id)}
-                              className="inline-flex items-center justify-center px-3 py-1 border border-orange-400 text-orange-600 text-xs font-semibold rounded hover:bg-orange-50">
-                              Req Cancel
                             </button>
                           )}
                         </div>

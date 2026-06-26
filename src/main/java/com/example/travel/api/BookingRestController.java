@@ -442,7 +442,7 @@ public class BookingRestController {
     }
 
     @GetMapping(value = "/{id}/invoice", produces = MediaType.APPLICATION_PDF_VALUE)
-    @PreAuthorize("hasAuthority('bookings:view')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<byte[]> downloadInvoice(@PathVariable Long id) {
         bookingService.findById(id);
         byte[] pdf = invoiceService.getInvoiceBytes(id);
