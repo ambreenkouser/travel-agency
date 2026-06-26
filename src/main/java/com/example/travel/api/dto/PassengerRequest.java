@@ -8,5 +8,7 @@ public record PassengerRequest(
         String lastName,
         String passportNo,
         String nationality,
-        LocalDate dateOfBirth
+        LocalDate dateOfBirth,
+        String title,
+        LocalDate passportExpiry
 ) {}

@@ -10,5 +10,7 @@ public record PassengerDto(
         String passportNo,
         String nationality,
         LocalDate dateOfBirth,
-        String seatNo
+        String seatNo,
+        String title,
+        LocalDate passportExpiry
 ) {}

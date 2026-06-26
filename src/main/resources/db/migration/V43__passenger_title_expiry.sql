@@ -1,0 +1,2 @@
+ALTER TABLE passengers ADD COLUMN IF NOT EXISTS title VARCHAR(10);
+ALTER TABLE passengers ADD COLUMN IF NOT EXISTS passport_expiry DATE;
