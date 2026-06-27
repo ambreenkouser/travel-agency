@@ -141,23 +141,31 @@ function NavItem({ to, label, icon, badge = 0 }) {
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `flex items-center gap-2 px-2 py-2 rounded-md text-sm font-medium transition-colors ${
-          isActive ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+        `flex items-center gap-2 px-2 py-2 rounded-r-md text-sm font-medium transition-colors border-l-2 ${
+          isActive
+            ? 'bg-blue-600/20 text-white border-blue-400'
+            : 'text-gray-300 hover:bg-gray-800 hover:text-white border-transparent'
         }`
       }
     >
-      <span className="text-base shrink-0 w-6 text-center">{icon}</span>
-      <span className="flex-1 whitespace-nowrap overflow-hidden
-                       max-w-0 opacity-0
-                       group-hover:max-w-[160px] group-hover:opacity-100
-                       transition-all duration-200">
-        {label}
-      </span>
-      {badge > 0 && (
-        <span className="min-w-[1.25rem] h-5 px-1 bg-red-500 text-white text-xs font-bold
-                         rounded-full flex items-center justify-center shrink-0">
-          {badge > 99 ? '99+' : badge}
-        </span>
+      {({ isActive }) => (
+        <>
+          <span className={`text-base shrink-0 w-6 text-center${isActive ? ' drop-shadow-[0_0_6px_rgba(147,197,253,1)]' : ''}`}>
+            {icon}
+          </span>
+          <span className="flex-1 whitespace-nowrap overflow-hidden
+                           max-w-0 opacity-0
+                           group-hover:max-w-[160px] group-hover:opacity-100
+                           transition-all duration-200">
+            {label}
+          </span>
+          {badge > 0 && (
+            <span className="min-w-[1.25rem] h-5 px-1 bg-red-500 text-white text-xs font-bold
+                             rounded-full flex items-center justify-center shrink-0">
+              {badge > 99 ? '99+' : badge}
+            </span>
+          )}
+        </>
       )}
     </NavLink>
   )

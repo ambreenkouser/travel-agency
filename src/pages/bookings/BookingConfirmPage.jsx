@@ -64,7 +64,7 @@ function StatusBadge({ status }) {
 function FieldBox({ label, value, className = '' }) {
   return (
     <div className={`flex flex-col ${className}`}>
-      <span className="text-xs text-gray-500 mb-0.5">{label}</span>
+      <span className="text-xs text-gray-700 font-semibold mb-0.5">{label}</span>
       <div className="border border-gray-300 rounded px-2 py-1.5 bg-gray-50 text-sm text-gray-800 min-h-[34px]">
         {value || '—'}
       </div>
@@ -368,11 +368,11 @@ export default function BookingConfirmPage() {
                   Payment slip submitted. Awaiting verification by your admin.
                 </div>
                 <div className="text-sm space-y-1 text-gray-700">
-                  <div><span className="text-gray-500">Account Name:</span> {booking.payment.accountName}</div>
-                  <div><span className="text-gray-500">Bank:</span> {booking.payment.bankName}</div>
-                  <div><span className="text-gray-500">Account Number:</span> <span className="font-mono font-semibold">{booking.payment.bankAccountNumber}</span></div>
-                  <div><span className="text-gray-500">Account Title:</span> {booking.payment.accountTitle}</div>
-                  <div><span className="text-gray-500">Reference #:</span> <span className="font-medium">{booking.payment.referenceNumber}</span></div>
+                  <div><span className="text-gray-700 font-semibold">Account Name:</span> {booking.payment.accountName}</div>
+                  <div><span className="text-gray-700 font-semibold">Bank:</span> {booking.payment.bankName}</div>
+                  <div><span className="text-gray-700 font-semibold">Account Number:</span> <span className="font-mono font-semibold">{booking.payment.bankAccountNumber}</span></div>
+                  <div><span className="text-gray-700 font-semibold">Account Title:</span> {booking.payment.accountTitle}</div>
+                  <div><span className="text-gray-700 font-semibold">Reference #:</span> <span className="font-medium">{booking.payment.referenceNumber}</span></div>
                 </div>
                 <button onClick={() => setSlipSuccess(false)} className="text-xs text-blue-600 hover:underline">
                   Update slip
@@ -385,7 +385,7 @@ export default function BookingConfirmPage() {
                 ) : (
                   <>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Select Payment Account *</label>
+                      <label className="block text-xs font-semibold text-gray-800 mb-1">Select Payment Account *</label>
                       <select required value={slipForm.paymentAccountId}
                         onChange={e => setSlipForm(f => ({ ...f, paymentAccountId: e.target.value }))}
                         className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -396,14 +396,14 @@ export default function BookingConfirmPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Reference Number *</label>
+                      <label className="block text-xs font-semibold text-gray-800 mb-1">Reference Number *</label>
                       <input required type="text" value={slipForm.referenceNumber}
                         onChange={e => setSlipForm(f => ({ ...f, referenceNumber: e.target.value }))}
                         placeholder="e.g. TXN123456789"
                         className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Payment Slip Image</label>
+                      <label className="block text-xs font-semibold text-gray-800 mb-1">Payment Slip Image</label>
                       <input type="file" accept="image/jpeg,image/jpg,image/png,application/pdf"
                         onChange={e => setSlipForm(f => ({ ...f, slipImage: e.target.files?.[0] ?? null }))}
                         className="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
@@ -438,12 +438,6 @@ export default function BookingConfirmPage() {
           <span className="text-sm text-yellow-600 bg-yellow-50 border border-yellow-200 rounded px-3 py-2">
             Submitted — awaiting approval from your admin
           </span>
-        )}
-        {booking.status === 'CONFIRMED' && (
-          <a href={`/api/bookings/${booking.id}/invoice`} target="_blank" rel="noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 text-white text-sm rounded hover:bg-gray-700">
-            Download Invoice (PDF)
-          </a>
         )}
         <a href={`/bookings/${booking.id}/ticket`} target="_blank" rel="noreferrer"
           className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-900 text-sm rounded font-semibold">

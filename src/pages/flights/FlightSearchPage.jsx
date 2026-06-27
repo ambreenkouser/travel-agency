@@ -42,7 +42,7 @@ export default function FlightSearchPage() {
   const [origins, setOrigins]     = useState([])   // LOV for From
   const [destinations, setDestinations] = useState([])  // LOV for To
   const [form, setForm] = useState({
-    origin: '', destination: '', date: '', airlineId: '',
+    origin: '', destination: '', dateFrom: '', dateTo: '', airlineId: '',
   })
   const [flights, setFlights] = useState([])
   const [loading, setLoading] = useState(false)
@@ -79,7 +79,8 @@ export default function FlightSearchPage() {
       const params = {
         origin:      form.origin      || undefined,
         destination: form.destination || undefined,
-        date:        form.date        || undefined,
+        dateFrom:    form.dateFrom    || undefined,
+        dateTo:      form.dateTo      || undefined,
         airlineId:   form.airlineId   || undefined,
         size: 50,
       }
@@ -93,7 +94,7 @@ export default function FlightSearchPage() {
   }
 
   function handleReset() {
-    setForm({ origin: '', destination: '', date: '', airlineId: '' })
+    setForm({ origin: '', destination: '', dateFrom: '', dateTo: '', airlineId: '' })
     loadAll()
   }
 
@@ -103,7 +104,7 @@ export default function FlightSearchPage() {
 
       <Card className="p-5">
         <form onSubmit={handleSearch}>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 items-end">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 items-end">
             {/* Airline */}
             <label className="block text-sm">
               <span className="block text-gray-800 font-semibold mb-1">Airline</span>
@@ -118,9 +119,9 @@ export default function FlightSearchPage() {
               </select>
             </label>
 
-            {/* From */}
+            {/* Sector From */}
             <label className="block text-sm">
-              <span className="block text-gray-800 font-semibold mb-1">From</span>
+              <span className="block text-gray-800 font-semibold mb-1">Sector From</span>
               <select
                 value={form.origin} onChange={set('origin')}
                 className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -130,9 +131,9 @@ export default function FlightSearchPage() {
               </select>
             </label>
 
-            {/* To */}
+            {/* Sector To */}
             <label className="block text-sm">
-              <span className="block text-gray-800 font-semibold mb-1">To</span>
+              <span className="block text-gray-800 font-semibold mb-1">Sector To</span>
               <select
                 value={form.destination} onChange={set('destination')}
                 className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -142,7 +143,8 @@ export default function FlightSearchPage() {
               </select>
             </label>
 
-            <Field label="Date" value={form.date} onChange={set('date')} type="date" />
+            <Field label="Date From" value={form.dateFrom} onChange={set('dateFrom')} type="date" />
+            <Field label="Date To"   value={form.dateTo}   onChange={set('dateTo')}   type="date" />
 
             <div className="flex gap-2">
               <button type="button" onClick={handleReset}
