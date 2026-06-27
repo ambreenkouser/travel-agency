@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { getBooking } from '../../api/bookings'
 import { getFlight } from '../../api/flights'
+import { getBranding } from '../../api/agencies'
 import Spinner from '../../components/ui/Spinner'
 
 // Simple airport-code → city name map for common routes
@@ -67,12 +68,14 @@ const RULES = [
 
 export default function FlightTicketPage() {
   const { id } = useParams()
-  const [booking, setBooking] = useState(null)
-  const [flight, setFlight]   = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState('')
+  const [booking, setBooking]   = useState(null)
+  const [flight, setFlight]     = useState(null)
+  const [agencyName, setAgencyName] = useState('')
+  const [loading, setLoading]   = useState(true)
+  const [error, setError]       = useState('')
 
   useEffect(() => {
+    getBranding().then(b => setAgencyName(b.agencyName || '')).catch(() => {})
     getBooking(id)
       .then(b => {
         setBooking(b)
@@ -249,7 +252,7 @@ export default function FlightTicketPage() {
           <div className="text-sm font-bold text-center text-gray-700 mb-2">Emergency Contact</div>
           <div className="text-sm text-center text-gray-600">
             <span className="font-medium">👤 Agency:</span>{' '}
-            {booking.bookedByName || '—'}
+            {agencyName || booking.bookedByName || '—'}
             {flight?.contactPersonPhone && (
               <>
                 {' '}|{' '}
