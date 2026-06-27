@@ -37,8 +37,8 @@ public class AirlineController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('flights:view')")
-    public List<AirlineView> list(@AuthenticationPrincipal AuthUserDetails principal) {
-        return repository.findByCreatedByUserId(principal.getUserId()).stream().map(a -> {
+    public List<AirlineView> list() {
+        return repository.findByAgencyId(AgencyContext.getCurrentAgencyId()).stream().map(a -> {
             int allocated = umrahPackageAirlineRepository.sumAllocatedSeatsByAirlineId(a.getId());
             int remaining = a.getSeatQuota() != null ? Math.max(0, a.getSeatQuota() - allocated) : 0;
             return new AirlineView(a.getId(), a.getCode(), a.getName(), a.getLogoUrl(),
