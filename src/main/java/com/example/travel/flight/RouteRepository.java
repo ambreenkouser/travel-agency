@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository;
 public interface RouteRepository extends JpaRepository<Route, Long> {
     Optional<Route> findByOriginAndDestination(String origin, String destination);
     List<Route> findByCreatedByUserId(Long userId);
+    List<Route> findByAgencyId(Long agencyId);
 }

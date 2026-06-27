@@ -151,9 +151,9 @@ export default function PackagesPage() {
 
   useEffect(() => {
     Promise.all([
-      getHajjPackages(),
-      getUmrahPackages(),
-      client.get('/api/airlines').then(r => r.data),
+      getHajjPackages().catch(() => []),
+      getUmrahPackages().catch(() => []),
+      client.get('/api/airlines').then(r => r.data).catch(() => []),
       getMyCustomPackages().catch(() => []),
     ])
       .then(([hajj, umrah, airs, custom]) => {
@@ -162,7 +162,6 @@ export default function PackagesPage() {
         setAirlines(Array.isArray(airs) ? airs : [])
         setCustomPackages(Array.isArray(custom) ? custom : [])
       })
-      .catch(() => setError('Failed to load packages.'))
       .finally(() => setLoading(false))
   }, [])
 
