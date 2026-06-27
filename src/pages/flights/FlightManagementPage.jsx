@@ -249,7 +249,7 @@ export default function FlightManagementPage() {
 
             {/* Group Name — global */}
             <label className="block text-sm">
-              <span className="block text-gray-600 mb-1">Group Name</span>
+              <span className="block text-gray-800 font-semibold mb-1">Group Name</span>
               <input list="group-names" value={form.groupName}
                 onChange={e => set('groupName')(e.target.value)}
                 placeholder="e.g. Hajj Group A, Tour Group 1"
@@ -259,7 +259,7 @@ export default function FlightManagementPage() {
             {/* Legs */}
             <div className="border border-gray-200 rounded-lg p-3 space-y-3 bg-gray-50">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Flight Legs</span>
+                <span className="text-sm font-semibold text-gray-900">Flight Legs</span>
                 <button type="button" onClick={addLeg}
                   className="text-xs px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700">
                   + Add Leg
@@ -268,7 +268,7 @@ export default function FlightManagementPage() {
               {form.legs.map((leg, i) => (
                 <div key={i} className="bg-white border border-gray-200 rounded-md p-3 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-gray-500 uppercase">Leg {i + 1}</span>
+                    <span className="text-xs font-semibold text-gray-800 uppercase">Leg {i + 1}</span>
                     {form.legs.length > 1 && (
                       <button type="button" onClick={() => removeLeg(i)}
                         className="text-xs text-red-500 hover:underline">Remove</button>
@@ -278,14 +278,14 @@ export default function FlightManagementPage() {
                   {/* Route */}
                   <div className="grid grid-cols-2 gap-2">
                     <label className="block text-sm">
-                      <span className="block text-gray-600 mb-1">From *</span>
+                      <span className="block text-gray-800 font-semibold mb-1">From *</span>
                       <input list="stop-codes" value={leg.origin}
                         onChange={e => setLeg(i, 'origin', e.target.value.toUpperCase())}
                         required placeholder="KHI"
                         className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
                     </label>
                     <label className="block text-sm">
-                      <span className="block text-gray-600 mb-1">To *</span>
+                      <span className="block text-gray-800 font-semibold mb-1">To *</span>
                       <input list="stop-codes" value={leg.destination}
                         onChange={e => setLeg(i, 'destination', e.target.value.toUpperCase())}
                         required placeholder="LHE"
@@ -298,7 +298,7 @@ export default function FlightManagementPage() {
                   {/* Airline & identifiers — per leg */}
                   <div className="grid grid-cols-2 gap-2">
                     <label className="block text-sm col-span-2 md:col-span-1">
-                      <span className="block text-gray-600 mb-1">Airline</span>
+                      <span className="block text-gray-800 font-semibold mb-1">Airline</span>
                       <select value={leg.airlineId} onChange={e => setLeg(i, 'airlineId', e.target.value)}
                         className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
                         <option value="">— Select —</option>
@@ -313,21 +313,21 @@ export default function FlightManagementPage() {
                   {/* Class, Baggage & Hand Carry — per leg */}
                   <div className="grid grid-cols-3 gap-2">
                     <label className="block text-sm">
-                      <span className="block text-gray-600 mb-1">Class</span>
+                      <span className="block text-gray-800 font-semibold mb-1">Class</span>
                       <select value={leg.flightClass} onChange={e => setLeg(i, 'flightClass', e.target.value)}
                         className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
                         {CLASS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                       </select>
                     </label>
                     <label className="block text-sm">
-                      <span className="block text-gray-600 mb-1">Baggage (kg)</span>
+                      <span className="block text-gray-800 font-semibold mb-1">Baggage (kg)</span>
                       <input type="number" min="0" step="1" value={leg.baggageKg}
                         onChange={e => setLeg(i, 'baggageKg', e.target.value)}
                         placeholder="e.g. 23"
                         className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
                     </label>
                     <label className="block text-sm">
-                      <span className="block text-gray-600 mb-1">Hand Carry (kg)</span>
+                      <span className="block text-gray-800 font-semibold mb-1">Hand Carry (kg)</span>
                       <input type="number" min="0" step="1" value={leg.handCarryKg}
                         onChange={e => setLeg(i, 'handCarryKg', e.target.value)}
                         placeholder="e.g. 7"
@@ -340,7 +340,7 @@ export default function FlightManagementPage() {
 
             {/* Selling prices */}
             <div className="border border-gray-200 rounded-lg p-3 bg-gray-50 space-y-2">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
                 Selling Price (shown to agents)
               </p>
               <div className="grid grid-cols-3 gap-3">
@@ -368,7 +368,7 @@ export default function FlightManagementPage() {
               <NumField label="Tax Total"  value={form.taxTotal}  onChange={set('taxTotal')} />
               <IntField  label="Seat Quota" value={form.seatQuota} onChange={set('seatQuota')} placeholder="e.g. 150" />
               <label className="block text-sm">
-                <span className="block text-gray-600 mb-1">Status</span>
+                <span className="block text-gray-800 font-semibold mb-1">Status</span>
                 <select value={form.status} onChange={e => set('status')(e.target.value)}
                   className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
                   {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
@@ -377,7 +377,7 @@ export default function FlightManagementPage() {
             </div>
 
             <label className="block text-sm">
-              <span className="block text-gray-600 mb-1">Baggage Info</span>
+              <span className="block text-gray-800 font-semibold mb-1">Baggage Info</span>
               <input value={form.baggageInfo} onChange={e => set('baggageInfo')(e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
             </label>
@@ -440,7 +440,7 @@ export default function FlightManagementPage() {
                   <span className="text-gray-300 font-light">|</span>
                   <span className="text-green-600 font-semibold text-sm">{headerRoute(f)}</span>
                   <span className="text-gray-300 font-light">|</span>
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-gray-900 font-semibold">
                     Number Of Days&nbsp;<span className="font-bold text-green-600">{numDays(legs)}</span>
                   </span>
                   <span className="text-gray-300 font-light">|</span>
@@ -456,7 +456,7 @@ export default function FlightManagementPage() {
                         <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 border-r border-gray-200 w-44">Airline</th>
                         <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 border-r border-gray-200">
                           Sector Details&nbsp;
-                          <span className="text-xs font-normal text-gray-500">({f.groupName || '—'})</span>
+                          <span className="text-xs font-semibold text-gray-700">({f.groupName || '—'})</span>
                         </th>
                         <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 border-r border-gray-200 w-44">Seats</th>
                         <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 border-r border-gray-200 w-36">Dep Date</th>
@@ -489,7 +489,7 @@ export default function FlightManagementPage() {
                             <div className="max-h-44 overflow-y-auto space-y-2 pr-1">
                               {legs.map((leg, i) => (
                                 <div key={i} className="text-xs font-mono text-gray-700 flex flex-wrap items-baseline gap-x-1.5">
-                                  <span className="text-gray-400 shrink-0">{i + 1} )</span>
+                                  <span className="text-gray-700 font-semibold shrink-0">{i + 1} )</span>
                                   <span className="font-bold text-gray-900">{leg.flightNumber || '—'}</span>
                                   <span className="font-bold">{fmtLegDate(leg.departAt)}</span>
                                   <span className="font-bold text-blue-700">{leg.origin}-{leg.destination}</span>
@@ -505,10 +505,10 @@ export default function FlightManagementPage() {
 
                           {/* Seats */}
                           <td className="px-4 py-3 border-r border-gray-200 text-sm">
-                            <div className="text-gray-700">
+                            <div className="text-gray-900 font-semibold">
                               Total Seats:&nbsp;<span className="font-bold text-gray-900">{f.seatQuota ?? '—'}</span>
                             </div>
-                            <div className="text-gray-700 mt-1">
+                            <div className="text-gray-900 font-semibold mt-1">
                               Available Seats:&nbsp;
                               <span className={`font-bold ${f.availableSeats === 0 ? 'text-red-600' : 'text-gray-900'}`}>
                                 {f.availableSeats ?? '—'}
@@ -535,7 +535,7 @@ export default function FlightManagementPage() {
                           {/* Actions */}
                           <td className="px-4 py-3 text-right whitespace-nowrap">
                             <div className="flex flex-col items-end gap-1.5">
-                              <button onClick={() => setDetailFlight(f)} className="text-xs text-gray-600 hover:text-gray-900 font-medium">Details</button>
+                              <button onClick={() => setDetailFlight(f)} className="text-xs text-gray-800 hover:text-gray-900 font-medium">Details</button>
                               <button onClick={() => openEdit(f)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">Edit</button>
                               <button onClick={() => handleDelete(f.id)} className="text-xs text-red-500 hover:text-red-700 font-medium">Delete</button>
                             </div>
@@ -637,7 +637,7 @@ function Row({ label, value }) {
 function TextField({ label, value, onChange, placeholder }) {
   return (
     <label className="block text-sm">
-      <span className="block text-gray-600 mb-1">{label}</span>
+      <span className="block text-gray-800 font-semibold mb-1">{label}</span>
       <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
         className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
     </label>
@@ -647,7 +647,7 @@ function TextField({ label, value, onChange, placeholder }) {
 function LegField({ label, value, onChange, placeholder }) {
   return (
     <label className="block text-sm">
-      <span className="block text-gray-600 mb-1">{label}</span>
+      <span className="block text-gray-800 font-semibold mb-1">{label}</span>
       <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
         className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
     </label>
@@ -657,7 +657,7 @@ function LegField({ label, value, onChange, placeholder }) {
 function NumField({ label, value, onChange, required }) {
   return (
     <label className="block text-sm">
-      <span className="block text-gray-600 mb-1">{label}</span>
+      <span className="block text-gray-800 font-semibold mb-1">{label}</span>
       <input type="number" step="0.01" min="0" value={value} onChange={e => onChange(e.target.value)} required={required}
         className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
     </label>
@@ -667,7 +667,7 @@ function NumField({ label, value, onChange, required }) {
 function IntField({ label, value, onChange, placeholder }) {
   return (
     <label className="block text-sm">
-      <span className="block text-gray-600 mb-1">{label}</span>
+      <span className="block text-gray-800 font-semibold mb-1">{label}</span>
       <input type="number" step="1" min="1" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
         className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
     </label>
@@ -677,7 +677,7 @@ function IntField({ label, value, onChange, placeholder }) {
 function DateTimeField({ label, value, onChange }) {
   return (
     <label className="block text-sm">
-      <span className="block text-gray-600 mb-1">{label}</span>
+      <span className="block text-gray-800 font-semibold mb-1">{label}</span>
       <input type="datetime-local" value={value} onChange={e => onChange(e.target.value)}
         className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
     </label>

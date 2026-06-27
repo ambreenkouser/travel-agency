@@ -68,15 +68,16 @@ public class FlightRestController {
     public Page<FlightDto> search(
             @RequestParam(required = false) String origin,
             @RequestParam(required = false) String destination,
-            @RequestParam(required = false) LocalDate date,
+            @RequestParam(required = false) LocalDate dateFrom,
+            @RequestParam(required = false) LocalDate dateTo,
             @RequestParam(required = false) Long airlineId,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false, defaultValue = "active") String status,
             Pageable pageable) {
 
-        OffsetDateTime from = date != null ? date.atStartOfDay().atOffset(ZoneOffset.UTC) : null;
-        OffsetDateTime to   = date != null ? date.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC) : null;
+        OffsetDateTime from = dateFrom != null ? dateFrom.atStartOfDay().atOffset(ZoneOffset.UTC) : null;
+        OffsetDateTime to   = dateTo   != null ? dateTo.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC) : null;
         String statusFilter = "all".equalsIgnoreCase(status) ? null : status;
 
         return flightService.search(origin, destination, airlineId, from, to, minPrice, maxPrice, statusFilter, pageable)
