@@ -178,7 +178,10 @@ public class FlightRestController {
                 flight.getStatus(), flight.getExtras(),
                 flight.getSeatQuota(), availableSeats, legDtos,
                 flight.getContactPersonPhone(),
-                flight.getContactPersonEmail()
+                flight.getContactPersonEmail(),
+                flight.getGroupType(),
+                flight.getSectorOrigin(),
+                flight.getSectorDestination()
         );
     }
 
