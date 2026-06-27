@@ -31,5 +31,8 @@ public record FlightDto(
         Integer availableSeats,
         List<FlightLegDto> legs,
         String contactPersonPhone,
-        String contactPersonEmail
+        String contactPersonEmail,
+        String groupType,
+        String sectorOrigin,
+        String sectorDestination
 ) {}

@@ -20,6 +20,9 @@ public class FlightRequest {
     private String status = "draft";
     private Integer seatQuota;
     private String groupName;
+    private String groupType = "ONE_WAY";
+    private String sectorOrigin;
+    private String sectorDestination;
     private String contactPersonPhone;
     private String contactPersonEmail;
     private List<Long> sharedWith = new ArrayList<>();
@@ -86,6 +89,12 @@ public class FlightRequest {
     public void setSeatQuota(Integer seatQuota) { this.seatQuota = seatQuota; }
     public String getGroupName() { return groupName; }
     public void setGroupName(String groupName) { this.groupName = groupName; }
+    public String getGroupType() { return groupType; }
+    public void setGroupType(String groupType) { this.groupType = groupType; }
+    public String getSectorOrigin() { return sectorOrigin; }
+    public void setSectorOrigin(String sectorOrigin) { this.sectorOrigin = sectorOrigin; }
+    public String getSectorDestination() { return sectorDestination; }
+    public void setSectorDestination(String sectorDestination) { this.sectorDestination = sectorDestination; }
     public String getContactPersonPhone() { return contactPersonPhone; }
     public void setContactPersonPhone(String contactPersonPhone) { this.contactPersonPhone = contactPersonPhone; }
     public String getContactPersonEmail() { return contactPersonEmail; }

@@ -52,6 +52,15 @@ public class Flight extends OwnedEntity {
     @Column(name = "contact_person_email", length = 100)
     private String contactPersonEmail;
 
+    @Column(name = "group_type", length = 20, nullable = false)
+    private String groupType = "ONE_WAY";
+
+    @Column(name = "sector_origin", length = 10)
+    private String sectorOrigin;
+
+    @Column(name = "sector_destination", length = 10)
+    private String sectorDestination;
+
     @Column(nullable = false)
     private boolean deleted = false;
 
@@ -83,6 +92,12 @@ public class Flight extends OwnedEntity {
     public void setContactPersonPhone(String contactPersonPhone) { this.contactPersonPhone = contactPersonPhone; }
     public String getContactPersonEmail() { return contactPersonEmail; }
     public void setContactPersonEmail(String contactPersonEmail) { this.contactPersonEmail = contactPersonEmail; }
+    public String getGroupType() { return groupType; }
+    public void setGroupType(String groupType) { this.groupType = groupType; }
+    public String getSectorOrigin() { return sectorOrigin; }
+    public void setSectorOrigin(String sectorOrigin) { this.sectorOrigin = sectorOrigin; }
+    public String getSectorDestination() { return sectorDestination; }
+    public void setSectorDestination(String sectorDestination) { this.sectorDestination = sectorDestination; }
     public boolean isDeleted() { return deleted; }
     public void setDeleted(boolean deleted) { this.deleted = deleted; }
 }

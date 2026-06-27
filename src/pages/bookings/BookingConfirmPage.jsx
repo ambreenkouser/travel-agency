@@ -238,7 +238,7 @@ export default function BookingConfirmPage() {
           <FieldBox label="Group Category" value={booking.groupName} />
           <FieldBox label="Group Name"     value={booking.bookableTitle || booking.flightNumber} />
           <FieldBox label="Airline"        value={booking.airlineName} />
-          <FieldBox label="Group Type"     value="ONE WAY" />
+          <FieldBox label="Group Type"     value={flight?.groupType?.replace('_', ' ') || '—'} />
           <FieldBox label="No of Seats"    value={flight?.seatQuota != null ? String(flight.seatQuota) : '—'} />
           <FieldBox label="PNR"            value={booking.pnrCode} />
         </div>

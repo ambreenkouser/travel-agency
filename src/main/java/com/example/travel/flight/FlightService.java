@@ -126,6 +126,9 @@ public class FlightService {
         flight.setSeatQuota(req.getSeatQuota());
         flight.setContactPersonPhone(req.getContactPersonPhone());
         flight.setContactPersonEmail(req.getContactPersonEmail());
+        flight.setGroupType(req.getGroupType() != null ? req.getGroupType() : "ONE_WAY");
+        flight.setSectorOrigin(req.getSectorOrigin());
+        flight.setSectorDestination(req.getSectorDestination());
     }
 
     private void saveLegs(Long flightId, List<FlightRequest.LegRequest> legReqs) {
