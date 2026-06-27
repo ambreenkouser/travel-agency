@@ -19,13 +19,12 @@ const emptyLeg = {
 }
 
 const emptyForm = {
-  groupName: '', groupType: 'ONE_WAY',
-  sectorOrigin: '', sectorDestination: '',
+  groupName: '',
   fareAdult: '', fareChild: '', fareInfant: '',
   costAdult: '', costChild: '', costInfant: '',
   taxTotal: '', baggageInfo: '', status: 'draft', seatQuota: '',
   contactPersonPhone: '', contactPersonEmail: '',
-  legs: [{ ...emptyLeg }, { ...emptyLeg }],
+  legs: [{ ...emptyLeg }],
 }
 
 export default function FlightManagementPage() {
@@ -96,13 +95,8 @@ export default function FlightManagementPage() {
           handCarryKg: l.handCarryKg ?? '',
         }))
       : [{ ...emptyLeg }]
-    // ensure we always have 2 leg slots (second may be empty for ONE_WAY)
-    while (existingLegs.length < 2) existingLegs.push({ ...emptyLeg })
     setForm({
       groupName:        f.groupName        ?? '',
-      groupType:        f.groupType        ?? 'ONE_WAY',
-      sectorOrigin:     f.sectorOrigin     ?? '',
-      sectorDestination: f.sectorDestination ?? '',
       fareAdult:    f.fareAdult ?? '',
       fareChild:    f.fareChild ?? '',
       fareInfant:   f.fareInfant ?? '',
@@ -142,12 +136,8 @@ export default function FlightManagementPage() {
       seatQuota:  form.seatQuota  ? Number(form.seatQuota)  : null,
       contactPersonPhone: form.contactPersonPhone || null,
       contactPersonEmail: form.contactPersonEmail || null,
-      groupType:         form.groupType || 'ONE_WAY',
-      sectorOrigin:      form.sectorOrigin || null,
-      sectorDestination: form.sectorDestination || null,
       sharedWith: isSuperAdmin ? sharedWith : [],
       legs: form.legs
-        .slice(0, form.groupType === 'TWO_WAY' ? 2 : 1)
         .filter(l => l.origin && l.destination)
         .map(l => ({
           origin:      l.origin.toUpperCase().trim(),
@@ -269,105 +259,91 @@ export default function FlightManagementPage() {
                 className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
             </label>
 
-            {/* Sector + Group Type */}
-            <div className="grid grid-cols-2 gap-3">
-              <label className="block text-sm">
-                <span className="block text-gray-800 font-semibold mb-1">Sector *</span>
-                <select
-                  value={form.sectorOrigin && form.sectorDestination ? `${form.sectorOrigin}|${form.sectorDestination}` : ''}
-                  onChange={e => {
-                    const [orig, dest] = e.target.value.split('|')
-                    setForm(f => ({
-                      ...f,
-                      sectorOrigin: orig || '', sectorDestination: dest || '',
-                      legs: [
-                        { ...f.legs[0], origin: orig || '', destination: dest || '' },
-                        { ...f.legs[1], origin: dest || '', destination: orig || '' },
-                      ],
-                    }))
-                  }}
-                  required
-                  className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
-                  <option value="">— Select Sector —</option>
-                  {routes.map(r => (
-                    <option key={`${r.origin}|${r.destination}`} value={`${r.origin}|${r.destination}`}>
-                      {r.origin} → {r.destination}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="block text-sm">
-                <span className="block text-gray-800 font-semibold mb-1">Group Type *</span>
-                <select value={form.groupType} onChange={e => set('groupType')(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
-                  <option value="ONE_WAY">One Way</option>
-                  <option value="TWO_WAY">Two Way</option>
-                </select>
-              </label>
-            </div>
-
-            {/* Flight Legs — fixed sections derived from sector */}
+            {/* Legs */}
             <div className="border border-gray-200 rounded-lg p-3 space-y-3 bg-gray-50">
-              <span className="text-sm font-semibold text-gray-900">Flight Legs</span>
-
-              {[0, ...(form.groupType === 'TWO_WAY' ? [1] : [])].map(i => {
-                const leg = form.legs[i]
-                const legLabel = i === 0 ? 'Outbound' : 'Return'
-                const routeDisplay = i === 0
-                  ? `${form.sectorOrigin || '—'} → ${form.sectorDestination || '—'}`
-                  : `${form.sectorDestination || '—'} → ${form.sectorOrigin || '—'}`
-                return (
-                  <div key={i} className="bg-white border border-gray-200 rounded-md p-3 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-gray-800 uppercase">{legLabel}</span>
-                      <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">{routeDisplay}</span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <DateTimeField label="Depart At" value={leg.departAt} onChange={v => setLeg(i, 'departAt', v)} />
-                      <DateTimeField label="Arrive At" value={leg.arriveAt} onChange={v => setLeg(i, 'arriveAt', v)} />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <label className="block text-sm col-span-2 md:col-span-1">
-                        <span className="block text-gray-800 font-semibold mb-1">Airline</span>
-                        <select value={leg.airlineId} onChange={e => setLeg(i, 'airlineId', e.target.value)}
-                          className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
-                          <option value="">— Select —</option>
-                          {airlines.map(a => <option key={a.id} value={a.id}>{a.code} – {a.name}</option>)}
-                        </select>
-                      </label>
-                      <LegField label="Flight Number" value={leg.flightNumber} onChange={v => setLeg(i, 'flightNumber', v)} placeholder="e.g. PK303" />
-                      <LegField label="Airline Code"  value={leg.airlineCode}  onChange={v => setLeg(i, 'airlineCode', v)}  placeholder="e.g. PK" />
-                      <LegField label="PNR Code"      value={leg.pnrCode}      onChange={v => setLeg(i, 'pnrCode', v)}      placeholder="e.g. ABC123" />
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2">
-                      <label className="block text-sm">
-                        <span className="block text-gray-800 font-semibold mb-1">Class</span>
-                        <select value={leg.flightClass} onChange={e => setLeg(i, 'flightClass', e.target.value)}
-                          className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
-                          {CLASS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                        </select>
-                      </label>
-                      <label className="block text-sm">
-                        <span className="block text-gray-800 font-semibold mb-1">Baggage (kg)</span>
-                        <input type="number" min="0" step="1" value={leg.baggageKg}
-                          onChange={e => setLeg(i, 'baggageKg', e.target.value)}
-                          placeholder="e.g. 23"
-                          className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
-                      </label>
-                      <label className="block text-sm">
-                        <span className="block text-gray-800 font-semibold mb-1">Hand Carry (kg)</span>
-                        <input type="number" min="0" step="1" value={leg.handCarryKg}
-                          onChange={e => setLeg(i, 'handCarryKg', e.target.value)}
-                          placeholder="e.g. 7"
-                          className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
-                      </label>
-                    </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-gray-900">Flight Legs</span>
+                <button type="button" onClick={addLeg}
+                  className="text-xs px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                  + Add Leg
+                </button>
+              </div>
+              {form.legs.map((leg, i) => (
+                <div key={i} className="bg-white border border-gray-200 rounded-md p-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-gray-800 uppercase">Leg {i + 1}</span>
+                    {form.legs.length > 1 && (
+                      <button type="button" onClick={() => removeLeg(i)}
+                        className="text-xs text-red-500 hover:underline">Remove</button>
+                    )}
                   </div>
-                )
-              })}
+
+                  {/* Sector dropdown — auto-fills origin/destination for this leg */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="block text-sm col-span-2">
+                      <span className="block text-gray-800 font-semibold mb-1">Sector *</span>
+                      <select
+                        value={leg.origin && leg.destination ? `${leg.origin}|${leg.destination}` : ''}
+                        onChange={e => {
+                          const [orig, dest] = e.target.value.split('|')
+                          setLeg(i, 'origin', orig || '')
+                          setLeg(i, 'destination', dest || '')
+                        }}
+                        required
+                        className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <option value="">— Select Sector —</option>
+                        {routes.map(r => (
+                          <option key={`${r.origin}|${r.destination}`} value={`${r.origin}|${r.destination}`}>
+                            {r.origin} → {r.destination}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <DateTimeField label="Depart At" value={leg.departAt} onChange={v => setLeg(i, 'departAt', v)} />
+                    <DateTimeField label="Arrive At" value={leg.arriveAt} onChange={v => setLeg(i, 'arriveAt', v)} />
+                  </div>
+
+                  {/* Airline & identifiers — per leg */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="block text-sm col-span-2 md:col-span-1">
+                      <span className="block text-gray-800 font-semibold mb-1">Airline</span>
+                      <select value={leg.airlineId} onChange={e => setLeg(i, 'airlineId', e.target.value)}
+                        className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <option value="">— Select —</option>
+                        {airlines.map(a => <option key={a.id} value={a.id}>{a.code} – {a.name}</option>)}
+                      </select>
+                    </label>
+                    <LegField label="Flight Number" value={leg.flightNumber} onChange={v => setLeg(i, 'flightNumber', v)} placeholder="e.g. PK303" />
+                    <LegField label="Airline Code"  value={leg.airlineCode}  onChange={v => setLeg(i, 'airlineCode', v)}  placeholder="e.g. PK" />
+                    <LegField label="PNR Code"      value={leg.pnrCode}      onChange={v => setLeg(i, 'pnrCode', v)}      placeholder="e.g. ABC123" />
+                  </div>
+
+                  {/* Class, Baggage & Hand Carry — per leg */}
+                  <div className="grid grid-cols-3 gap-2">
+                    <label className="block text-sm">
+                      <span className="block text-gray-800 font-semibold mb-1">Class</span>
+                      <select value={leg.flightClass} onChange={e => setLeg(i, 'flightClass', e.target.value)}
+                        className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        {CLASS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      </select>
+                    </label>
+                    <label className="block text-sm">
+                      <span className="block text-gray-800 font-semibold mb-1">Baggage (kg)</span>
+                      <input type="number" min="0" step="1" value={leg.baggageKg}
+                        onChange={e => setLeg(i, 'baggageKg', e.target.value)}
+                        placeholder="e.g. 23"
+                        className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                    </label>
+                    <label className="block text-sm">
+                      <span className="block text-gray-800 font-semibold mb-1">Hand Carry (kg)</span>
+                      <input type="number" min="0" step="1" value={leg.handCarryKg}
+                        onChange={e => setLeg(i, 'handCarryKg', e.target.value)}
+                        placeholder="e.g. 7"
+                        className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                    </label>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Selling prices */}
