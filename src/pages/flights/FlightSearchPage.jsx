@@ -42,13 +42,11 @@ export default function FlightSearchPage() {
   const [origins, setOrigins]     = useState([])   // LOV for From
   const [destinations, setDestinations] = useState([])  // LOV for To
   const [form, setForm] = useState({
-    origin: '', destination: '', date: '',
-    airlineId: '', minPrice: '', maxPrice: '',
+    origin: '', destination: '', date: '', airlineId: '',
   })
   const [flights, setFlights] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
     getAirlines().then(setAirlines).catch(() => {})
@@ -83,8 +81,6 @@ export default function FlightSearchPage() {
         destination: form.destination || undefined,
         date:        form.date        || undefined,
         airlineId:   form.airlineId   || undefined,
-        minPrice:    form.minPrice    || undefined,
-        maxPrice:    form.maxPrice    || undefined,
         size: 50,
       }
       const result = await searchFlights(params)
@@ -97,7 +93,7 @@ export default function FlightSearchPage() {
   }
 
   function handleReset() {
-    setForm({ origin: '', destination: '', date: '', airlineId: '', minPrice: '', maxPrice: '' })
+    setForm({ origin: '', destination: '', date: '', airlineId: '' })
     loadAll()
   }
 
@@ -106,13 +102,25 @@ export default function FlightSearchPage() {
       <h1 className="text-xl font-semibold text-gray-900">Search Flights</h1>
 
       <Card className="p-5">
-        <form onSubmit={handleSearch} className="space-y-4">
-
-          {/* Primary row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {/* Origin LOV */}
+        <form onSubmit={handleSearch}>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 items-end">
+            {/* Airline */}
             <label className="block text-sm">
-              <span className="block text-gray-600 mb-1">From</span>
+              <span className="block text-gray-800 font-semibold mb-1">Airline</span>
+              <select
+                value={form.airlineId} onChange={set('airlineId')}
+                className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="">All Airlines</option>
+                {airlines.map(a => (
+                  <option key={a.id} value={a.id}>{a.code} – {a.name}</option>
+                ))}
+              </select>
+            </label>
+
+            {/* From */}
+            <label className="block text-sm">
+              <span className="block text-gray-800 font-semibold mb-1">From</span>
               <select
                 value={form.origin} onChange={set('origin')}
                 className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -122,9 +130,9 @@ export default function FlightSearchPage() {
               </select>
             </label>
 
-            {/* Destination LOV */}
+            {/* To */}
             <label className="block text-sm">
-              <span className="block text-gray-600 mb-1">To</span>
+              <span className="block text-gray-800 font-semibold mb-1">To</span>
               <select
                 value={form.destination} onChange={set('destination')}
                 className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -136,46 +144,15 @@ export default function FlightSearchPage() {
 
             <Field label="Date" value={form.date} onChange={set('date')} type="date" />
 
-            <div className="flex items-end">
-              <button
-                type="button"
-                onClick={() => setShowFilters(v => !v)}
-                className="w-full py-1.5 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-50"
-              >
-                {showFilters ? 'Hide Filters ▲' : 'More Filters ▼'}
+            <div className="flex gap-2">
+              <button type="button" onClick={handleReset}
+                className="flex-1 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 font-semibold hover:bg-gray-50">
+                Reset
               </button>
+              <Button type="submit" disabled={loading} className="flex-1">
+                {loading ? 'Searching…' : 'Search'}
+              </Button>
             </div>
-          </div>
-
-          {/* Expanded filters */}
-          {showFilters && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-1 border-t border-gray-100">
-              <label className="block text-sm">
-                <span className="block text-gray-600 mb-1">Airline</span>
-                <select
-                  value={form.airlineId} onChange={set('airlineId')}
-                  className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                >
-                  <option value="">All Airlines</option>
-                  {airlines.map(a => (
-                    <option key={a.id} value={a.id}>{a.code} – {a.name}</option>
-                  ))}
-                </select>
-              </label>
-              <Field label="Min Price (PKR)" value={form.minPrice} onChange={set('minPrice')} type="number" min="0" placeholder="0" />
-              <Field label="Max Price (PKR)" value={form.maxPrice} onChange={set('maxPrice')} type="number" min="0" placeholder="999999" />
-            </div>
-          )}
-
-          {/* Actions row */}
-          <div className="flex justify-end gap-2 pt-1 border-t border-gray-100">
-            <button type="button" onClick={handleReset}
-              className="px-4 py-1.5 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-50">
-              Reset
-            </button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Searching…' : 'Search'}
-            </Button>
           </div>
         </form>
       </Card>
@@ -190,7 +167,7 @@ export default function FlightSearchPage() {
 
       {!loading && (
         <>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-800 font-semibold">
             {flights.length} flight{flights.length !== 1 ? 's' : ''} found
           </p>
 
@@ -258,8 +235,8 @@ export default function FlightSearchPage() {
                               <td className="px-4 py-3 border-r border-gray-200">
                                 <div className="max-h-44 overflow-y-auto space-y-2 pr-1">
                                   {legs.map((leg, i) => (
-                                    <div key={i} className="text-xs font-mono text-gray-700 flex flex-wrap items-baseline gap-x-1.5">
-                                      <span className="text-gray-400 shrink-0">{i + 1} )</span>
+                                    <div key={i} className="text-xs font-mono text-gray-900 flex flex-wrap items-baseline gap-x-1.5">
+                                      <span className="text-gray-700 font-semibold shrink-0">{i + 1} )</span>
                                       <span className="font-bold text-gray-900">{leg.flightNumber || '—'}</span>
                                       <span className="font-bold">{fmtLegDate(leg.departAt)}</span>
                                       <span className="font-bold text-blue-700">{leg.origin}-{leg.destination}</span>
@@ -275,10 +252,10 @@ export default function FlightSearchPage() {
 
                               {/* Seats */}
                               <td className="px-4 py-3 border-r border-gray-200 text-sm">
-                                <div className="text-gray-700">
+                                <div className="text-gray-900 font-semibold">
                                   Total Seats:&nbsp;<span className="font-bold text-gray-900">{f.seatQuota ?? '—'}</span>
                                 </div>
-                                <div className="text-gray-700 mt-1">
+                                <div className="text-gray-900 font-semibold mt-1">
                                   Available Seats:&nbsp;
                                   <span className={`font-bold ${f.availableSeats === 0 ? 'text-red-600' : 'text-gray-900'}`}>
                                     {f.availableSeats ?? '—'}
@@ -328,7 +305,7 @@ export default function FlightSearchPage() {
 function Field({ label, value, onChange, type = 'text', placeholder, min, max, required, className = '' }) {
   return (
     <label className={`block text-sm ${className}`}>
-      <span className="block text-gray-600 mb-1">{label}</span>
+      <span className="block text-gray-800 font-semibold mb-1">{label}</span>
       <input
         type={type}
         value={value}

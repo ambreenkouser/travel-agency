@@ -340,7 +340,15 @@ export default function BookingConfirmPage() {
                     <td className="px-2 py-2 border-r border-gray-100">
                       <StatusBadge status={booking.status} />
                     </td>
-                    <td className="px-2 py-2 text-gray-400">N/A</td>
+                    <td className="px-2 py-2">
+                      {booking.status !== 'CANCELLED'
+                        ? <a href={`/bookings/${booking.id}/ticket`} target="_blank" rel="noreferrer"
+                             className="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-semibold rounded whitespace-nowrap">
+                            Print Ticket
+                          </a>
+                        : <span className="text-gray-400 text-xs">N/A</span>
+                      }
+                    </td>
                   </tr>
                 ))}
               </tbody>

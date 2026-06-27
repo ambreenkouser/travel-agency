@@ -199,13 +199,13 @@ export default function FlightBookingPage() {
                   {firstLeg?.airlineName || firstLeg?.airlineCode || '—'}
                 </div>
               </div>
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+              <div className="text-xs font-semibold text-gray-800 uppercase tracking-wide mb-2">
                 Sector Details ({flight.groupName || '—'})
               </div>
               <div className="space-y-1">
                 {legs.map((leg, i) => (
-                  <div key={i} className="text-xs font-mono font-bold text-gray-800 flex flex-wrap gap-x-2">
-                    <span className="text-gray-400">{i + 1} )</span>
+                  <div key={i} className="text-xs font-mono font-bold text-gray-900 flex flex-wrap gap-x-2">
+                    <span className="text-gray-700 font-semibold">{i + 1} )</span>
                     <span>{leg.flightNumber || '—'}</span>
                     <span>{fmtLegDate(leg.departAt)}</span>
                     <span className="text-blue-700">{leg.origin}-{leg.destination}</span>
@@ -219,13 +219,13 @@ export default function FlightBookingPage() {
 
             {/* Right — seats + dep date */}
             <div className="p-5 flex flex-col justify-center gap-2">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-900 font-semibold">
                 Seats Available:&nbsp;
                 <span className={`font-bold text-base ${flight.availableSeats === 0 ? 'text-red-600' : 'text-gray-900'}`}>
                   {flight.availableSeats ?? '—'}
                 </span>
               </div>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-900 font-semibold">
                 Dep Date&nbsp;
                 <span className="font-bold text-green-700">
                   {firstLeg?.departAt
