@@ -154,7 +154,7 @@ export default function MyBookingsPage() {
                   return (
                     <tr key={b.id} className="hover:bg-gray-50 align-top">
                       {/* Sr# */}
-                      <td className="px-3 py-3 text-gray-500 border-r border-gray-100">{idx + 1}</td>
+                      <td className="px-3 py-3 text-gray-900 font-semibold border-r border-gray-100">{idx + 1}</td>
 
                       {/* Booking No */}
                       <td className="px-3 py-3 border-r border-gray-100 min-w-[150px]">
@@ -165,9 +165,9 @@ export default function MyBookingsPage() {
                           </Link>
                         </div>
                         {b.bookableId && (
-                          <div className="text-gray-500 text-xs mt-0.5">AG# {b.bookableId}</div>
+                          <div className="text-gray-800 font-semibold text-xs mt-0.5">AG# {b.bookableId}</div>
                         )}
-                        <div className="text-gray-500 text-xs mt-0.5">
+                        <div className="text-gray-700 font-medium text-xs mt-0.5">
                           Created:{' '}
                           {new Date(b.createdAt).toLocaleString('en-GB', {
                             day: '2-digit', month: 'short', year: 'numeric',
@@ -195,7 +195,7 @@ export default function MyBookingsPage() {
                       {/* Group */}
                       <td className="px-3 py-3 border-r border-gray-100 min-w-[170px]">
                         {b.bookableTitle && (
-                          <div className="text-gray-700 text-xs mb-1">{b.bookableTitle}</div>
+                          <div className="text-gray-900 font-semibold text-xs mb-1">{b.bookableTitle}</div>
                         )}
                         {b.airlineName && (
                           <div className="font-bold text-gray-800 text-sm flex items-center gap-2">
@@ -216,7 +216,7 @@ export default function MyBookingsPage() {
                       </td>
 
                       {/* Departure */}
-                      <td className="px-3 py-3 border-r border-gray-100 whitespace-nowrap text-sm font-medium text-gray-700">
+                      <td className="px-3 py-3 border-r border-gray-100 whitespace-nowrap text-sm font-bold text-gray-900">
                         {b.departureDate ? fmtDate(b.departureDate) : '—'}
                       </td>
 
