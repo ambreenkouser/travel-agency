@@ -181,13 +181,14 @@ export default function UsersPage() {
 
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
-      {/* ── Modal ── */}
+      {/* ── Inline form ── */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6 overflow-y-auto max-h-[92vh]">
-            <h2 className="text-lg font-semibold mb-5">
-              {editing ? 'Edit User' : 'New User'}
-            </h2>
+        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-lg font-semibold">{editing ? 'Edit User' : 'New User'}</h2>
+            <button type="button" onClick={() => setShowForm(false)}
+              className="text-gray-400 hover:text-gray-600 text-xl font-bold leading-none">×</button>
+          </div>
             <form onSubmit={handleSubmit} className="space-y-4">
 
               {/* Name */}
@@ -285,7 +286,6 @@ export default function UsersPage() {
                 </button>
               </div>
             </form>
-          </div>
         </div>
       )}
 

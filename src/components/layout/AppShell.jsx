@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import TopBar from './TopBar'
+import LoadingOverlay from '../ui/LoadingOverlay'
 import { getMyAnnouncements, announcementImageUrl } from '../../api/announcements'
 
 const LS_KEY = 'readAnnouncements'
@@ -16,20 +17,27 @@ function persistRead(id) {
 }
 
 export default function AppShell() {
-  const [warning, setWarning]     = useState('')
-  const [expired, setExpired]     = useState(false)
+  const [warning, setWarning]         = useState('')
+  const [expired, setExpired]         = useState(false)
   const [announcements, setAnnouncements] = useState([])
-  const [readIds, setReadIds]     = useState(() => getRead())
-  const [annLoaded, setAnnLoaded] = useState(false)
+  const [readIds, setReadIds]         = useState(() => getRead())
+  const [annLoaded, setAnnLoaded]     = useState(false)
+  const [globalLoading, setGlobalLoading] = useState(false)
 
   useEffect(() => {
     function onWarning(e) { setWarning(e.detail) }
     function onExpired()  { setExpired(true) }
+    function onStart()    { setGlobalLoading(true) }
+    function onEnd()      { setGlobalLoading(false) }
     window.addEventListener('subscription-warning', onWarning)
     window.addEventListener('subscription-expired', onExpired)
+    window.addEventListener('loading-start', onStart)
+    window.addEventListener('loading-end',   onEnd)
     return () => {
       window.removeEventListener('subscription-warning', onWarning)
       window.removeEventListener('subscription-expired', onExpired)
+      window.removeEventListener('loading-start', onStart)
+      window.removeEventListener('loading-end',   onEnd)
     }
   }, [])
 
@@ -127,5 +135,6 @@ export default function AppShell() {
         </main>
       </div>
     </div>
+    <LoadingOverlay visible={globalLoading} />
   )
 }
