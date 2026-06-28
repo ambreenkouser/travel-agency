@@ -107,67 +107,69 @@ export default function AgenciesPage() {
 
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
-      {/* Modal form */}
+      {/* Inline form */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-            <h2 className="text-lg font-semibold mb-4">{editing ? 'Edit Agency' : 'New Agency'}</h2>
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <Field label="Name *" value={form.name} onChange={v => setForm(f => ({ ...f, name: v }))} required />
-              <Field label="Slug *" value={form.slug} onChange={v => setForm(f => ({ ...f, slug: v }))} required />
-              <label className="block text-sm">
-                <span className="block text-gray-600 mb-1">Subscription Plan *</span>
-                <select
-                  value={form.subscriptionPlan}
-                  onChange={e => setForm(f => ({ ...f, subscriptionPlan: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                >
-                  {PLANS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-                </select>
-                <p className="text-xs text-gray-400 mt-1">Expiry is auto-calculated from today when saving. Override below if needed.</p>
-              </label>
-              <Field label="Expiry Override (optional)" type="date" value={form.expiresAt} onChange={v => setForm(f => ({ ...f, expiresAt: v }))} />
-              <Field label="Grace Days" type="number" value={form.graceDays} onChange={v => setForm(f => ({ ...f, graceDays: v }))} />
-              <Field label="Booking Expiry (minutes)" type="number" value={form.bookingExpiryMinutes} onChange={v => setForm(f => ({ ...f, bookingExpiryMinutes: v }))} />
-              <Field label="Contact No" value={form.contactNo} onChange={v => setForm(f => ({ ...f, contactNo: v }))} />
-              <label className="block text-sm">
-                <span className="block text-gray-600 mb-1">Address</span>
-                <textarea
-                  value={form.address}
-                  onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
-                  rows={2}
-                  className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
-                />
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={form.active} onChange={e => setForm(f => ({ ...f, active: e.target.checked }))} />
-                Active
-              </label>
-              <label className="block text-sm">
-                <span className="block text-gray-600 mb-1">Logo Image (optional)</span>
-                {editing && (
-                  <img src={agencyLogoUrl(editing)} alt="current logo"
-                    className="h-10 w-10 rounded object-cover mb-2"
-                    onError={e => e.currentTarget.style.display = 'none'} />
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={e => setLogoFile(e.target.files?.[0] ?? null)}
-                  className="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                />
-              </label>
-              {error && <p className="text-sm text-red-600">{error}</p>}
-              <div className="flex gap-2 pt-2">
-                <button type="submit" className="flex-1 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">
-                  {editing ? 'Update' : 'Create'}
-                </button>
-                <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-2 border text-sm rounded-md hover:bg-gray-50">
-                  Cancel
-                </button>
-              </div>
-            </form>
+        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">{editing ? 'Edit Agency' : 'New Agency'}</h2>
+            <button type="button" onClick={() => setShowForm(false)}
+              className="text-gray-400 hover:text-gray-600 text-xl font-bold leading-none">×</button>
           </div>
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <Field label="Name *" value={form.name} onChange={v => setForm(f => ({ ...f, name: v }))} required />
+            <Field label="Slug *" value={form.slug} onChange={v => setForm(f => ({ ...f, slug: v }))} required />
+            <label className="block text-sm">
+              <span className="block text-gray-600 mb-1">Subscription Plan *</span>
+              <select
+                value={form.subscriptionPlan}
+                onChange={e => setForm(f => ({ ...f, subscriptionPlan: e.target.value }))}
+                className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                {PLANS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+              </select>
+              <p className="text-xs text-gray-400 mt-1">Expiry is auto-calculated from today when saving. Override below if needed.</p>
+            </label>
+            <Field label="Expiry Override (optional)" type="date" value={form.expiresAt} onChange={v => setForm(f => ({ ...f, expiresAt: v }))} />
+            <Field label="Grace Days" type="number" value={form.graceDays} onChange={v => setForm(f => ({ ...f, graceDays: v }))} />
+            <Field label="Booking Expiry (minutes)" type="number" value={form.bookingExpiryMinutes} onChange={v => setForm(f => ({ ...f, bookingExpiryMinutes: v }))} />
+            <Field label="Contact No" value={form.contactNo} onChange={v => setForm(f => ({ ...f, contactNo: v }))} />
+            <label className="block text-sm">
+              <span className="block text-gray-600 mb-1">Address</span>
+              <textarea
+                value={form.address}
+                onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
+                rows={2}
+                className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+              />
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={form.active} onChange={e => setForm(f => ({ ...f, active: e.target.checked }))} />
+              Active
+            </label>
+            <label className="block text-sm">
+              <span className="block text-gray-600 mb-1">Logo Image (optional)</span>
+              {editing && (
+                <img src={agencyLogoUrl(editing)} alt="current logo"
+                  className="h-10 w-10 rounded object-cover mb-2"
+                  onError={e => e.currentTarget.style.display = 'none'} />
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={e => setLogoFile(e.target.files?.[0] ?? null)}
+                className="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+            </label>
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            <div className="flex gap-2 pt-2">
+              <button type="submit" className="flex-1 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">
+                {editing ? 'Update' : 'Create'}
+              </button>
+              <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-2 border text-sm rounded-md hover:bg-gray-50">
+                Cancel
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
