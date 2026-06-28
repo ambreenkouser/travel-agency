@@ -241,7 +241,10 @@ export default function FlightTicketPage() {
                   <span>💺</span>
                   <span>Unassigned</span>
                 </div>
-                <div className="text-xs text-gray-500">Buy on board, if available</div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <span>🎧</span>
+                  <span className="text-xs">Buy on board, if available</span>
+                </div>
               </div>
             </div>
           </div>
