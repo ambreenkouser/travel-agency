@@ -6,17 +6,23 @@ const client = axios.create({
 })
 
 // Global loading overlay counter — fires loading-start/loading-end events for AppShell
+// Only tracks mutating requests (POST, PUT, PATCH, DELETE) to avoid flickering on every page load
 let pending = 0
+const MUTATION_METHODS = new Set(['post', 'put', 'patch', 'delete'])
+
+function isMutation(config) {
+  return MUTATION_METHODS.has((config.method ?? '').toLowerCase())
+}
 
 client.interceptors.request.use(config => {
-  if (++pending === 1) window.dispatchEvent(new CustomEvent('loading-start'))
+  if (isMutation(config) && ++pending === 1) window.dispatchEvent(new CustomEvent('loading-start'))
   return config
 })
 
 // Broadcast subscription warning so the AppShell can show a banner
 client.interceptors.response.use(
   (response) => {
-    if (--pending <= 0) { pending = 0; window.dispatchEvent(new CustomEvent('loading-end')) }
+    if (isMutation(response.config) && --pending <= 0) { pending = 0; window.dispatchEvent(new CustomEvent('loading-end')) }
     const warning = response.headers['x-subscription-warning']
     if (warning) {
       window.dispatchEvent(new CustomEvent('subscription-warning', { detail: warning }))
@@ -24,7 +30,7 @@ client.interceptors.response.use(
     return response
   },
   (error) => {
-    if (--pending <= 0) { pending = 0; window.dispatchEvent(new CustomEvent('loading-end')) }
+    if (isMutation(error.config ?? {}) && --pending <= 0) { pending = 0; window.dispatchEvent(new CustomEvent('loading-end')) }
     if (error.response?.status === 401 && !window.location.pathname.startsWith('/login')) {
       window.location.href = '/login'
     }
