@@ -79,6 +79,7 @@ export default function AppShell() {
   const banner = unread[0] ?? null
 
   return (
+    <>
     <div className="flex h-screen overflow-hidden bg-gray-50">
       <Sidebar />
       <div id="main-scroll" className="flex-1 flex flex-col overflow-y-auto">
@@ -136,5 +137,6 @@ export default function AppShell() {
       </div>
     </div>
     <LoadingOverlay visible={globalLoading} />
+    </>
   )
 }
