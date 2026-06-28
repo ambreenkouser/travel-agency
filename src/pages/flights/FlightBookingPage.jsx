@@ -333,15 +333,24 @@ export default function FlightBookingPage() {
               <div className="bg-slate-700 px-4 py-3">
                 <div className="flex justify-between py-1.5 border-b border-slate-600">
                   <span className="text-sm text-slate-200">Adults</span>
-                  <span className="text-sm font-bold text-white">PKR {(adults * discountedAdult).toLocaleString()}</span>
+                  <span className="text-sm font-bold text-white flex items-center gap-1.5">
+                    {totalPercent > 0 && <span className="line-through text-slate-400 text-xs">PKR {(adults * fareAdult).toLocaleString()}</span>}
+                    PKR {(adults * discountedAdult).toLocaleString()}
+                  </span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-slate-600">
                   <span className="text-sm text-slate-200">Child</span>
-                  <span className="text-sm font-bold text-white">PKR {(children * discountedChild).toLocaleString()}</span>
+                  <span className="text-sm font-bold text-white flex items-center gap-1.5">
+                    {totalPercent > 0 && <span className="line-through text-slate-400 text-xs">PKR {(children * fareChild).toLocaleString()}</span>}
+                    PKR {(children * discountedChild).toLocaleString()}
+                  </span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-slate-600">
                   <span className="text-sm text-slate-200">Infants</span>
-                  <span className="text-sm font-bold text-white">PKR {(infants * discountedInfant).toLocaleString()}</span>
+                  <span className="text-sm font-bold text-white flex items-center gap-1.5">
+                    {totalPercent > 0 && <span className="line-through text-slate-400 text-xs">PKR {(infants * fareInfant).toLocaleString()}</span>}
+                    PKR {(infants * discountedInfant).toLocaleString()}
+                  </span>
                 </div>
                 {offerFixed > 0 && (
                   <div className="flex justify-between py-1.5 border-b border-slate-600">

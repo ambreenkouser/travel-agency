@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { confirmBooking, getBooking, submitPaymentSlip } from '../../api/bookings'
 import { getFlight } from '../../api/flights'
+import { getMyOffers } from '../../api/offers'
 import { getParentAccounts } from '../../api/accounts'
 import { useAuth } from '../../context/AuthContext'
 import Spinner from '../../components/ui/Spinner'
@@ -94,6 +95,7 @@ export default function BookingConfirmPage() {
   const [submitting, setSubmitting]     = useState(false)
   const [slipSuccess, setSlipSuccess]   = useState(false)
   const [slipError, setSlipError]       = useState('')
+  const [myOffers, setMyOffers]         = useState([])
 
   useEffect(() => {
     getBooking(id)
@@ -106,6 +108,7 @@ export default function BookingConfirmPage() {
         if (b.bookableType === 'flight' && b.bookableId) {
           getFlight(b.bookableId).then(setFlight).catch(() => {})
         }
+        getMyOffers().then(setMyOffers).catch(() => {})
       })
       .catch(() => setError('Failed to load booking.'))
       .finally(() => setLoading(false))
@@ -177,6 +180,21 @@ export default function BookingConfirmPage() {
   }
 
   const legs = flight?.legs ?? []
+
+  const flightDisc   = Number(flight?.agentDiscountPercent || 0)
+  const now          = new Date()
+  const activeOffers = myOffers.filter(o =>
+    o.active &&
+    (!o.validFrom  || new Date(o.validFrom)  <= now) &&
+    (!o.validUntil || new Date(o.validUntil) >= now)
+  )
+  const offerPercent = Math.min(100, activeOffers
+    .filter(o => o.discountType === 'PERCENTAGE')
+    .reduce((s, o) => s + Number(o.discountValue), 0))
+  const offerFixed   = activeOffers
+    .filter(o => o.discountType === 'FIXED')
+    .reduce((s, o) => s + Number(o.discountValue), 0)
+  const totalPercent = Math.min(100, flightDisc + offerPercent)
 
   return (
     <div className="space-y-5">
@@ -334,8 +352,21 @@ export default function BookingConfirmPage() {
                       ) : '—'}
                     </td>
                     <td className="px-2 py-2 border-r border-gray-100 text-gray-400">—</td>
-                    <td className="px-2 py-2 border-r border-gray-100 whitespace-nowrap font-semibold text-gray-800">
-                      {fareForType(flight, p.type)}
+                    <td className="px-2 py-2 border-r border-gray-100 whitespace-nowrap">
+                      {(() => {
+                        if (!flight) return '—'
+                        const t = p.type?.toUpperCase()
+                        const orig = t === 'ADULT' ? flight.fareAdult : t === 'CHILD' ? flight.fareChild : t === 'INFANT' ? flight.fareInfant : null
+                        if (orig == null) return '—'
+                        const origNum = Number(orig)
+                        const discNum = origNum * (1 - totalPercent / 100)
+                        return (
+                          <span className="flex flex-col">
+                            {totalPercent > 0 && <span className="line-through text-gray-400 text-[10px]">PKR {origNum.toLocaleString()}</span>}
+                            <span className="font-semibold text-gray-800 text-xs">PKR {discNum.toLocaleString()}</span>
+                          </span>
+                        )
+                      })()}
                     </td>
                     <td className="px-2 py-2 border-r border-gray-100">
                       <StatusBadge status={booking.status} />
@@ -353,6 +384,61 @@ export default function BookingConfirmPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── Price Summary panel ── */}
+      {flight && (
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <div className="bg-gray-800 text-white px-4 py-2 font-semibold text-sm">Price Summary</div>
+          <div className="p-4 space-y-1.5 text-sm">
+            {(flightDisc > 0 || offerPercent > 0) && (
+              <div className="flex flex-wrap gap-1 mb-2">
+                {flightDisc > 0 && <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full">{flightDisc}% Flight Discount</span>}
+                {offerPercent > 0 && <span className="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-0.5 rounded-full">{offerPercent}% Offer Discount</span>}
+              </div>
+            )}
+            {[['ADULT', 'Adults'], ['CHILD', 'Children'], ['INFANT', 'Infants']].map(([type, label]) => {
+              const count = booking.passengers?.filter(p => p.type?.toUpperCase() === type).length ?? 0
+              if (count === 0) return null
+              const orig    = type === 'ADULT' ? flight.fareAdult : type === 'CHILD' ? flight.fareChild : flight.fareInfant
+              const origNum = Number(orig || 0)
+              const discNum = origNum * (1 - totalPercent / 100)
+              return (
+                <div key={type} className="flex justify-between py-1 border-b border-gray-100">
+                  <span className="text-gray-600">{label} × {count}</span>
+                  <span className="flex items-center gap-2">
+                    {totalPercent > 0 && <span className="line-through text-gray-400 text-xs">PKR {(count * origNum).toLocaleString()}</span>}
+                    <span className="font-semibold text-gray-800">PKR {(count * discNum).toLocaleString()}</span>
+                  </span>
+                </div>
+              )
+            })}
+            {flight.taxTotal && (
+              <div className="flex justify-between py-1 border-b border-gray-100">
+                <span className="text-gray-600">Taxes</span>
+                <span className="font-semibold text-gray-800">PKR {Number(flight.taxTotal).toLocaleString()}</span>
+              </div>
+            )}
+            {offerFixed > 0 && (
+              <div className="flex justify-between py-1 border-b border-gray-100">
+                <span className="text-orange-600">Offer Discount</span>
+                <span className="font-semibold text-orange-600">− PKR {offerFixed.toLocaleString()}</span>
+              </div>
+            )}
+            <div className="flex justify-between py-1 pt-1">
+              <span className="font-bold text-gray-900">Total</span>
+              <span className="font-bold text-green-700">
+                PKR {Math.max(0,
+                  (booking.passengers ?? []).reduce((sum, p) => {
+                    const t = p.type?.toUpperCase()
+                    const orig = t === 'ADULT' ? flight.fareAdult : t === 'CHILD' ? flight.fareChild : t === 'INFANT' ? flight.fareInfant : 0
+                    return sum + Number(orig || 0) * (1 - totalPercent / 100)
+                  }, 0) + Number(flight.taxTotal || 0) - offerFixed
+                ).toLocaleString()}
+              </span>
+            </div>
           </div>
         </div>
       )}
