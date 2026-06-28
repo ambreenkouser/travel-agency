@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getFlight } from '../../api/flights'
 import { createBooking } from '../../api/bookings'
+import { getMyOffers } from '../../api/offers'
 import { getParentAccounts } from '../../api/accounts'
 import { getHotels } from '../../api/hotels'
 import { EXTRAS_CONFIG, extraPaxCount } from '../../components/ui/ExtrasEditor'
@@ -84,6 +85,7 @@ export default function FlightBookingPage() {
   const [submitting, setSubmitting]       = useState(false)
   const [successBooking, setSuccessBooking] = useState(null)
   const [parentAccounts, setParentAccounts] = useState([])
+  const [myOffers, setMyOffers] = useState([])
 
   const passengerList = buildList(adults, children, infants)
 
@@ -105,6 +107,7 @@ export default function FlightBookingPage() {
       .catch(() => setError('Failed to load flight details.'))
       .finally(() => setLoadingFlight(false))
     getHotels().then(setHotels).catch(() => {})
+    getMyOffers().then(setMyOffers).catch(() => {})
   }, [id])
 
   function getKey(type, num) { return `${type}-${num}` }
@@ -122,10 +125,29 @@ export default function FlightBookingPage() {
   const fareChild  = Number(flight?.fareChild  || 0)
   const fareInfant = Number(flight?.fareInfant || 0)
   const taxTotal   = Number(flight?.taxTotal   || 0)
-  const disc = Number(flight?.agentDiscountPercent || 0)
-  const discountedAdult  = disc > 0 ? fareAdult  * (1 - disc / 100) : fareAdult
-  const discountedChild  = disc > 0 ? fareChild  * (1 - disc / 100) : fareChild
-  const discountedInfant = disc > 0 ? fareInfant * (1 - disc / 100) : fareInfant
+
+  // Flight-level admin discount
+  const flightDisc = Number(flight?.agentDiscountPercent || 0)
+
+  // Active, in-date personal offers
+  const now = new Date()
+  const activeOffers = myOffers.filter(o =>
+    o.active &&
+    (!o.validFrom  || new Date(o.validFrom)  <= now) &&
+    (!o.validUntil || new Date(o.validUntil) >= now)
+  )
+  const offerPercent = Math.min(100, activeOffers
+    .filter(o => o.discountType === 'PERCENTAGE')
+    .reduce((s, o) => s + Number(o.discountValue), 0))
+  const offerFixed = activeOffers
+    .filter(o => o.discountType === 'FIXED')
+    .reduce((s, o) => s + Number(o.discountValue), 0)
+
+  // Combined percentage discount (flight + offer)
+  const totalPercent = Math.min(100, flightDisc + offerPercent)
+  const discountedAdult  = fareAdult  * (1 - totalPercent / 100)
+  const discountedChild  = fareChild  * (1 - totalPercent / 100)
+  const discountedInfant = fareInfant * (1 - totalPercent / 100)
   const totalPassengers = adults + children + infants
 
   const availableExtras = flight?.extras
@@ -140,7 +162,7 @@ export default function FlightBookingPage() {
     return sum + ((extraPrices[e.key] ?? 0) * extraPaxCount(e.key, adults, children, infants))
   }, 0)
 
-  const grandTotal = adults * discountedAdult + children * discountedChild + infants * discountedInfant + taxTotal + extrasTotal
+  const grandTotal = adults * discountedAdult + children * discountedChild + infants * discountedInfant + taxTotal + extrasTotal - offerFixed
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -269,29 +291,34 @@ export default function FlightBookingPage() {
                 <span className="text-white text-sm font-bold uppercase tracking-wide">Price / Seat</span>
               </div>
               <div className="bg-slate-700 px-4 py-3 space-y-1.5">
-                {disc > 0 && (
-                  <div className="text-center mb-1">
-                    <span className="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{disc}% Agent Discount</span>
+                {(flightDisc > 0 || offerPercent > 0) && (
+                  <div className="flex flex-wrap gap-1 mb-1 justify-center">
+                    {flightDisc > 0 && (
+                      <span className="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{flightDisc}% Flight Discount</span>
+                    )}
+                    {offerPercent > 0 && (
+                      <span className="bg-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{offerPercent}% Offer Discount</span>
+                    )}
                   </div>
                 )}
                 <div className="flex justify-between py-1.5 border-b border-slate-600">
                   <span className="text-sm text-slate-200">Adults</span>
                   <span className="text-sm font-bold text-white flex items-center gap-1.5">
-                    {disc > 0 && <span className="line-through text-slate-400 text-xs">PKR {fareAdult.toLocaleString()}</span>}
+                    {totalPercent > 0 && <span className="line-through text-slate-400 text-xs">PKR {fareAdult.toLocaleString()}</span>}
                     PKR {discountedAdult.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-slate-600">
                   <span className="text-sm text-slate-200">Child</span>
                   <span className="text-sm font-bold text-white flex items-center gap-1.5">
-                    {disc > 0 && <span className="line-through text-slate-400 text-xs">PKR {fareChild.toLocaleString()}</span>}
+                    {totalPercent > 0 && <span className="line-through text-slate-400 text-xs">PKR {fareChild.toLocaleString()}</span>}
                     PKR {discountedChild.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between py-1.5">
                   <span className="text-sm text-slate-200">Infant</span>
                   <span className="text-sm font-bold text-white flex items-center gap-1.5">
-                    {disc > 0 && <span className="line-through text-slate-400 text-xs">PKR {fareInfant.toLocaleString()}</span>}
+                    {totalPercent > 0 && <span className="line-through text-slate-400 text-xs">PKR {fareInfant.toLocaleString()}</span>}
                     PKR {discountedInfant.toLocaleString()}
                   </span>
                 </div>
@@ -316,9 +343,15 @@ export default function FlightBookingPage() {
                   <span className="text-sm text-slate-200">Infants</span>
                   <span className="text-sm font-bold text-white">PKR {(infants * discountedInfant).toLocaleString()}</span>
                 </div>
+                {offerFixed > 0 && (
+                  <div className="flex justify-between py-1.5 border-b border-slate-600">
+                    <span className="text-sm text-orange-300">Offer Discount</span>
+                    <span className="text-sm font-bold text-orange-300">− PKR {offerFixed.toLocaleString()}</span>
+                  </div>
+                )}
                 <div className="flex justify-between py-1.5 mt-1">
                   <span className="text-sm font-bold text-white">Total Price</span>
-                  <span className="text-sm font-bold text-green-400">PKR {grandTotal.toLocaleString()}</span>
+                  <span className="text-sm font-bold text-green-400">PKR {Math.max(0, grandTotal).toLocaleString()}</span>
                 </div>
               </div>
             </div>
