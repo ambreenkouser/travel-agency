@@ -181,7 +181,8 @@ public class FlightRestController {
                 flight.getContactPersonEmail(),
                 flight.getGroupType(),
                 flight.getSectorOrigin(),
-                flight.getSectorDestination()
+                flight.getSectorDestination(),
+                flight.getAgentDiscountPercent()
         );
     }
 

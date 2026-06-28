@@ -122,6 +122,10 @@ export default function FlightBookingPage() {
   const fareChild  = Number(flight?.fareChild  || 0)
   const fareInfant = Number(flight?.fareInfant || 0)
   const taxTotal   = Number(flight?.taxTotal   || 0)
+  const disc = Number(flight?.agentDiscountPercent || 0)
+  const discountedAdult  = disc > 0 ? fareAdult  * (1 - disc / 100) : fareAdult
+  const discountedChild  = disc > 0 ? fareChild  * (1 - disc / 100) : fareChild
+  const discountedInfant = disc > 0 ? fareInfant * (1 - disc / 100) : fareInfant
   const totalPassengers = adults + children + infants
 
   const availableExtras = flight?.extras
@@ -136,7 +140,7 @@ export default function FlightBookingPage() {
     return sum + ((extraPrices[e.key] ?? 0) * extraPaxCount(e.key, adults, children, infants))
   }, 0)
 
-  const grandTotal = adults * fareAdult + children * fareChild + infants * fareInfant + taxTotal + extrasTotal
+  const grandTotal = adults * discountedAdult + children * discountedChild + infants * discountedInfant + taxTotal + extrasTotal
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -265,17 +269,31 @@ export default function FlightBookingPage() {
                 <span className="text-white text-sm font-bold uppercase tracking-wide">Price / Seat</span>
               </div>
               <div className="bg-slate-700 px-4 py-3 space-y-1.5">
+                {disc > 0 && (
+                  <div className="text-center mb-1">
+                    <span className="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{disc}% Agent Discount</span>
+                  </div>
+                )}
                 <div className="flex justify-between py-1.5 border-b border-slate-600">
                   <span className="text-sm text-slate-200">Adults</span>
-                  <span className="text-sm font-bold text-white">PKR {fareAdult.toLocaleString()}</span>
+                  <span className="text-sm font-bold text-white flex items-center gap-1.5">
+                    {disc > 0 && <span className="line-through text-slate-400 text-xs">PKR {fareAdult.toLocaleString()}</span>}
+                    PKR {discountedAdult.toLocaleString()}
+                  </span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-slate-600">
                   <span className="text-sm text-slate-200">Child</span>
-                  <span className="text-sm font-bold text-white">PKR {fareChild.toLocaleString()}</span>
+                  <span className="text-sm font-bold text-white flex items-center gap-1.5">
+                    {disc > 0 && <span className="line-through text-slate-400 text-xs">PKR {fareChild.toLocaleString()}</span>}
+                    PKR {discountedChild.toLocaleString()}
+                  </span>
                 </div>
                 <div className="flex justify-between py-1.5">
                   <span className="text-sm text-slate-200">Infant</span>
-                  <span className="text-sm font-bold text-white">PKR {fareInfant.toLocaleString()}</span>
+                  <span className="text-sm font-bold text-white flex items-center gap-1.5">
+                    {disc > 0 && <span className="line-through text-slate-400 text-xs">PKR {fareInfant.toLocaleString()}</span>}
+                    PKR {discountedInfant.toLocaleString()}
+                  </span>
                 </div>
               </div>
             </div>
@@ -288,15 +306,15 @@ export default function FlightBookingPage() {
               <div className="bg-slate-700 px-4 py-3">
                 <div className="flex justify-between py-1.5 border-b border-slate-600">
                   <span className="text-sm text-slate-200">Adults</span>
-                  <span className="text-sm font-bold text-white">PKR {(adults * fareAdult).toLocaleString()}</span>
+                  <span className="text-sm font-bold text-white">PKR {(adults * discountedAdult).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-slate-600">
                   <span className="text-sm text-slate-200">Child</span>
-                  <span className="text-sm font-bold text-white">PKR {(children * fareChild).toLocaleString()}</span>
+                  <span className="text-sm font-bold text-white">PKR {(children * discountedChild).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-slate-600">
                   <span className="text-sm text-slate-200">Infants</span>
-                  <span className="text-sm font-bold text-white">PKR {(infants * fareInfant).toLocaleString()}</span>
+                  <span className="text-sm font-bold text-white">PKR {(infants * discountedInfant).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between py-1.5 mt-1">
                   <span className="text-sm font-bold text-white">Total Price</span>

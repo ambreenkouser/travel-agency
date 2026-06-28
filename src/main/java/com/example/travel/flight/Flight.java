@@ -46,6 +46,9 @@ public class Flight extends OwnedEntity {
     @Column(name = "group_name", length = 100)
     private String groupName;
 
+    @Column(name = "agent_discount_percent", precision = 5, scale = 2)
+    private BigDecimal agentDiscountPercent;
+
     @Column(name = "contact_person_phone", length = 50)
     private String contactPersonPhone;
 
@@ -88,6 +91,8 @@ public class Flight extends OwnedEntity {
     public void setSeatQuota(Integer seatQuota) { this.seatQuota = seatQuota; }
     public String getGroupName() { return groupName; }
     public void setGroupName(String groupName) { this.groupName = groupName; }
+    public BigDecimal getAgentDiscountPercent() { return agentDiscountPercent; }
+    public void setAgentDiscountPercent(BigDecimal agentDiscountPercent) { this.agentDiscountPercent = agentDiscountPercent; }
     public String getContactPersonPhone() { return contactPersonPhone; }
     public void setContactPersonPhone(String contactPersonPhone) { this.contactPersonPhone = contactPersonPhone; }
     public String getContactPersonEmail() { return contactPersonEmail; }

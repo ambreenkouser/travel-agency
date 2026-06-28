@@ -20,6 +20,7 @@ public class FlightRequest {
     private String status = "draft";
     private Integer seatQuota;
     private String groupName;
+    private BigDecimal agentDiscountPercent;
     private String groupType = "ONE_WAY";
     private String sectorOrigin;
     private String sectorDestination;
@@ -89,6 +90,8 @@ public class FlightRequest {
     public void setSeatQuota(Integer seatQuota) { this.seatQuota = seatQuota; }
     public String getGroupName() { return groupName; }
     public void setGroupName(String groupName) { this.groupName = groupName; }
+    public BigDecimal getAgentDiscountPercent() { return agentDiscountPercent; }
+    public void setAgentDiscountPercent(BigDecimal agentDiscountPercent) { this.agentDiscountPercent = agentDiscountPercent; }
     public String getGroupType() { return groupType; }
     public void setGroupType(String groupType) { this.groupType = groupType; }
     public String getSectorOrigin() { return sectorOrigin; }

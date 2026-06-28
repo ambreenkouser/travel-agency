@@ -34,5 +34,6 @@ public record FlightDto(
         String contactPersonEmail,
         String groupType,
         String sectorOrigin,
-        String sectorDestination
+        String sectorDestination,
+        BigDecimal agentDiscountPercent
 ) {}
