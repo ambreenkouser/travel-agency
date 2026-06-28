@@ -36,7 +36,7 @@ const adminItems = [
 
 const adminRoles = ['super_admin', 'master_agent', 'agency_admin']
 
-export default function Sidebar() {
+export default function Sidebar({ announcementCount = 0 }) {
   const { user } = useAuth()
   const location = useLocation()
   const [branding, setBranding]         = useState({ agencyName: 'TravelDesk', logoUrl: '' })
@@ -103,7 +103,13 @@ export default function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 px-2 py-4 space-y-1">
-        {navItems.map(item => <NavItem key={item.to} {...item} />)}
+        {navItems.map(item => (
+          <NavItem
+            key={item.to}
+            {...item}
+            badge={item.to === '/announcements' ? announcementCount : 0}
+          />
+        ))}
 
         {/* Approval queue — visible to admins who can confirm bookings */}
         {approvalItems

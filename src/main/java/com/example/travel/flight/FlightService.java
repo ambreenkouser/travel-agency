@@ -126,6 +126,7 @@ public class FlightService {
         flight.setSeatQuota(req.getSeatQuota());
         flight.setContactPersonPhone(req.getContactPersonPhone());
         flight.setContactPersonEmail(req.getContactPersonEmail());
+        flight.setAgentDiscountPercent(req.getAgentDiscountPercent());
         flight.setGroupType(req.getGroupType() != null ? req.getGroupType() : "ONE_WAY");
         flight.setSectorOrigin(req.getSectorOrigin());
         flight.setSectorDestination(req.getSectorDestination());

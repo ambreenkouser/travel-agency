@@ -22,7 +22,8 @@ const emptyForm = {
   groupName: '',
   fareAdult: '', fareChild: '', fareInfant: '',
   costAdult: '', costChild: '', costInfant: '',
-  taxTotal: '', baggageInfo: '', status: 'draft', seatQuota: '',
+  taxTotal: '', agentDiscountPercent: '',
+  baggageInfo: '', status: 'draft', seatQuota: '',
   contactPersonPhone: '', contactPersonEmail: '',
   legs: [{ ...emptyLeg }],
 }
@@ -103,8 +104,9 @@ export default function FlightManagementPage() {
       costAdult:    f.costAdult  ?? '',
       costChild:    f.costChild  ?? '',
       costInfant:   f.costInfant ?? '',
-      taxTotal:     f.taxTotal ?? '',
-      baggageInfo:  f.baggageInfo ?? '',
+      taxTotal:             f.taxTotal ?? '',
+      agentDiscountPercent: f.agentDiscountPercent ?? '',
+      baggageInfo:          f.baggageInfo ?? '',
       status:       f.status ?? 'draft',
       seatQuota:    f.seatQuota ?? '',
       contactPersonPhone: f.contactPersonPhone ?? '',
@@ -130,7 +132,8 @@ export default function FlightManagementPage() {
       costAdult:  form.costAdult  ? Number(form.costAdult)  : null,
       costChild:  form.costChild  ? Number(form.costChild)  : null,
       costInfant: form.costInfant ? Number(form.costInfant) : null,
-      taxTotal:   form.taxTotal   ? Number(form.taxTotal)   : null,
+      taxTotal:             form.taxTotal             ? Number(form.taxTotal)             : null,
+      agentDiscountPercent: form.agentDiscountPercent ? Number(form.agentDiscountPercent) : null,
       baggageInfo: form.baggageInfo || null,
       status: form.status,
       seatQuota:  form.seatQuota  ? Number(form.seatQuota)  : null,
@@ -373,7 +376,8 @@ export default function FlightManagementPage() {
             )}
 
             <div className="grid grid-cols-3 gap-3">
-              <NumField label="Tax Total"  value={form.taxTotal}  onChange={set('taxTotal')} />
+              <NumField label="Tax Total"           value={form.taxTotal}             onChange={set('taxTotal')} />
+              <NumField label="Agent Discount (%)"  value={form.agentDiscountPercent} onChange={set('agentDiscountPercent')} placeholder="0" />
               <IntField  label="Seat Quota" value={form.seatQuota} onChange={set('seatQuota')} placeholder="e.g. 150" />
               <label className="block text-sm">
                 <span className="block text-gray-800 font-semibold mb-1">Status</span>

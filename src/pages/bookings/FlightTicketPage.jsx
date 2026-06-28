@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { getBooking } from '../../api/bookings'
 import { getFlight } from '../../api/flights'
-import { getBranding } from '../../api/agencies'
 import Spinner from '../../components/ui/Spinner'
 
 // Simple airport-code → city name map for common routes
@@ -55,7 +54,7 @@ function fmtTime(iso) {
 
 function passengerStatus(bookingStatus) {
   if (bookingStatus === 'CONFIRMED') return 'CONFIRMED'
-  return 'ON REQUEST'
+  return 'ON HOLD'
 }
 
 const RULES = [
@@ -70,12 +69,10 @@ export default function FlightTicketPage() {
   const { id } = useParams()
   const [booking, setBooking]   = useState(null)
   const [flight, setFlight]     = useState(null)
-  const [agencyName, setAgencyName] = useState('')
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState('')
 
   useEffect(() => {
-    getBranding().then(b => setAgencyName(b.agencyName || '')).catch(() => {})
     getBooking(id)
       .then(b => {
         setBooking(b)
@@ -136,12 +133,12 @@ export default function FlightTicketPage() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-full bg-orange-400 inline-block" />
-                <span className="text-sm font-semibold text-orange-700">
-                  {booking.status === 'CONFIRMED' ? 'Your booking is Confirmed' : 'Your booking is Partial Confirmed'}
+                <span className="text-base font-semibold text-orange-700">
+                  {booking.status === 'CONFIRMED' ? 'Your booking is Confirmed' : 'Your booking is On Hold'}
                 </span>
               </div>
-              <div className="text-xs text-gray-500 ml-5 mt-0.5">Thank you for booking with us.</div>
-              <div className="text-xs text-gray-500 ml-5">Passenger details</div>
+              <div className="text-xs text-gray-700 ml-5 mt-0.5">Thank you for booking with us.</div>
+              <div className="text-xs text-gray-700 ml-5">Passenger details</div>
             </div>
             <div className="text-right shrink-0">
               {firstLeg?.departAt && (
@@ -254,8 +251,8 @@ export default function FlightTicketPage() {
         <div className="border border-gray-300 rounded p-4 mb-4">
           <div className="text-sm font-bold text-center text-gray-700 mb-2">Emergency Contact</div>
           <div className="text-sm text-center text-gray-600">
-            <span className="font-medium">👤 Agency:</span>{' '}
-            {agencyName || booking.bookedByName || '—'}
+            <span className="font-medium">👤 Contact Person:</span>{' '}
+            {booking.bookedByName || '—'}
             {flight?.contactPersonPhone && (
               <>
                 {' '}|{' '}
