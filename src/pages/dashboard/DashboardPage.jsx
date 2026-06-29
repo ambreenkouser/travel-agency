@@ -20,16 +20,26 @@ function GroupCard({ group, onClick }) {
   return (
     <button onClick={onClick}
       className="group relative overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-left w-full">
-      <div className={`bg-gradient-to-br ${group.gradient} p-8 flex flex-col items-center justify-center min-h-[160px] gap-3`}>
-        {group.imageUrl
-          ? <img src={group.imageUrl} alt={group.label} className="w-20 h-20 object-cover rounded-xl drop-shadow-sm select-none" />
-          : <span className="text-6xl drop-shadow-sm select-none">{group.icon}</span>
-        }
-        <div className="text-center">
-          <p className="text-white font-bold text-base leading-tight">{group.label}</p>
-          <p className="text-white/75 text-xs mt-1">{group.description}</p>
+      {group.imageUrl ? (
+        <div
+          className="relative flex flex-col justify-end min-h-[160px] bg-cover bg-center"
+          style={{ backgroundImage: `url(${group.imageUrl})` }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent rounded-2xl" />
+          <div className="relative z-10 p-4 text-center">
+            <p className="text-white font-bold text-base leading-tight drop-shadow">{group.label}</p>
+            <p className="text-white/80 text-xs mt-0.5 drop-shadow">{group.description}</p>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className={`bg-gradient-to-br ${group.gradient} p-8 flex flex-col items-center justify-center min-h-[160px] gap-3`}>
+          <span className="text-6xl drop-shadow-sm select-none">{group.icon}</span>
+          <div className="text-center">
+            <p className="text-white font-bold text-base leading-tight">{group.label}</p>
+            <p className="text-white/75 text-xs mt-1">{group.description}</p>
+          </div>
+        </div>
+      )}
       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200 rounded-2xl" />
     </button>
   )
