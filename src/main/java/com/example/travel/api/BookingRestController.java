@@ -129,14 +129,15 @@ public class BookingRestController {
         this.cancellationRequestRepository = cancellationRequestRepository;
     }
 
-    /** All agency bookings — for agency admins / agents, newest first. */
+    /** Bookings by this user and their direct children — for history view. */
     @GetMapping
     @PreAuthorize("hasAuthority('bookings:view')")
-    public List<BookingDto> list() {
-        return bookingService.findAll().stream()
-                .sorted(java.util.Comparator.comparing(
-                        com.example.travel.booking.Booking::getCreatedAt,
-                        java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder())))
+    public List<BookingDto> list(@AuthenticationPrincipal AuthUserDetails principal) {
+        List<Long> childIds = userRepository.findByParentId(principal.getUserId()).stream()
+                .map(com.example.travel.auth.User::getId).collect(Collectors.toList());
+        List<Long> userIds = new java.util.ArrayList<>(childIds);
+        userIds.add(principal.getUserId());
+        return bookingRepository.findByBookedByUserIdInOrderByCreatedAtDesc(userIds).stream()
                 .map(b -> enrich(bookingMapper.toDto(b), b.getBookedByUserId()))
                 .collect(Collectors.toList());
     }
