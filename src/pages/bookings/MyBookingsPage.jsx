@@ -297,7 +297,7 @@ export default function MyBookingsPage() {
                           return (
                             <div>
                               {totalPct > 0 && (
-                                <div className="line-through text-gray-400 text-xs">PKR {origTotal.toLocaleString()} /-</div>
+                                <div className="line-through text-red-500 text-xs">PKR {origTotal.toLocaleString()} /-</div>
                               )}
                               <div className="font-semibold text-gray-800">PKR {discTotal.toLocaleString()} /-</div>
                             </div>

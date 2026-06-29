@@ -40,10 +40,10 @@ public class Booking extends TenantedEntity {
 
     private Long bookedByUserId;
 
-    // For umrah bookings — tracks which airline the passenger booked with
+    // For umrah bookings -- tracks which airline the passenger booked with
     private Long selectedAirlineId;
 
-    // For bookings with hotel extra — tracks the selected hotel
+    // For bookings with hotel extra -- tracks the selected hotel
     private Long selectedHotelId;
 
     @JdbcTypeCode(SqlTypes.JSON)
@@ -58,6 +58,12 @@ public class Booking extends TenantedEntity {
 
     @Column(name = "approved_by_user_id")
     private Long approvedByUserId;
+
+    @Column(name = "confirmed_at")
+    private Instant confirmedAt;
+
+    @Column(name = "action_by_user_id")
+    private Long actionByUserId;
 
     private boolean deleted = false;
 
@@ -92,6 +98,10 @@ public class Booking extends TenantedEntity {
     public void setPaymentComment(String paymentComment) { this.paymentComment = paymentComment; }
     public Long getApprovedByUserId() { return approvedByUserId; }
     public void setApprovedByUserId(Long approvedByUserId) { this.approvedByUserId = approvedByUserId; }
+    public Instant getConfirmedAt() { return confirmedAt; }
+    public void setConfirmedAt(Instant confirmedAt) { this.confirmedAt = confirmedAt; }
+    public Long getActionByUserId() { return actionByUserId; }
+    public void setActionByUserId(Long actionByUserId) { this.actionByUserId = actionByUserId; }
     public boolean isDeleted() { return deleted; }
     public void setDeleted(boolean deleted) { this.deleted = deleted; }
     public List<Passenger> getPassengers() { return passengers; }

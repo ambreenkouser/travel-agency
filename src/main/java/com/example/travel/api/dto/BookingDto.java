@@ -27,5 +27,7 @@ public record BookingDto(
         String groupName,           // flight groupName (e.g. "UMRAH GROUP")
         String airlineName,         // first-leg airline name
         String airlineLogoUrl,      // first-leg airline logo URL
-        Instant departureDate       // first-leg departAt
+        Instant departureDate,      // first-leg departAt
+        Instant confirmedAt,        // when the booking was confirmed/cancelled by admin
+        Long actionByUserId         // userId who confirmed or cancelled
 ) {}

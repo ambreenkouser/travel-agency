@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { getBranding } from '../../api/agencies'
@@ -6,32 +6,34 @@ import { getBookingQueue } from '../../api/bookings'
 import { getPackageTypeDefs } from '../../api/packageTypeDefs'
 
 const navItems = [
-  { to: '/dashboard',     label: 'Dashboard',     icon: '🏠' },
-  { to: '/analytics',     label: 'Analytics',     icon: '📊' },
-  { to: '/flights',       label: 'Flights',       icon: '✈' },
-  { to: '/packages',      label: 'Packages',      icon: '🕌' },
-  { to: '/bookings',      label: 'My Bookings',   icon: '📋' },
-  { to: '/ledger',        label: 'My Ledger',     icon: '📒' },
-  { to: '/offers',        label: 'Offers',        icon: '🎁' },
-  { to: '/announcements', label: 'News & Announcements', icon: '📢' },
+  { to: '/dashboard',     label: 'Dashboard',     icon: 'ðŸ ' },
+  { to: '/analytics',     label: 'Analytics',     icon: 'ðŸ“Š' },
+  { to: '/flights',       label: 'Flights',       icon: 'âœˆ' },
+  { to: '/packages',      label: 'Packages',      icon: 'ðŸ•Œ' },
+  { to: '/bookings',      label: 'My Bookings',   icon: 'ðŸ“‹' },
+  { to: '/ledger',        label: 'My Ledger',     icon: 'ðŸ“’' },
+  { to: '/offers',        label: 'Offers',        icon: 'ðŸŽ' },
+  { to: '/announcements', label: 'News & Announcements', icon: 'ðŸ“¢' },
 ]
 
 const approvalItems = [
-  { to: '/bookings/requests', label: 'Booking Requests', icon: '📩',
+  { to: '/bookings/requests', label: 'Booking Requests', icon: 'ðŸ“©',
+    roles: ['super_admin', 'master_agent', 'agency_admin'] },
+  { to: '/bookings/history', label: 'Booking History', icon: '📜',
     roles: ['super_admin', 'master_agent', 'agency_admin'] },
 ]
 
 const adminItems = [
-  { to: '/agencies',       label: 'Agencies',        icon: '🏢', roles: ['super_admin', 'master_agent'] },
-  { to: '/users',          label: 'Users',            icon: '👥', roles: ['super_admin', 'master_agent', 'agency_admin'] },
-  { to: '/airlines',       label: 'Airlines',         icon: '🛩', roles: ['super_admin', 'master_agent', 'agency_admin'] },
-  { to: '/routes',         label: 'Sectors',          icon: '🗺', roles: ['super_admin', 'master_agent', 'agency_admin'] },
-  { to: '/manage/flights', label: 'Manage Flights',   icon: '🛫', roles: ['super_admin', 'master_agent', 'agency_admin'] },
-  { to: '/manage/umrah',   label: 'Umrah Packages',   icon: '🕌', roles: ['super_admin', 'master_agent', 'agency_admin'] },
-  { to: '/manage/hajj',           label: 'Hajj Packages',   icon: '🕋', roles: ['super_admin', 'master_agent', 'agency_admin'] },
-  { to: '/manage/package-types', label: 'Package Types',    icon: '🗂️', roles: ['super_admin'] },
-  { to: '/manage/hotels',        label: 'Hotels',           icon: '🏨', roles: ['super_admin', 'master_agent', 'agency_admin'] },
-  { to: '/banks',          label: 'Banks',            icon: '🏦', roles: ['super_admin'] },
+  { to: '/agencies',       label: 'Agencies',        icon: 'ðŸ¢', roles: ['super_admin', 'master_agent'] },
+  { to: '/users',          label: 'Users',            icon: 'ðŸ‘¥', roles: ['super_admin', 'master_agent', 'agency_admin'] },
+  { to: '/airlines',       label: 'Airlines',         icon: 'ðŸ›©', roles: ['super_admin', 'master_agent', 'agency_admin'] },
+  { to: '/routes',         label: 'Sectors',          icon: 'ðŸ—º', roles: ['super_admin', 'master_agent', 'agency_admin'] },
+  { to: '/manage/flights', label: 'Manage Flights',   icon: 'ðŸ›«', roles: ['super_admin', 'master_agent', 'agency_admin'] },
+  { to: '/manage/umrah',   label: 'Umrah Packages',   icon: 'ðŸ•Œ', roles: ['super_admin', 'master_agent', 'agency_admin'] },
+  { to: '/manage/hajj',           label: 'Hajj Packages',   icon: 'ðŸ•‹', roles: ['super_admin', 'master_agent', 'agency_admin'] },
+  { to: '/manage/package-types', label: 'Package Types',    icon: 'ðŸ—‚ï¸', roles: ['super_admin'] },
+  { to: '/manage/hotels',        label: 'Hotels',           icon: 'ðŸ¨', roles: ['super_admin', 'master_agent', 'agency_admin'] },
+  { to: '/banks',          label: 'Banks',            icon: 'ðŸ¦', roles: ['super_admin'] },
 ]
 
 const adminRoles = ['super_admin', 'master_agent', 'agency_admin']
@@ -111,7 +113,7 @@ export default function Sidebar({ announcementCount = 0 }) {
           />
         ))}
 
-        {/* Approval queue — visible to admins who can confirm bookings */}
+        {/* Approval queue â€” visible to admins who can confirm bookings */}
         {approvalItems
           .filter(item => item.roles.some(r => roles.includes(r)))
           .map(item => <NavItem key={item.to} {...item} badge={item.to === '/bookings/requests' ? queueCount : 0} />)}
@@ -176,3 +178,4 @@ function NavItem({ to, label, icon, badge = 0 }) {
     </NavLink>
   )
 }
+
