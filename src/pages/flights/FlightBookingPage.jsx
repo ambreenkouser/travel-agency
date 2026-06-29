@@ -304,22 +304,22 @@ export default function FlightBookingPage() {
                 <div className="flex justify-between py-1.5 border-b border-slate-600">
                   <span className="text-sm text-slate-200">Adults</span>
                   <span className="text-sm font-bold text-white flex items-center gap-1.5">
-                    {totalPercent > 0 && <span className="line-through text-slate-400 text-xs">PKR {fareAdult.toLocaleString()}</span>}
-                    <span className="text-red-400">PKR {discountedAdult.toLocaleString()}</span>
+                    {totalPercent > 0 && <span className="line-through text-red-400 text-xs">PKR {fareAdult.toLocaleString()}</span>}
+                    PKR {discountedAdult.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-slate-600">
                   <span className="text-sm text-slate-200">Child</span>
                   <span className="text-sm font-bold text-white flex items-center gap-1.5">
-                    {totalPercent > 0 && <span className="line-through text-slate-400 text-xs">PKR {fareChild.toLocaleString()}</span>}
-                    <span className="text-red-400">PKR {discountedChild.toLocaleString()}</span>
+                    {totalPercent > 0 && <span className="line-through text-red-400 text-xs">PKR {fareChild.toLocaleString()}</span>}
+                    PKR {discountedChild.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between py-1.5">
                   <span className="text-sm text-slate-200">Infant</span>
                   <span className="text-sm font-bold text-white flex items-center gap-1.5">
-                    {totalPercent > 0 && <span className="line-through text-slate-400 text-xs">PKR {fareInfant.toLocaleString()}</span>}
-                    <span className="text-red-400">PKR {discountedInfant.toLocaleString()}</span>
+                    {totalPercent > 0 && <span className="line-through text-red-400 text-xs">PKR {fareInfant.toLocaleString()}</span>}
+                    PKR {discountedInfant.toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -334,22 +334,22 @@ export default function FlightBookingPage() {
                 <div className="flex justify-between py-1.5 border-b border-slate-600">
                   <span className="text-sm text-slate-200">Adults</span>
                   <span className="text-sm font-bold text-white flex items-center gap-1.5">
-                    {totalPercent > 0 && <span className="line-through text-slate-400 text-xs">PKR {(adults * fareAdult).toLocaleString()}</span>}
-                    <span className="text-red-400">PKR {(adults * discountedAdult).toLocaleString()}</span>
+                    {totalPercent > 0 && <span className="line-through text-red-400 text-xs">PKR {(adults * fareAdult).toLocaleString()}</span>}
+                    PKR {(adults * discountedAdult).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-slate-600">
                   <span className="text-sm text-slate-200">Child</span>
                   <span className="text-sm font-bold text-white flex items-center gap-1.5">
-                    {totalPercent > 0 && <span className="line-through text-slate-400 text-xs">PKR {(children * fareChild).toLocaleString()}</span>}
-                    <span className="text-red-400">PKR {(children * discountedChild).toLocaleString()}</span>
+                    {totalPercent > 0 && <span className="line-through text-red-400 text-xs">PKR {(children * fareChild).toLocaleString()}</span>}
+                    PKR {(children * discountedChild).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-slate-600">
                   <span className="text-sm text-slate-200">Infants</span>
                   <span className="text-sm font-bold text-white flex items-center gap-1.5">
-                    {totalPercent > 0 && <span className="line-through text-slate-400 text-xs">PKR {(infants * fareInfant).toLocaleString()}</span>}
-                    <span className="text-red-400">PKR {(infants * discountedInfant).toLocaleString()}</span>
+                    {totalPercent > 0 && <span className="line-through text-red-400 text-xs">PKR {(infants * fareInfant).toLocaleString()}</span>}
+                    PKR {(infants * discountedInfant).toLocaleString()}
                   </span>
                 </div>
                 {offerFixed > 0 && (
@@ -360,7 +360,7 @@ export default function FlightBookingPage() {
                 )}
                 <div className="flex justify-between py-1.5 mt-1">
                   <span className="text-sm font-bold text-white">Total Price</span>
-                  <span className="text-sm font-bold text-red-400">PKR {Math.max(0, grandTotal).toLocaleString()}</span>
+                  <span className="text-sm font-bold text-green-400">PKR {Math.max(0, grandTotal).toLocaleString()}</span>
                 </div>
               </div>
             </div>

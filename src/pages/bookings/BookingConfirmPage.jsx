@@ -364,8 +364,8 @@ export default function BookingConfirmPage() {
                         const discNum = origNum * (1 - totalPercent / 100)
                         return (
                           <span className="flex flex-col">
-                            {totalPercent > 0 && <span className="line-through text-gray-400 text-[10px]">PKR {origNum.toLocaleString()}</span>}
-                            <span className="font-semibold text-red-600 text-xs">PKR {discNum.toLocaleString()}</span>
+                            {totalPercent > 0 && <span className="line-through text-red-500 text-[10px]">PKR {origNum.toLocaleString()}</span>}
+                            <span className="font-semibold text-gray-800 text-xs">PKR {discNum.toLocaleString()}</span>
                           </span>
                         )
                       })()}
@@ -411,8 +411,8 @@ export default function BookingConfirmPage() {
                 <div key={type} className="flex justify-between py-1 border-b border-gray-100">
                   <span className="text-gray-600">{label} × {count}</span>
                   <span className="flex items-center gap-2">
-                    {totalPercent > 0 && <span className="line-through text-gray-400 text-xs">PKR {(count * origNum).toLocaleString()}</span>}
-                    <span className="font-semibold text-red-600">PKR {(count * discNum).toLocaleString()}</span>
+                    {totalPercent > 0 && <span className="line-through text-red-500 text-xs">PKR {(count * origNum).toLocaleString()}</span>}
+                    <span className="font-semibold text-gray-800">PKR {(count * discNum).toLocaleString()}</span>
                   </span>
                 </div>
               )
