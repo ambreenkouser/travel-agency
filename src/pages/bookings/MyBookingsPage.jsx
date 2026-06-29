@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getMyBookings, cancelBooking, requestCancellation } from '../../api/bookings'
+import { getFlight } from '../../api/flights'
+import { getMyOffers } from '../../api/offers'
 import { useAuth } from '../../context/AuthContext'
 import Spinner from '../../components/ui/Spinner'
 import ErrorMessage from '../../components/ui/ErrorMessage'
@@ -38,16 +40,29 @@ export default function MyBookingsPage() {
   const [loading, setLoading]     = useState(true)
   const [error, setError]         = useState('')
   const [filters, setFilters]     = useState({ dateFrom: '', dateTo: '', groupCategory: '', depDate: '' })
+  const [flightMap, setFlightMap] = useState({})
+  const [myOffers, setMyOffers]   = useState([])
 
   const authorities = user?.authorities ?? []
   const canCancel   = authorities.includes('bookings:cancel')
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load(); getMyOffers().then(setMyOffers).catch(() => {}) }, [])
 
   function load() {
     setLoading(true)
     getMyBookings()
-      .then(setBookings)
+      .then(list => {
+        setBookings(list)
+        const ids = [...new Set(
+          list.filter(b => b.bookableType === 'flight' && b.bookableId).map(b => b.bookableId)
+        )]
+        Promise.all(ids.map(id => getFlight(id).catch(() => null)))
+          .then(flights => {
+            const map = {}
+            flights.forEach((f, i) => { if (f) map[ids[i]] = f })
+            setFlightMap(map)
+          })
+      })
       .catch(() => setError('Failed to load bookings.'))
       .finally(() => setLoading(false))
   }
@@ -63,6 +78,20 @@ export default function MyBookingsPage() {
     try { await requestCancellation(id, reason); load() }
     catch (e) { setError(e?.response?.data?.message ?? 'Failed to request cancellation.') }
   }
+
+  // Active offer discounts
+  const now          = new Date()
+  const activeOffers = myOffers.filter(o =>
+    o.active &&
+    (!o.validFrom  || new Date(o.validFrom)  <= now) &&
+    (!o.validUntil || new Date(o.validUntil) >= now)
+  )
+  const offerPercent = Math.min(100, activeOffers
+    .filter(o => o.discountType === 'PERCENTAGE')
+    .reduce((s, o) => s + Number(o.discountValue), 0))
+  const offerFixed   = activeOffers
+    .filter(o => o.discountType === 'FIXED')
+    .reduce((s, o) => s + Number(o.discountValue), 0)
 
   // Derived filter LOVs
   const groupCategories = [...new Set(bookings.map(b => b.groupName).filter(Boolean))].sort()
@@ -250,8 +279,30 @@ export default function MyBookingsPage() {
                       </td>
 
                       {/* Total Price */}
-                      <td className="px-3 py-3 border-r border-gray-100 whitespace-nowrap font-semibold text-gray-800">
-                        PKR {Number(b.grossTotal).toLocaleString()} /-
+                      <td className="px-3 py-3 border-r border-gray-100 whitespace-nowrap">
+                        {(() => {
+                          const flight      = flightMap[b.bookableId]
+                          const flightDisc  = Number(flight?.agentDiscountPercent || 0)
+                          const totalPct    = Math.min(100, flightDisc + offerPercent)
+                          const origTotal   = Number(b.grossTotal || 0)
+                          const discTotal   = flight
+                            ? Math.max(0,
+                                (b.passengers ?? []).reduce((sum, p) => {
+                                  const t    = p.type?.toUpperCase()
+                                  const fare = t === 'ADULT' ? flight.fareAdult : t === 'CHILD' ? flight.fareChild : t === 'INFANT' ? flight.fareInfant : 0
+                                  return sum + Number(fare || 0) * (1 - totalPct / 100)
+                                }, 0) + Number(flight.taxTotal || 0) - offerFixed
+                              )
+                            : origTotal
+                          return (
+                            <div>
+                              {totalPct > 0 && (
+                                <div className="line-through text-gray-400 text-xs">PKR {origTotal.toLocaleString()} /-</div>
+                              )}
+                              <div className="font-semibold text-gray-800">PKR {discTotal.toLocaleString()} /-</div>
+                            </div>
+                          )
+                        })()}
                       </td>
 
                       {/* Status */}
