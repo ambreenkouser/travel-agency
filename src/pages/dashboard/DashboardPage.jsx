@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getPackageTypeDefs } from '../../api/packageTypeDefs'
+import { getPackageTypeDefs, packageTypeDefImageUrl } from '../../api/packageTypeDefs'
+import { getUmrahPackages, umrahImageUrl } from '../../api/umrah'
+import { getHajjPackages, hajjImageUrl } from '../../api/hajj'
 import Spinner from '../../components/ui/Spinner'
 
 const BUILTIN_GROUPS = [
@@ -19,7 +21,10 @@ function GroupCard({ group, onClick }) {
     <button onClick={onClick}
       className="group relative overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-left w-full">
       <div className={`bg-gradient-to-br ${group.gradient} p-8 flex flex-col items-center justify-center min-h-[160px] gap-3`}>
-        <span className="text-6xl drop-shadow-sm select-none">{group.icon}</span>
+        {group.imageUrl
+          ? <img src={group.imageUrl} alt={group.label} className="w-20 h-20 object-cover rounded-xl drop-shadow-sm select-none" />
+          : <span className="text-6xl drop-shadow-sm select-none">{group.icon}</span>
+        }
         <div className="text-center">
           <p className="text-white font-bold text-base leading-tight">{group.label}</p>
           <p className="text-white/75 text-xs mt-1">{group.description}</p>
@@ -33,21 +38,38 @@ function GroupCard({ group, onClick }) {
 export default function DashboardPage() {
   const navigate = useNavigate()
   const [customTypes, setCustomTypes] = useState([])
-  const [loading, setLoading]         = useState(true)
+  const [umrahImageId, setUmrahImageId] = useState(null)
+  const [hajjImageId, setHajjImageId]   = useState(null)
+  const [loading, setLoading]           = useState(true)
 
   useEffect(() => {
-    getPackageTypeDefs()
-      .then(types => setCustomTypes(types.filter(t => t.active)))
-      .catch(() => {})
-      .finally(() => setLoading(false))
+    Promise.all([
+      getPackageTypeDefs().catch(() => []),
+      getUmrahPackages().catch(() => []),
+      getHajjPackages().catch(() => []),
+    ]).then(([types, umrah, hajj]) => {
+      setCustomTypes(types.filter(t => t.active))
+      const umrahWithImg = umrah.find(p => p.hasImage)
+      if (umrahWithImg) setUmrahImageId(umrahWithImg.id)
+      const hajjWithImg = hajj.find(p => p.hasImage)
+      if (hajjWithImg) setHajjImageId(hajjWithImg.id)
+    }).finally(() => setLoading(false))
   }, [])
 
+  const builtinWithImages = BUILTIN_GROUPS.map(g => ({
+    ...g,
+    imageUrl: g.key === 'umrah' && umrahImageId ? umrahImageUrl(umrahImageId)
+            : g.key === 'hajj'  && hajjImageId  ? hajjImageUrl(hajjImageId)
+            : null,
+  }))
+
   const allGroups = [
-    ...BUILTIN_GROUPS,
+    ...builtinWithImages,
     ...customTypes.map((t, i) => ({
       key: `custom-${t.id}`,
       label: t.name,
       icon: t.icon || '📦',
+      imageUrl: t.hasImage ? packageTypeDefImageUrl(t.id) : null,
       description: t.description || `${t.name} packages`,
       gradient: CUSTOM_GRADIENTS[i % CUSTOM_GRADIENTS.length],
       href: `/packages?group=custom&typeDefId=${t.id}`,

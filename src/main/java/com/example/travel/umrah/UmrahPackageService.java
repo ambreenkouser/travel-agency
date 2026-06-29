@@ -38,6 +38,8 @@ public class UmrahPackageService {
                 : repository.findVisibleToAgency(agencyId);
     }
 
+    public UmrahPackage save(UmrahPackage pkg) { return repository.save(pkg); }
+
     public UmrahPackage findById(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Umrah package not found: " + id));

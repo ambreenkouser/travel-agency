@@ -9,5 +9,6 @@ public record PackageTypeDefDto(
         String description,
         String icon,
         boolean active,
-        List<Long> grantedAgencyIds
+        List<Long> grantedAgencyIds,
+        boolean hasImage
 ) {}

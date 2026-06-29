@@ -23,5 +23,6 @@ public record UmrahPackageDto(
         String packageClass,
         java.math.BigDecimal costAdult,
         java.math.BigDecimal costChild,
-        java.math.BigDecimal costInfant
+        java.math.BigDecimal costInfant,
+        boolean hasImage
 ) {}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   getHajjPackages, createHajjPackage, updateHajjPackage,
-  deleteHajjPackage, getHajjShares,
+  deleteHajjPackage, getHajjShares, uploadHajjImage, hajjImageUrl,
 } from '../../api/hajj'
 import { getAgencies } from '../../api/agencies'
 import { useAuth } from '../../context/AuthContext'
@@ -76,6 +76,8 @@ export default function HajjManagementPage() {
   const [addons, setAddons]     = useState(defaultAddons())
   const [complianceEntries, setComplianceEntries] = useState([])
   const [sharedWith, setSharedWith] = useState([])
+  const [imageFile, setImageFile]   = useState(null)
+  const [editingPkg, setEditingPkg] = useState(null)
   const [editing, setEditing]   = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [error, setError]       = useState('')
@@ -97,6 +99,7 @@ export default function HajjManagementPage() {
     setAddons(defaultAddons())
     setComplianceEntries([])
     setSharedWith([])
+    setImageFile(null); setEditingPkg(null)
     setEditing(null)
     setShowForm(true)
     setError('')
@@ -127,6 +130,7 @@ export default function HajjManagementPage() {
     } else {
       setSharedWith([])
     }
+    setImageFile(null); setEditingPkg(pkg)
     setEditing(pkg.id)
     setShowForm(true)
     setError('')
@@ -155,7 +159,8 @@ export default function HajjManagementPage() {
       sharedWith:         isSuperAdmin ? sharedWith : [],
     }
     try {
-      editing ? await updateHajjPackage(editing, payload) : await createHajjPackage(payload)
+      const saved = editing ? await updateHajjPackage(editing, payload) : await createHajjPackage(payload)
+      if (imageFile) await uploadHajjImage(saved.id, imageFile).catch(() => {})
       setShowForm(false)
       load()
     } catch {
@@ -201,6 +206,16 @@ export default function HajjManagementPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Image */}
+            <Field label="Package Image">
+              {editingPkg?.hasImage && !imageFile && (
+                <img src={hajjImageUrl(editingPkg.id)} alt="Current" className="w-24 h-24 object-cover rounded-lg mb-2 border" />
+              )}
+              <input type="file" accept="image/*"
+                onChange={e => setImageFile(e.target.files?.[0] ?? null)}
+                className="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+            </Field>
             {/* Title */}
             <Field label="Title *">
               <Input value={form.title} onChange={set('title')} required placeholder="e.g. Hajj Package 2025" />

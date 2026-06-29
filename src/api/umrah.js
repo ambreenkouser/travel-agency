@@ -7,3 +7,5 @@ export const updateUmrahPackage = (id, data)=> client.put(`/api/umrah-packages/$
 export const deleteUmrahPackage = (id)      => client.delete(`/api/umrah-packages/${id}`)
 export const getUmrahShares    = (id)            => client.get(`/api/umrah-packages/${id}/shares`).then(r => r.data)
 export const updateUmrahShares = (id, agencyIds) => client.put(`/api/umrah-packages/${id}/shares`, agencyIds)
+export const uploadUmrahImage  = (id, file)      => { const fd = new FormData(); fd.append('image', file); return client.post(`/api/umrah-packages/${id}/image`, fd) }
+export const umrahImageUrl     = (id)            => `/api/umrah-packages/${id}/image`

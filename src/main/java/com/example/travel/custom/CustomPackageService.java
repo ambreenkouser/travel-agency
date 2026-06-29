@@ -50,6 +50,8 @@ public class CustomPackageService {
                 .orElseThrow(() -> new EntityNotFoundException("Custom package not found: " + id));
     }
 
+    public CustomPackage save(CustomPackage pkg) { return repository.save(pkg); }
+
     @Transactional
     public CustomPackage create(CustomPackageRequest req) {
         Long agencyId = AgencyContext.getCurrentAgencyId();

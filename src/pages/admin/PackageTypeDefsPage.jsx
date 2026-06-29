@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   getPackageTypeDefs, createPackageTypeDef,
   updatePackageTypeDef, deletePackageTypeDef,
+  uploadPackageTypeDefImage, packageTypeDefImageUrl,
 } from '../../api/packageTypeDefs'
 import { getAgencies } from '../../api/agencies'
 
@@ -16,6 +17,7 @@ export default function PackageTypeDefsPage() {
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing]     = useState(null)
   const [form, setForm]           = useState(EMPTY)
+  const [imageFile, setImageFile] = useState(null)
   const [saving, setSaving]       = useState(false)
   const [formError, setFormError] = useState('')
 
@@ -35,12 +37,14 @@ export default function PackageTypeDefsPage() {
   function openCreate() {
     setEditing(null)
     setForm(EMPTY)
+    setImageFile(null)
     setFormError('')
     setShowModal(true)
   }
 
   function openEdit(t) {
     setEditing(t)
+    setImageFile(null)
     setForm({
       name:             t.name,
       description:      t.description ?? '',
@@ -58,11 +62,10 @@ export default function PackageTypeDefsPage() {
     if (!form.name.trim()) { setFormError('Name is required.'); return }
     setSaving(true)
     try {
-      if (editing) {
-        await updatePackageTypeDef(editing.id, form)
-      } else {
-        await createPackageTypeDef(form)
-      }
+      const saved = editing
+        ? await updatePackageTypeDef(editing.id, form)
+        : await createPackageTypeDef(form)
+      if (imageFile) await uploadPackageTypeDefImage(saved.id, imageFile).catch(() => {})
       setShowModal(false)
       load()
     } catch (err) {
@@ -181,6 +184,17 @@ export default function PackageTypeDefsPage() {
             </div>
 
             <form onSubmit={handleSave} className="space-y-4">
+              {/* Image */}
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">Package Image</label>
+                {editing?.hasImage && !imageFile && (
+                  <img src={packageTypeDefImageUrl(editing.id)} alt="Current" className="w-24 h-24 object-cover rounded-lg mb-2 border" />
+                )}
+                <input type="file" accept="image/*"
+                  onChange={e => setImageFile(e.target.files?.[0] ?? null)}
+                  className="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+              </div>
               <div className="grid grid-cols-4 gap-3">
                 <div>
                   <label className="block text-sm text-gray-600 mb-1">Icon</label>

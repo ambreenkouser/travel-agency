@@ -5,6 +5,8 @@ import {
   updateUmrahPackage,
   deleteUmrahPackage,
   getUmrahShares,
+  uploadUmrahImage,
+  umrahImageUrl,
 } from '../../api/umrah'
 import client from '../../api/client'
 import { getAgencies } from '../../api/agencies'
@@ -120,7 +122,9 @@ export default function UmrahManagementPage() {
   const [configEntries, setConfigEntries] = useState([])
   const [airlineRows, setAirlineRows]     = useState([])
   const [sharedWith, setSharedWith]       = useState([])
+  const [imageFile, setImageFile]         = useState(null)
   const [editing, setEditing]             = useState(null)
+  const [editingPkg, setEditingPkg]       = useState(null)
   const [showForm, setShowForm]           = useState(false)
   const [error, setError]                 = useState('')
   const [loading, setLoading]             = useState(true)
@@ -142,7 +146,7 @@ export default function UmrahManagementPage() {
 
   function openCreate() {
     setForm(emptyForm); setAddons(defaultAddons()); setConfigEntries([]); setAirlineRows([])
-    setSharedWith([])
+    setSharedWith([]); setImageFile(null); setEditingPkg(null)
     setEditing(null); setShowForm(true); setError('')
   }
 
@@ -170,6 +174,7 @@ export default function UmrahManagementPage() {
     } else {
       setSharedWith([])
     }
+    setImageFile(null); setEditingPkg(pkg)
     setEditing(pkg.id); setShowForm(true); setError('')
   }
 
@@ -197,7 +202,8 @@ export default function UmrahManagementPage() {
       sharedWith: isSuperAdmin ? sharedWith : [],
     }
     try {
-      editing ? await updateUmrahPackage(editing, payload) : await createUmrahPackage(payload)
+      const saved = editing ? await updateUmrahPackage(editing, payload) : await createUmrahPackage(payload)
+      if (imageFile) await uploadUmrahImage(saved.id, imageFile).catch(() => {})
       setShowForm(false); load()
     } catch (err) {
       setError(err?.response?.data?.message ?? err?.message ?? 'Save failed. Please check all required fields.')
@@ -236,6 +242,16 @@ export default function UmrahManagementPage() {
             <button type="button" onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600 text-xl font-bold leading-none">×</button>
           </div>
           <form onSubmit={handleSubmit} className="space-y-3">
+            <div>
+              <span className="block text-sm font-semibold text-gray-800 mb-1">Package Image</span>
+              {editingPkg?.hasImage && !imageFile && (
+                <img src={umrahImageUrl(editingPkg.id)} alt="Current" className="w-24 h-24 object-cover rounded-lg mb-2 border" />
+              )}
+              <input type="file" accept="image/*"
+                onChange={e => setImageFile(e.target.files?.[0] ?? null)}
+                className="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+            </div>
             <Field label="Title *" value={form.title} onChange={set('title')} required />
             <div className="grid grid-cols-2 gap-3">
               <Field label="Duration (days)" value={form.durationDays} onChange={set('durationDays')} type="number" min="1" />

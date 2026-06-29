@@ -34,6 +34,14 @@ public class PackageTypeDef {
     @Column(nullable = false)
     private boolean active = true;
 
+    @Column(name = "image_data") private byte[] imageData;
+    @Column(name = "image_content_type") private String imageContentType;
+
+    public byte[] getImageData() { return imageData; }
+    public void setImageData(byte[] imageData) { this.imageData = imageData; }
+    public String getImageContentType() { return imageContentType; }
+    public void setImageContentType(String imageContentType) { this.imageContentType = imageContentType; }
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();

@@ -11,3 +11,5 @@ export const getCustomUserGrants      = (id)      => client.get(`/api/custom-pac
 export const updateCustomUserGrants   = (id, userIds) => client.put(`/api/custom-packages/${id}/user-grants`, userIds)
 export const getCustomShares          = (id)      => client.get(`/api/custom-packages/${id}/shares`).then(r => r.data)
 export const updateCustomShares       = (id, agencyIds) => client.put(`/api/custom-packages/${id}/shares`, agencyIds)
+export const uploadCustomImage        = (id, file) => { const fd = new FormData(); fd.append('image', file); return client.post(`/api/custom-packages/${id}/image`, fd) }
+export const customImageUrl           = (id)       => `/api/custom-packages/${id}/image`

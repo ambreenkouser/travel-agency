@@ -5,9 +5,12 @@ import com.example.travel.auth.AuthUserDetails;
 import com.example.travel.custom.CustomPackage;
 import com.example.travel.custom.CustomPackageRequest;
 import com.example.travel.custom.CustomPackageService;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,8 +20,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/custom-packages")
@@ -85,6 +91,24 @@ public class CustomPackageRestController {
         service.delete(id);
     }
 
+    @PostMapping("/{id}/image")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAuthority('custom:manage')")
+    public void uploadImage(@PathVariable Long id, @RequestParam MultipartFile image) throws IOException {
+        CustomPackage pkg = service.findById(id);
+        pkg.setImageData(image.getBytes());
+        pkg.setImageContentType(image.getContentType());
+        service.save(pkg);
+    }
+
+    @GetMapping("/{id}/image")
+    public ResponseEntity<byte[]> getImage(@PathVariable Long id) {
+        CustomPackage pkg = service.findById(id);
+        if (pkg.getImageData() == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No image");
+        MediaType mt = pkg.getImageContentType() != null ? MediaType.parseMediaType(pkg.getImageContentType()) : MediaType.IMAGE_JPEG;
+        return ResponseEntity.ok().contentType(mt).body(pkg.getImageData());
+    }
+
     /** Get sub-agent user IDs assigned to a package. */
     @GetMapping("/{id}/user-grants")
     @PreAuthorize("hasAuthority('custom:manage')")
@@ -139,7 +163,8 @@ public class CustomPackageRestController {
                 p.getCostChild(),
                 p.getCostInfant(),
                 p.isVisibleToAll(),
-                service.getUserGrants(p.getId())
+                service.getUserGrants(p.getId()),
+                p.getImageData() != null
         );
     }
 }

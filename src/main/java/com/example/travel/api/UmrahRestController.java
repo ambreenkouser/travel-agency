@@ -10,9 +10,11 @@ import com.example.travel.umrah.UmrahPackage;
 import com.example.travel.umrah.UmrahPackageAirline;
 import com.example.travel.umrah.UmrahPackageRequest;
 import com.example.travel.umrah.UmrahPackageService;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,7 +25,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/umrah-packages")
@@ -83,6 +88,24 @@ public class UmrahRestController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/{id}/image")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAuthority('umrah:manage')")
+    public void uploadImage(@PathVariable Long id, @RequestParam MultipartFile image) throws IOException {
+        UmrahPackage pkg = service.findById(id);
+        pkg.setImageData(image.getBytes());
+        pkg.setImageContentType(image.getContentType());
+        service.save(pkg);
+    }
+
+    @GetMapping("/{id}/image")
+    public ResponseEntity<byte[]> getImage(@PathVariable Long id) {
+        UmrahPackage pkg = service.findById(id);
+        if (pkg.getImageData() == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No image");
+        MediaType mt = pkg.getImageContentType() != null ? MediaType.parseMediaType(pkg.getImageContentType()) : MediaType.IMAGE_JPEG;
+        return ResponseEntity.ok().contentType(mt).body(pkg.getImageData());
+    }
+
     @GetMapping("/{id}/shares")
     @PreAuthorize("hasAuthority('umrah:manage')")
     public List<Long> getShares(@PathVariable Long id) {
@@ -134,7 +157,8 @@ public class UmrahRestController {
                 pkg.getPackageClass(),
                 pkg.getCostAdult(),
                 pkg.getCostChild(),
-                pkg.getCostInfant()
+                pkg.getCostInfant(),
+                pkg.getImageData() != null
         );
     }
 

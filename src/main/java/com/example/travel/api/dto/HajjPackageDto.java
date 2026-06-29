@@ -18,5 +18,6 @@ public record HajjPackageDto(
         String packageClass,
         BigDecimal costAdult,
         BigDecimal costChild,
-        BigDecimal costInfant
+        BigDecimal costInfant,
+        boolean hasImage
 ) {}

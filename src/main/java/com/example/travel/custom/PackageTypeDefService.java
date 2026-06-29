@@ -32,6 +32,8 @@ public class PackageTypeDefService {
                 .orElseThrow(() -> new EntityNotFoundException("Package type not found: " + id));
     }
 
+    public PackageTypeDef save(PackageTypeDef def) { return repository.save(def); }
+
     @Transactional
     public PackageTypeDef create(PackageTypeDefRequest req) {
         PackageTypeDef def = new PackageTypeDef();

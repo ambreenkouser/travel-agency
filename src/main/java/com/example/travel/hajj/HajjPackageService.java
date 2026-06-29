@@ -29,6 +29,8 @@ public class HajjPackageService {
                 : repository.findVisibleToAgency(agencyId);
     }
 
+    public HajjPackage save(HajjPackage pkg) { return repository.save(pkg); }
+
     public HajjPackage findById(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Hajj package not found: " + id));

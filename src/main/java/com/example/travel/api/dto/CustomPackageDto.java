@@ -26,5 +26,6 @@ public record CustomPackageDto(
         BigDecimal costChild,
         BigDecimal costInfant,
         boolean visibleToAll,
-        List<Long> assignedUserIds
+        List<Long> assignedUserIds,
+        boolean hasImage
 ) {}

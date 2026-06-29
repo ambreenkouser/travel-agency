@@ -52,7 +52,15 @@ public class HajjPackage extends OwnedEntity {
     @Column(name = "cost_infant")
     private BigDecimal costInfant;
 
+    @Column(name = "image_data") private byte[] imageData;
+    @Column(name = "image_content_type") private String imageContentType;
+
     private boolean deleted = false;
+
+    public byte[] getImageData() { return imageData; }
+    public void setImageData(byte[] imageData) { this.imageData = imageData; }
+    public String getImageContentType() { return imageContentType; }
+    public void setImageContentType(String imageContentType) { this.imageContentType = imageContentType; }
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }

@@ -69,7 +69,15 @@ public class CustomPackage extends OwnedEntity {
     @Column(nullable = false)
     private boolean visibleToAll = true;
 
+    @Column(name = "image_data") private byte[] imageData;
+    @Column(name = "image_content_type") private String imageContentType;
+
     private boolean deleted = false;
+
+    public byte[] getImageData() { return imageData; }
+    public void setImageData(byte[] imageData) { this.imageData = imageData; }
+    public String getImageContentType() { return imageContentType; }
+    public void setImageContentType(String imageContentType) { this.imageContentType = imageContentType; }
 
     public String getPackageType() { return packageType; }
     public void setPackageType(String packageType) { this.packageType = packageType; }

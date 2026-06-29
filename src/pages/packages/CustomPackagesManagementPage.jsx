@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   getCustomPackages, createCustomPackage, updateCustomPackage,
-  deleteCustomPackage, getCustomShares,
+  deleteCustomPackage, getCustomShares, uploadCustomImage, customImageUrl,
 } from '../../api/customPackages'
 import { getAgencies } from '../../api/agencies'
 import PackageAddonsEditor, { defaultAddons, addonsFromServer } from '../../components/ui/PackageAddonsEditor'
@@ -43,6 +43,7 @@ export default function CustomPackagesManagementPage() {
   const [addons, setAddons]     = useState(defaultAddons())
   const [attrEntries, setAttrEntries] = useState([])
   const [sharedWith, setSharedWith]   = useState([])
+  const [imageFile, setImageFile] = useState(null)
   const [saving, setSaving]     = useState(false)
   const [formError, setFormError] = useState('')
 
@@ -62,6 +63,7 @@ export default function CustomPackagesManagementPage() {
     setAddons(defaultAddons())
     setAttrEntries([])
     setSharedWith([])
+    setImageFile(null)
     setFormError('')
     setShowForm(true)
     setTimeout(() => document.getElementById('custom-form-top')?.scrollIntoView({ behavior: 'smooth' }), 50)
@@ -91,6 +93,7 @@ export default function CustomPackagesManagementPage() {
     setAddons(addonsFromServer(pkg.extras))
     setAttrEntries(pkg.attributes ? Object.entries(pkg.attributes).map(([k, v]) => ({ k, v: String(v) })) : [])
     setSharedWith(shares)
+    setImageFile(null)
     setFormError('')
     setShowForm(true)
     setTimeout(() => document.getElementById('custom-form-top')?.scrollIntoView({ behavior: 'smooth' }), 50)
@@ -127,7 +130,8 @@ export default function CustomPackagesManagementPage() {
         sharedWith,
         assignedUserIds:    null,
       }
-      editing ? await updateCustomPackage(editing.id, payload) : await createCustomPackage(payload)
+      const saved = editing ? await updateCustomPackage(editing.id, payload) : await createCustomPackage(payload)
+      if (imageFile) await uploadCustomImage(saved.id, imageFile).catch(() => {})
       setShowForm(false)
       load()
     } catch (err) {
@@ -188,6 +192,16 @@ export default function CustomPackagesManagementPage() {
           </div>
 
           <form onSubmit={handleSave} className="space-y-5">
+            {/* Image */}
+            <Field label="Package Image">
+              {editing?.hasImage && !imageFile && (
+                <img src={customImageUrl(editing.id)} alt="Current" className="w-24 h-24 object-cover rounded-lg mb-2 border" />
+              )}
+              <input type="file" accept="image/*"
+                onChange={e => setImageFile(e.target.files?.[0] ?? null)}
+                className="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+            </Field>
             {/* Type + Title */}
             <div className="grid grid-cols-2 gap-3">
               <Field label="Package Type *">

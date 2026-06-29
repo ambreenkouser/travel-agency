@@ -7,3 +7,5 @@ export const updateHajjPackage = (id, data)  => client.put(`/api/hajj-packages/$
 export const deleteHajjPackage = (id)        => client.delete(`/api/hajj-packages/${id}`)
 export const getHajjShares    = (id)            => client.get(`/api/hajj-packages/${id}/shares`).then(r => r.data)
 export const updateHajjShares = (id, agencyIds) => client.put(`/api/hajj-packages/${id}/shares`, agencyIds)
+export const uploadHajjImage  = (id, file)      => { const fd = new FormData(); fd.append('image', file); return client.post(`/api/hajj-packages/${id}/image`, fd) }
+export const hajjImageUrl     = (id)            => `/api/hajj-packages/${id}/image`
