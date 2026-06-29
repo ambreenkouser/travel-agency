@@ -324,7 +324,7 @@ export default function BookingRequestsPage() {
       </div>{/* end booking requests section */}
 
       {/* ── Cancellation Requests section ── */}
-      <div className="hidden">
+      <div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-semibold text-gray-900">Cancellation Requests</h2>
