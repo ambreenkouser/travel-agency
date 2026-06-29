@@ -514,7 +514,8 @@ public class BookingRestController {
                 dto.bookedByUserId(), name,
                 dto.paymentComment(), dto.approvedByUserId(), payment,
                 bookableTitle, flightNumber, pnrCode,
-                groupName, airlineName, airlineLogoUrl, departureDate
+                groupName, airlineName, airlineLogoUrl, departureDate,
+                dto.confirmedAt(), dto.actionByUserId()
         );
     }
 
