@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+﻿import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import AppShell from './components/layout/AppShell'
@@ -24,6 +24,7 @@ import UsersPage from './pages/users/UsersPage'
 import LedgerPage from './pages/ledger/LedgerPage'
 import HotelsManagementPage from './pages/hotels/HotelsManagementPage'
 import BookingRequestsPage from './pages/bookings/BookingRequestsPage'
+import BookingHistoryPage from './pages/bookings/BookingHistoryPage'
 import AccountSettingsPage from './pages/settings/AccountSettingsPage'
 import BanksPage from './pages/banks/BanksPage'
 import OffersPage from './pages/offers/OffersPage'
@@ -36,7 +37,7 @@ export default function App() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          {/* Standalone ticket page — no app shell so it prints cleanly */}
+          {/* Standalone ticket page â€” no app shell so it prints cleanly */}
           <Route path="/bookings/:id/ticket" element={<ProtectedRoute><FlightTicketPage /></ProtectedRoute>} />
           <Route
             path="/"
@@ -67,6 +68,7 @@ export default function App() {
             <Route path="ledger"         element={<LedgerPage />} />
             <Route path="manage/hotels"    element={<HotelsManagementPage />} />
             <Route path="bookings/requests" element={<BookingRequestsPage />} />
+            <Route path="bookings/history" element={<BookingHistoryPage />} />
             <Route path="settings" element={<AccountSettingsPage />} />
             <Route path="banks" element={<BanksPage />} />
             <Route path="offers"         element={<OffersPage />} />
@@ -78,3 +80,4 @@ export default function App() {
     </BrowserRouter>
   )
 }
+

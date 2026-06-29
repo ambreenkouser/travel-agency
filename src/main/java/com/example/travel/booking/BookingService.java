@@ -1,4 +1,4 @@
-package com.example.travel.booking;
+﻿package com.example.travel.booking;
 
 import com.example.travel.agency.AgencyRepository;
 import com.example.travel.tenancy.AgencyContext;
@@ -86,12 +86,14 @@ public class BookingService {
             throw new IllegalStateException("Booking is already confirmed");
         }
         booking.setStatus(BookingStatus.CONFIRMED);
+        booking.setConfirmedAt(Instant.now());
+        booking.setActionByUserId(approverId);
         if (comment != null && !comment.isBlank()) booking.setPaymentComment(comment);
         if (approverId != null) booking.setApprovedByUserId(approverId);
         bookingRepository.save(booking);
 
         ledgerService.debit(booking,
-                "Booking #" + bookingId + " confirmed — " + booking.getBookableType() + " #" + booking.getBookableId());
+                "Booking #" + bookingId + " confirmed â€” " + booking.getBookableType() + " #" + booking.getBookableId());
 
         invoiceService.generateInvoicePdf(bookingId, booking);
         return booking;
@@ -100,9 +102,9 @@ public class BookingService {
     /**
      * Cancels a PENDING booking.
      * If cancelled by a different user than the booker (parent rejection):
-     *   → CREDIT for agent + DEBIT for the rejecting parent.
+     *   â†’ CREDIT for agent + DEBIT for the rejecting parent.
      * If self-cancelled by the agent:
-     *   → No ledger entries (booking was never confirmed).
+     *   â†’ No ledger entries (booking was never confirmed).
      * For CONFIRMED bookings: use requestCancellation() instead.
      */
     @Transactional
@@ -119,15 +121,17 @@ public class BookingService {
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
+        booking.setConfirmedAt(Instant.now());
+        if (cancelledByUserId != null) booking.setActionByUserId(cancelledByUserId);
         if (comment != null && !comment.isBlank()) booking.setPaymentComment(comment);
         bookingRepository.save(booking);
 
-        // Parent rejection of a PENDING booking → record in ledger
+        // Parent rejection of a PENDING booking â†’ record in ledger
         boolean isParentRejection = cancelledByUserId != null
                 && !cancelledByUserId.equals(booking.getBookedByUserId());
         if (isParentRejection) {
             ledgerService.reject(booking, cancelledByUserId,
-                    "Booking #" + bookingId + " rejected — " + booking.getBookableType());
+                    "Booking #" + bookingId + " rejected â€” " + booking.getBookableType());
         }
         return booking;
     }
@@ -165,7 +169,7 @@ public class BookingService {
 
     /**
      * Parent approves a cancellation request.
-     * → Booking CANCELLED + CREDIT for agent + DEBIT for parent.
+     * â†’ Booking CANCELLED + CREDIT for agent + DEBIT for parent.
      */
     @Transactional
     public Booking approveCancellation(Long requestId, String comment, Long approverId) {
@@ -186,14 +190,14 @@ public class BookingService {
 
         // Reverse the ledger: CREDIT for agent, DEBIT for parent (original approver)
         ledgerService.credit(booking,
-                "Cancellation approved — reversal of booking #" + booking.getId());
+                "Cancellation approved â€” reversal of booking #" + booking.getId());
 
         return booking;
     }
 
     /**
      * Parent rejects a cancellation request.
-     * → Booking restored to CONFIRMED, no ledger change.
+     * â†’ Booking restored to CONFIRMED, no ledger change.
      */
     @Transactional
     public Booking rejectCancellation(Long requestId, String comment) {
@@ -212,3 +216,4 @@ public class BookingService {
         return bookingRepository.save(booking);
     }
 }
+
