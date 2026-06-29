@@ -25,10 +25,9 @@ function GroupCard({ group, onClick }) {
           className="relative flex flex-col justify-end min-h-[160px] bg-cover bg-center"
           style={{ backgroundImage: `url(${group.imageUrl})` }}
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent rounded-2xl" />
-          <div className="relative z-10 p-4 text-center">
-            <p className="text-white font-bold text-base leading-tight drop-shadow">{group.label}</p>
-            <p className="text-white/80 text-xs mt-0.5 drop-shadow">{group.description}</p>
+          <div className="relative z-10 p-3 text-center">
+            <p className="text-white font-bold text-base leading-tight" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>{group.label}</p>
+            <p className="text-white/90 text-xs mt-0.5" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>{group.description}</p>
           </div>
         </div>
       ) : (
