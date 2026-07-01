@@ -69,7 +69,7 @@ public class LedgerRestController {
      * Every authenticated user can see their own — no cross-user data leakage.
      */
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('ledger:view')")
     public List<LedgerEntryDto> list(@AuthenticationPrincipal AuthUserDetails principal) {
         return enrich(ledgerService.findByUser(principal.getUserId()));
     }

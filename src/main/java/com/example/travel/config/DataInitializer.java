@@ -87,7 +87,8 @@ public class DataInitializer implements CommandLineRunner {
                     "hajj:view", "hajj:manage",
                     "custom:view", "custom:manage",
                     "bookings:view", "bookings:create", "bookings:confirm", "bookings:cancel",
-                    "reports:view", "accounts:manage"
+                    "reports:view", "accounts:manage",
+                    "ledger:view"
             );
 
             Map<String, Permission> perms = new HashMap<>();
@@ -113,7 +114,7 @@ public class DataInitializer implements CommandLineRunner {
                     "hajj:view", "hajj:manage",
                     "custom:view", "custom:manage",
                     "bookings:view", "bookings:create", "bookings:confirm", "bookings:cancel",
-                    "reports:view"));
+                    "reports:view", "ledger:view"));
             System.out.println("[Seed] master_agent id=" + masterAgent.getId());
 
             Role agencyAdmin = saveRole("agency_admin", permsOf(perms,
@@ -123,7 +124,7 @@ public class DataInitializer implements CommandLineRunner {
                     "hajj:view", "hajj:manage",
                     "custom:view", "custom:manage",
                     "bookings:view", "bookings:create", "bookings:confirm", "bookings:cancel",
-                    "reports:view"));
+                    "reports:view", "ledger:view"));
             System.out.println("[Seed] agency_admin id=" + agencyAdmin.getId());
 
             Role subAgent = saveRole("sub_agent", permsOf(perms,
@@ -131,14 +132,14 @@ public class DataInitializer implements CommandLineRunner {
                     "umrah:view",
                     "hajj:view",
                     "custom:view",
-                    "bookings:view", "bookings:create"));
+                    "bookings:view", "bookings:create", "ledger:view"));
             System.out.println("[Seed] sub_agent id=" + subAgent.getId());
 
             // ── 4. Users ─────────────────────────────────────────────────────
             System.out.println("[Seed] Step 4: Users...");
             User superAdminUser = createUser("superadmin@demo.com", "password", "Super", "Admin", agency.getId(), superAdmin, null, null);
             System.out.println("[Seed] superadmin created id=" + superAdminUser.getId());
-            User masterUser = createUser("master@demo.com", "password", "Master", "Agent", agency.getId(), masterAgent, null, superAdminUser.getId());
+            User masterUser = createUser("master@demo.com", "password", "Master", "Agent", agency.getId(), masterAgent, permsOf(perms, "ledger:view"), superAdminUser.getId());
             System.out.println("[Seed] master created id=" + masterUser.getId());
 
             // agency_admin demo: grant same permissions as the old agency_admin role
@@ -149,14 +150,14 @@ public class DataInitializer implements CommandLineRunner {
                     "hajj:view", "hajj:manage",
                     "custom:view", "custom:manage",
                     "bookings:view", "bookings:create", "bookings:confirm", "bookings:cancel",
-                    "reports:view", "accounts:manage");
+                    "reports:view", "accounts:manage", "ledger:view");
             User agencyAdminUser = createUser("agencyadmin@demo.com", "password", "Agency", "Admin", agency.getId(), agencyAdmin, adminPerms, masterUser.getId());
             System.out.println("[Seed] agencyadmin created id=" + agencyAdminUser.getId());
 
             // sub_agent demo: grant same permissions as the old sub_agent role
             Set<Permission> agentPerms = permsOf(perms,
                     "flights:view", "umrah:view", "hajj:view", "custom:view",
-                    "bookings:view", "bookings:create");
+                    "bookings:view", "bookings:create", "ledger:view");
             createUser("agent@demo.com", "password", "Sub", "Agent", agency.getId(), subAgent, agentPerms, agencyAdminUser.getId());
             System.out.println("[Seed] agent created");
 
