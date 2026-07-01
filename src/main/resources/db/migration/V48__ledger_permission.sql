@@ -13,8 +13,9 @@ ON CONFLICT DO NOTHING;
 -- (AuthUserDetails uses customPermissions, not role permissions, for non-super-admins)
 INSERT INTO user_permissions (user_id, permission_id)
 SELECT DISTINCT u.id, p.id
-FROM users u, permissions p
+FROM users u
 JOIN user_roles ur ON ur.user_id = u.id
 JOIN roles r ON ur.role_id = r.id
-WHERE p.name = 'ledger:view' AND r.name != 'super_admin'
+JOIN permissions p ON p.name = 'ledger:view'
+WHERE r.name != 'super_admin'
 ON CONFLICT DO NOTHING;
