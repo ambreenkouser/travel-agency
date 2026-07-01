@@ -13,6 +13,7 @@ import com.example.travel.auth.UserRepository;
 import com.example.travel.auth.UserType;
 import com.example.travel.auth.UserTypeRepository;
 import jakarta.persistence.EntityNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,6 +23,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,8 +37,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
@@ -130,6 +135,9 @@ public class UserRestController {
         user.setRoles(Set.of(role));
         user.setUserTypeId(targetType != null ? targetType.getId() : null);
         user.setParentId(parentId);
+        user.setBusinessName(req.businessName());
+        user.setContactNo(req.contactNo());
+        user.setAddress(req.address());
 
         // Assign custom permissions (not applicable for super_admin)
         if (!roleName.equals("super_admin") && req.permissionIds() != null && !req.permissionIds().isEmpty()) {
@@ -169,6 +177,9 @@ public class UserRestController {
         if (req.password() != null && !req.password().isBlank()) {
             user.setPassword(passwordEncoder.encode(req.password()));
         }
+        user.setBusinessName(req.businessName());
+        user.setContactNo(req.contactNo());
+        user.setAddress(req.address());
 
         if (req.userTypeId() != null) {
             UserType targetType = userTypeRepository.findById(req.userTypeId())
@@ -235,6 +246,33 @@ public class UserRestController {
                     "Cannot delete user: they have associated records (bookings, payments). " +
                     "Deactivate the user instead.");
         }
+    }
+
+    /** Upload a per-user branding logo — stored as binary in the database. */
+    @PostMapping(value = "/{id}/logo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAuthority('agencies:edit')")
+    public void uploadLogo(@PathVariable Long id,
+                           @RequestParam MultipartFile logo) throws IOException {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + id));
+        user.setLogoData(logo.getBytes());
+        user.setLogoContentType(logo.getContentType());
+        userRepository.save(user);
+    }
+
+    /** Serve the per-user branding logo stored in the database. */
+    @GetMapping("/{id}/logo")
+    public ResponseEntity<byte[]> getLogo(@PathVariable Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + id));
+        if (user.getLogoData() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        MediaType mediaType = user.getLogoContentType() != null
+                ? MediaType.parseMediaType(user.getLogoContentType())
+                : MediaType.IMAGE_JPEG;
+        return ResponseEntity.ok().contentType(mediaType).body(user.getLogoData());
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
@@ -335,7 +373,8 @@ public class UserRestController {
                     u.getAgencyId(), agencyNames.get(u.getAgencyId()),
                     userTypeId, userTypeName, userTypeLevel,
                     u.getParentId(), parentNames.get(u.getParentId()),
-                    permissionIds
+                    permissionIds,
+                    u.getBusinessName(), u.getContactNo(), u.getAddress()
             );
         }).collect(Collectors.toList());
     }

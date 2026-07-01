@@ -8,3 +8,5 @@ export const createUser      = (data)     => client.post('/api/users', data).the
 export const updateUser      = (id, data) => client.put(`/api/users/${id}`, data).then(r => r.data)
 export const toggleActive    = (id)       => client.patch(`/api/users/${id}/toggle-active`).then(r => r.data)
 export const deleteUser      = (id)       => client.delete(`/api/users/${id}`)
+export const uploadUserLogo  = (id, formData) => client.post(`/api/users/${id}/logo`, formData)
+export const userLogoUrl     = (id)       => `/api/users/${id}/logo`
