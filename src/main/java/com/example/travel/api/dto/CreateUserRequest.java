@@ -11,8 +11,5 @@ public record CreateUserRequest(
         Long agencyId,         // nullable — required for super_admin creating agency_admin
         Long userTypeId,       // preferred — determines role automatically
         Long parentId,         // nullable — super_admin may override; others auto-set to self
-        List<Long> permissionIds, // permissions to assign to this user (not used for super_admin)
-        String businessName,   // nullable — overrides the agency's name on this user's branding
-        String contactNo,      // nullable — overrides the agency's contact number
-        String address         // nullable — overrides the agency's address
+        List<Long> permissionIds  // permissions to assign to this user (not used for super_admin)
 ) {}

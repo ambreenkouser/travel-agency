@@ -63,22 +63,6 @@ public class User extends TenantedEntity {
             inverseJoinColumns = @JoinColumn(name = "permission_id"))
     private Set<Permission> customPermissions = new HashSet<>();
 
-    // ── Optional per-user branding override (falls back to the agency's when unset) ──
-    @Column(name = "business_name")
-    private String businessName;
-
-    @Column(name = "contact_no", length = 50)
-    private String contactNo;
-
-    @Column(name = "address", length = 500)
-    private String address;
-
-    @Column(name = "logo_data")
-    private byte[] logoData;
-
-    @Column(name = "logo_content_type", length = 100)
-    private String logoContentType;
-
     public String getEmail() {
         return email;
     }
@@ -157,45 +141,5 @@ public class User extends TenantedEntity {
 
     public void setCustomPermissions(Set<Permission> customPermissions) {
         this.customPermissions = customPermissions;
-    }
-
-    public String getBusinessName() {
-        return businessName;
-    }
-
-    public void setBusinessName(String businessName) {
-        this.businessName = businessName;
-    }
-
-    public String getContactNo() {
-        return contactNo;
-    }
-
-    public void setContactNo(String contactNo) {
-        this.contactNo = contactNo;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public byte[] getLogoData() {
-        return logoData;
-    }
-
-    public void setLogoData(byte[] logoData) {
-        this.logoData = logoData;
-    }
-
-    public String getLogoContentType() {
-        return logoContentType;
-    }
-
-    public void setLogoContentType(String logoContentType) {
-        this.logoContentType = logoContentType;
     }
 }
