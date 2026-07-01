@@ -29,6 +29,7 @@ const PERM_LABELS = {
   'bookings:cancel':   'Cancel Bookings',
   'reports:view':      'View Reports',
   'accounts:manage':   'Manage Payment Accounts',
+  'ledger:view':       'View Ledger',
 }
 
 const emptyForm = {
@@ -163,6 +164,7 @@ export default function UsersPage() {
     'Bookings':  availablePerms.filter(p => p.name.startsWith('bookings')),
     'Accounts':  availablePerms.filter(p => p.name.startsWith('accounts')),
     'Reports':   availablePerms.filter(p => p.name.startsWith('reports')),
+    'Ledger':    availablePerms.filter(p => p.name.startsWith('ledger')),
   }
 
   const tree = buildTree(users)

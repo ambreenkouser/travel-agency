@@ -11,7 +11,6 @@ const navItems = [
   { to: '/flights',       label: 'Flights',       icon: '✈' },
   { to: '/packages',      label: 'Packages',      icon: '🕌' },
   { to: '/bookings',      label: 'My Bookings',   icon: '📋' },
-  { to: '/ledger',        label: 'My Ledger',     icon: '📒' },
   { to: '/offers',        label: 'Offers',        icon: '🎁' },
   { to: '/announcements', label: 'News & Announcements', icon: '📢' },
 ]
@@ -54,11 +53,13 @@ export default function Sidebar({ announcementCount = 0 }) {
     getBranding().then(setBranding).catch(() => {})
   }, [])
 
-  const roles = (user?.authorities ?? [])
+  const authorities = user?.authorities ?? []
+  const roles = authorities
     .filter(a => a.startsWith('ROLE_'))
     .map(a => a.replace('ROLE_', ''))
   const canApprove  = roles.some(r => ['super_admin', 'master_agent', 'agency_admin'].includes(r))
   const isAgencyAdmin = roles.some(r => ['master_agent', 'agency_admin'].includes(r))
+  const canViewLedger = authorities.includes('ledger:view')
 
   useEffect(() => {
     if (!canApprove) return
@@ -112,6 +113,11 @@ export default function Sidebar({ announcementCount = 0 }) {
             badge={item.to === '/announcements' ? announcementCount : 0}
           />
         ))}
+
+        {/* Ledger — visible only to users with the ledger:view permission */}
+        {canViewLedger && (
+          <NavItem to="/ledger" label="My Ledger" icon="📒" />
+        )}
 
         {/* Approval queue — visible to admins who can confirm bookings */}
         {approvalItems
