@@ -105,7 +105,12 @@ public class PaymentAccountRestController {
         if (!account.getUserId().equals(principal.getUserId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your account");
         }
-        repository.delete(account);
+        try {
+            repository.delete(account);
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cannot delete this account: it has associated bookings or payments.");
+        }
     }
 
     public record CreateAccountRequest(String accountName, Long bankId, String accountTitle, String bankAccountNumber) {}
