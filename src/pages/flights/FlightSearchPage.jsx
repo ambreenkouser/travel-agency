@@ -276,8 +276,14 @@ export default function FlightSearchPage() {
 
                               {/* Price + Book Now */}
                               <td className="px-4 py-3">
-                                <div className="text-sm font-bold text-gray-800 mb-3">
-                                  PKR {Number(f.fareAdult).toLocaleString()}
+                                <div className="text-sm text-gray-800 mb-3 space-y-0.5">
+                                  <div className="font-bold">Adult: PKR {Number(f.fareAdult).toLocaleString()}</div>
+                                  {f.fareChild != null && (
+                                    <div className="text-xs text-gray-600">Child: PKR {Number(f.fareChild).toLocaleString()}</div>
+                                  )}
+                                  {f.fareInfant != null && (
+                                    <div className="text-xs text-gray-600">Infant: PKR {Number(f.fareInfant).toLocaleString()}</div>
+                                  )}
                                 </div>
                                 <button
                                   onClick={() => navigate(`/flights/${f.id}/book`)}
