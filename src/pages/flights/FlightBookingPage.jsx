@@ -282,6 +282,11 @@ export default function FlightBookingPage() {
                 <PanelCounter label="Childs"   value={children} min={0} max={9} onChange={setChildren} />
                 <PanelCounter label="Infants"  value={infants}  min={0} max={adults} onChange={setInfants} />
                 <PanelCounter label="Total"    value={totalPassengers} readonly />
+                {children > 0 && (
+                  <p className="text-xs text-amber-400 font-medium mt-2 pt-2 border-t border-slate-600">
+                    Child booking - please confirm before booking
+                  </p>
+                )}
               </div>
             </div>
 
