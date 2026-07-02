@@ -285,9 +285,6 @@ export default function FlightSearchPage() {
                                     <div className="font-bold">Infant: PKR {Number(f.fareInfant).toLocaleString()}</div>
                                   )}
                                 </div>
-                                <p className="text-xs text-amber-600 font-medium mb-2">
-                                  Child booking - please confirm before booking
-                                </p>
                                 <button
                                   onClick={() => navigate(`/flights/${f.id}/book`)}
                                   disabled={f.availableSeats === 0}
