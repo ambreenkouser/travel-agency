@@ -195,8 +195,8 @@ function PaymentAccountsTab() {
     try {
       await deleteAccount(id)
       load()
-    } catch {
-      setError('Failed to delete account.')
+    } catch (err) {
+      setError(err?.response?.data?.message ?? 'Failed to delete account.')
     }
   }
 
