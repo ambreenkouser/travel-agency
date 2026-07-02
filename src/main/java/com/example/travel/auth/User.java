@@ -63,18 +63,6 @@ public class User extends TenantedEntity {
             inverseJoinColumns = @JoinColumn(name = "permission_id"))
     private Set<Permission> customPermissions = new HashSet<>();
 
-    // ── Optional per-agent branding override (falls back to the agency's when unset).
-    // Logo binary is intentionally NOT stored here — see UserLogo — since this entity is
-    // loaded on every authenticated request as the security principal.
-    @Column(name = "business_name")
-    private String businessName;
-
-    @Column(name = "contact_no", length = 50)
-    private String contactNo;
-
-    @Column(name = "address", length = 500)
-    private String address;
-
     public String getEmail() {
         return email;
     }
@@ -153,29 +141,5 @@ public class User extends TenantedEntity {
 
     public void setCustomPermissions(Set<Permission> customPermissions) {
         this.customPermissions = customPermissions;
-    }
-
-    public String getBusinessName() {
-        return businessName;
-    }
-
-    public void setBusinessName(String businessName) {
-        this.businessName = businessName;
-    }
-
-    public String getContactNo() {
-        return contactNo;
-    }
-
-    public void setContactNo(String contactNo) {
-        this.contactNo = contactNo;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
     }
 }

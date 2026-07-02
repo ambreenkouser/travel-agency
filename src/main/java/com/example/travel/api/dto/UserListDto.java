@@ -16,9 +16,5 @@ public record UserListDto(
         int userTypeLevel,
         Long parentId,
         String parentName,
-        List<Long> permissionIds,
-        String businessName,
-        String contactNo,
-        String address,
-        boolean hasLogo
+        List<Long> permissionIds
 ) {}
