@@ -208,7 +208,7 @@ export default function FlightSearchPage() {
                             <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 border-r border-gray-200 w-44">Airline</th>
                             <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 border-r border-gray-200">
                               Sector Details&nbsp;
-                              <span className="text-xs font-normal text-gray-500">({f.groupName || '—'})</span>
+                              <span className="text-xs font-bold text-gray-900">({f.groupName || '—'})</span>
                             </th>
                             <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 border-r border-gray-200 w-44">Seats</th>
                             <th className="px-4 py-2 text-left text-sm font-bold text-blue-600 border-r border-gray-200 w-36">Dep Date</th>
@@ -237,7 +237,7 @@ export default function FlightSearchPage() {
                               <td className="px-4 py-3 border-r border-gray-200">
                                 <div className="max-h-44 overflow-y-auto space-y-2 pr-1">
                                   {legs.map((leg, i) => (
-                                    <div key={i} className="text-xs font-mono text-gray-900 flex flex-wrap items-baseline gap-x-1.5">
+                                    <div key={i} className="text-sm font-mono text-gray-900 flex flex-wrap items-baseline gap-x-1.5">
                                       <span className="text-gray-700 font-semibold shrink-0">{i + 1} )</span>
                                       <span className="font-bold text-gray-900">{leg.flightNumber || '—'}</span>
                                       <span className="font-bold">{fmtLegDate(leg.departAt)}</span>
@@ -279,12 +279,15 @@ export default function FlightSearchPage() {
                                 <div className="text-sm text-gray-800 mb-3 space-y-0.5">
                                   <div className="font-bold">Adult: PKR {Number(f.fareAdult).toLocaleString()}</div>
                                   {f.fareChild != null && (
-                                    <div className="text-xs text-gray-600">Child: PKR {Number(f.fareChild).toLocaleString()}</div>
+                                    <div className="font-bold">Child: PKR {Number(f.fareChild).toLocaleString()}</div>
                                   )}
                                   {f.fareInfant != null && (
-                                    <div className="text-xs text-gray-600">Infant: PKR {Number(f.fareInfant).toLocaleString()}</div>
+                                    <div className="font-bold">Infant: PKR {Number(f.fareInfant).toLocaleString()}</div>
                                   )}
                                 </div>
+                                <p className="text-xs text-amber-600 font-medium mb-2">
+                                  Child booking - please confirm before booking
+                                </p>
                                 <button
                                   onClick={() => navigate(`/flights/${f.id}/book`)}
                                   disabled={f.availableSeats === 0}
