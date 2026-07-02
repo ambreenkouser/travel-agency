@@ -213,7 +213,7 @@ export default function FlightManagementPage() {
   function numDays(legs) {
     if (!legs?.length) return '—'
     const first = new Date(legs[0].departAt)
-    const last  = new Date(legs[legs.length - 1].arriveAt)
+    const last  = new Date(legs[legs.length - 1].departAt)
     const days  = Math.round((last - first) / 86400000)
     return Math.max(1, days)
   }

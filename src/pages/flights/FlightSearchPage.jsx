@@ -24,7 +24,7 @@ function fmtTime(iso) {
 function numDays(legs) {
   if (!legs?.length) return '—'
   const first = new Date(legs[0].departAt)
-  const last  = new Date(legs[legs.length - 1].arriveAt)
+  const last  = new Date(legs[legs.length - 1].departAt)
   return Math.max(1, Math.round((last - first) / 86400000))
 }
 
