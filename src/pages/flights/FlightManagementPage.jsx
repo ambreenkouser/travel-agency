@@ -539,8 +539,14 @@ export default function FlightManagementPage() {
 
                           {/* Price */}
                           <td className="px-4 py-3 border-r border-gray-200 whitespace-nowrap">
-                            <div className="text-sm font-bold text-gray-800">
-                              PKR {Number(f.fareAdult).toLocaleString()}
+                            <div className="text-sm text-gray-800 space-y-0.5">
+                              <div className="font-bold">Adult: PKR {Number(f.fareAdult).toLocaleString()}</div>
+                              {f.fareChild != null && (
+                                <div className="text-xs text-gray-600">Child: PKR {Number(f.fareChild).toLocaleString()}</div>
+                              )}
+                              {f.fareInfant != null && (
+                                <div className="text-xs text-gray-600">Infant: PKR {Number(f.fareInfant).toLocaleString()}</div>
+                              )}
                             </div>
                           </td>
 
