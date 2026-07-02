@@ -74,13 +74,14 @@ public class FlightRestController {
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false, defaultValue = "active") String status,
+            @RequestParam(required = false, defaultValue = "false") boolean upcomingOnly,
             Pageable pageable) {
 
         OffsetDateTime from = dateFrom != null ? dateFrom.atStartOfDay().atOffset(ZoneOffset.UTC) : null;
         OffsetDateTime to   = dateTo   != null ? dateTo.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC) : null;
         String statusFilter = "all".equalsIgnoreCase(status) ? null : status;
 
-        return flightService.search(origin, destination, airlineId, from, to, minPrice, maxPrice, statusFilter, pageable)
+        return flightService.search(origin, destination, airlineId, from, to, minPrice, maxPrice, statusFilter, upcomingOnly, pageable)
                 .map(this::withAvailability);
     }
 

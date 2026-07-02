@@ -77,6 +77,18 @@ public final class FlightSpecifications {
         };
     }
 
+    public static Specification<Flight> departureAfter(OffsetDateTime cutoff) {
+        return (root, query, cb) -> {
+            if (cutoff == null) return null;
+            Subquery<Long> sub = query.subquery(Long.class);
+            Root<FlightLeg> leg = sub.from(FlightLeg.class);
+            sub.select(leg.get("flightId"))
+               .where(cb.equal(leg.get("legOrder"), 1),
+                      cb.greaterThan(leg.get("departAt"), cutoff));
+            return root.get("id").in(sub);
+        };
+    }
+
     public static Specification<Flight> withinPrice(BigDecimal min, BigDecimal max) {
         return (root, query, cb) -> {
             if (min == null && max == null) return null;

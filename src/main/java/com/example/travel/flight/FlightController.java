@@ -33,7 +33,7 @@ public class FlightController {
                          @RequestParam(required = false) BigDecimal max,
                          Pageable pageable,
                          Model model) {
-        Page<Flight> flights = service.search(origin, destination, airlineId, from, to, min, max, null, pageable);
+        Page<Flight> flights = service.search(origin, destination, airlineId, from, to, min, max, null, false, pageable);
         model.addAttribute("flights", flights);
         return "flights/list";
     }
