@@ -2,6 +2,9 @@ package com.example.travel.booking;
 
 import com.example.travel.agency.Agency;
 import com.example.travel.agency.AgencyRepository;
+import com.example.travel.auth.User;
+import com.example.travel.auth.UserLogoRepository;
+import com.example.travel.auth.UserRepository;
 import com.example.travel.flight.Airline;
 import com.example.travel.flight.AirlineRepository;
 import com.example.travel.flight.Flight;
@@ -57,21 +60,63 @@ public class InvoiceService {
             DateTimeFormatter.ofPattern("dd MMM yyyy").withZone(ZoneId.systemDefault());
 
     private final AgencyRepository      agencyRepository;
+    private final UserRepository        userRepository;
+    private final UserLogoRepository    userLogoRepository;
     private final PassengerRepository   passengerRepository;
     private final FlightRepository      flightRepository;
     private final FlightLegRepository   flightLegRepository;
     private final AirlineRepository     airlineRepository;
 
     public InvoiceService(AgencyRepository agencyRepository,
+                          UserRepository userRepository,
+                          UserLogoRepository userLogoRepository,
                           PassengerRepository passengerRepository,
                           FlightRepository flightRepository,
                           FlightLegRepository flightLegRepository,
                           AirlineRepository airlineRepository) {
         this.agencyRepository    = agencyRepository;
+        this.userRepository      = userRepository;
+        this.userLogoRepository  = userLogoRepository;
         this.passengerRepository = passengerRepository;
         this.flightRepository    = flightRepository;
         this.flightLegRepository = flightLegRepository;
         this.airlineRepository   = airlineRepository;
+    }
+
+    /**
+     * Effective branding for a printed document: the booking agent's own business
+     * name/contact/address/logo when set, else the shared agency's.
+     */
+    private record Branding(String name, String contactNo, String address,
+                             byte[] logoBytes, String logoContentType, String logoPath) {}
+
+    private Branding resolveBranding(User agent, Agency agency) {
+        String name = agent != null && nonBlank(agent.getBusinessName())
+                ? agent.getBusinessName()
+                : (agency != null ? agency.getName() : "Travel Agency");
+        String contactNo = agent != null && nonBlank(agent.getContactNo())
+                ? agent.getContactNo()
+                : (agency != null ? agency.getContactNo() : null);
+        String address = agent != null && nonBlank(agent.getAddress())
+                ? agent.getAddress()
+                : (agency != null ? agency.getAddress() : null);
+
+        byte[] logoBytes = null; String logoContentType = null; String logoPath = null;
+        var agentLogo = agent != null ? userLogoRepository.findById(agent.getId()).orElse(null) : null;
+        if (agentLogo != null) {
+            logoBytes = agentLogo.getLogoData();
+            logoContentType = agentLogo.getLogoContentType();
+        } else if (agency != null && agency.getLogoData() != null) {
+            logoBytes = agency.getLogoData();
+            logoContentType = agency.getLogoContentType();
+        } else {
+            logoPath = agency != null ? agency.getLogoPath() : null;
+        }
+        return new Branding(name, contactNo, address, logoBytes, logoContentType, logoPath);
+    }
+
+    private boolean nonBlank(String s) {
+        return s != null && !s.isBlank();
     }
 
     @Transactional(readOnly = true)
@@ -82,6 +127,10 @@ public class InvoiceService {
             Path pdfPath = dir.resolve(bookingId + ".pdf");
 
             Agency         agency     = agencyRepository.findById(booking.getAgencyId()).orElse(null);
+            User           agent      = booking.getBookedByUserId() != null
+                    ? userRepository.findById(booking.getBookedByUserId()).orElse(null)
+                    : null;
+            Branding       branding   = resolveBranding(agent, agency);
             List<Passenger> passengers = passengerRepository.findByBookingId(bookingId);
 
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
@@ -96,9 +145,9 @@ public class InvoiceService {
                     List<FlightLeg> legs = flight != null
                             ? flightLegRepository.findByFlightIdOrderByLegOrder(flight.getId())
                             : List.of();
-                    generateETicket(doc, booking, agency, passengers, flight, legs);
+                    generateETicket(doc, booking, branding, passengers, flight, legs);
                 } else {
-                    generateInvoice(doc, booking, agency, passengers, bookingId);
+                    generateInvoice(doc, booking, branding, passengers, bookingId);
                 }
 
                 doc.close();
@@ -127,12 +176,12 @@ public class InvoiceService {
 
     // ── E-Ticket Voucher ──────────────────────────────────────────────────────
 
-    private void generateETicket(Document doc, Booking booking, Agency agency,
+    private void generateETicket(Document doc, Booking booking, Branding branding,
                                   List<Passenger> passengers, Flight flight,
                                   List<FlightLeg> legs) throws DocumentException {
 
         // ── Header ──
-        addETicketHeader(doc, booking, agency, flight, legs);
+        addETicketHeader(doc, booking, branding, flight, legs);
         doc.add(gap(8));
 
         // ── Tagline ──
@@ -152,14 +201,14 @@ public class InvoiceService {
         }
 
         // ── Emergency Contact ──
-        addEmergencyContact(doc, agency);
+        addEmergencyContact(doc, branding);
         doc.add(gap(10));
 
         // ── Rules ──
         addRules(doc);
     }
 
-    private void addETicketHeader(Document doc, Booking booking, Agency agency,
+    private void addETicketHeader(Document doc, Booking booking, Branding branding,
                                    Flight flight, List<FlightLeg> legs)
             throws DocumentException {
 
@@ -178,7 +227,7 @@ public class InvoiceService {
                 ? airlineRepository.findById(firstLeg.getAirlineId()).orElse(null) : null;
         String airlineName = (firstAirline != null)
                 ? firstAirline.getName()
-                : (agency != null ? agency.getName() : "Travel Agency");
+                : branding.name();
 
         if (firstAirline != null) {
             String logoUrl = firstAirline.getLogoUrl();
@@ -319,7 +368,7 @@ public class InvoiceService {
         doc.add(route);
     }
 
-    private void addEmergencyContact(Document doc, Agency agency) throws DocumentException {
+    private void addEmergencyContact(Document doc, Branding branding) throws DocumentException {
         PdfPTable t = new PdfPTable(1);
         t.setWidthPercentage(100);
 
@@ -331,9 +380,9 @@ public class InvoiceService {
         cell.addElement(styledParagraph("Emergency Contact", bold(10, TICKET_HDR), Element.ALIGN_LEFT));
         cell.addElement(gap(4));
 
-        String agencyName = agency != null ? agency.getName()     : "Travel Agency";
-        String contactNo  = agency != null ? nvl(agency.getContactNo()) : "—";
-        String address    = agency != null ? nvl(agency.getAddress())   : "—";
+        String agencyName = branding.name();
+        String contactNo  = nvl(branding.contactNo());
+        String address    = nvl(branding.address());
 
         cell.addElement(new Phrase("Agency: "     + agencyName, bold(9, DARK)));
         cell.addElement(gap(2));
@@ -365,12 +414,12 @@ public class InvoiceService {
 
     // ── Package Voucher (non-flight bookings) ────────────────────────────────
 
-    private void generateInvoice(Document doc, Booking booking, Agency agency,
+    private void generateInvoice(Document doc, Booking booking, Branding branding,
                                   List<Passenger> passengers, Long bookingId)
             throws DocumentException {
 
         // ── Header (mirrors e-ticket layout) ──
-        addVoucherHeader(doc, booking, agency, bookingId);
+        addVoucherHeader(doc, booking, branding, bookingId);
         doc.add(gap(8));
 
         // ── Tagline ──
@@ -388,14 +437,14 @@ public class InvoiceService {
         doc.add(gap(10));
 
         // ── Emergency contact ──
-        addEmergencyContact(doc, agency);
+        addEmergencyContact(doc, branding);
         doc.add(gap(10));
 
         // ── Rules ──
         addRules(doc);
     }
 
-    private void addVoucherHeader(Document doc, Booking booking, Agency agency, Long bookingId)
+    private void addVoucherHeader(Document doc, Booking booking, Branding branding, Long bookingId)
             throws DocumentException {
 
         // 3-column: [agency logo + name] | [Package Voucher + status] | [booking ref + date + total]
@@ -408,8 +457,10 @@ public class InvoiceService {
         leftCell.setBorder(Rectangle.NO_BORDER);
         leftCell.setPadding(4);
 
-        String agencyName = agency != null ? agency.getName() : "Travel Agency";
-        Image agencyLogo = loadImage(agency != null ? agency.getLogoPath() : null);
+        String agencyName = branding.name();
+        Image agencyLogo = branding.logoBytes() != null
+                ? loadImage(branding.logoBytes())
+                : loadImage(branding.logoPath());
         if (agencyLogo != null) {
             agencyLogo.scaleToFit(100, 45);
             Paragraph imgPara = new Paragraph();
@@ -613,6 +664,15 @@ public class InvoiceService {
         Object v = snap.get(key);
         if (v instanceof Number n) return n.intValue();
         return 0;
+    }
+
+    private Image loadImage(byte[] bytes) {
+        if (bytes == null) return null;
+        try {
+            return Image.getInstance(bytes);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**
