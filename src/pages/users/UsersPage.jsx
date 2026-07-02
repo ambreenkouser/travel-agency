@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { getUsers, getAllowedTypes, createUser, updateUser, toggleActive, deleteUser } from '../../api/users'
+import { getUsers, getAllowedTypes, createUser, updateUser, toggleActive, deleteUser, uploadUserLogo, userLogoUrl } from '../../api/users'
 import { getAgencies } from '../../api/agencies'
 import { getGrantablePermissions } from '../../api/permissions'
 
@@ -36,6 +36,7 @@ const emptyForm = {
   firstName: '', lastName: '', email: '', password: '',
   userTypeId: '', agencyId: '', parentId: '',
   permissionIds: [],
+  businessName: '', contactNo: '', address: '',
 }
 
 export default function UsersPage() {
@@ -57,6 +58,7 @@ export default function UsersPage() {
   const [showForm, setShowForm]               = useState(false)
   const [error, setError]                     = useState('')
   const [loading, setLoading]                 = useState(true)
+  const [logoFile, setLogoFile]               = useState(null)
 
   useEffect(() => {
     Promise.all([
@@ -81,6 +83,7 @@ export default function UsersPage() {
   function openCreate() {
     setForm({ ...emptyForm, userTypeId: allowedTypes[0]?.id ?? '', permissionIds: [] })
     setEditing(null)
+    setLogoFile(null)
     setShowForm(true)
     setError('')
   }
@@ -95,8 +98,12 @@ export default function UsersPage() {
       agencyId:   u.agencyId ?? '',
       parentId:   u.parentId ?? '',
       permissionIds: u.permissionIds ?? [],
+      businessName: u.businessName ?? '',
+      contactNo:    u.contactNo ?? '',
+      address:      u.address ?? '',
     })
     setEditing(u.id)
+    setLogoFile(null)
     setShowForm(true)
     setError('')
   }
@@ -129,7 +136,18 @@ export default function UsersPage() {
       permissionIds: form.permissionIds,
     }
     try {
-      editing ? await updateUser(editing, payload) : await createUser(payload)
+      let savedId = editing
+      if (editing) {
+        await updateUser(editing, payload)
+      } else {
+        const created = await createUser(payload)
+        savedId = created.id
+      }
+      if (logoFile && savedId) {
+        const fd = new FormData()
+        fd.append('logo', logoFile)
+        await uploadUserLogo(savedId, fd)
+      }
       setShowForm(false)
       load()
     } catch (err) {
@@ -154,6 +172,9 @@ export default function UsersPage() {
   const needsAgency  = selectedType ? selectedType.level >= 3 : myLevel <= 2
   // Show permissions panel when creating or editing a non-super_admin user
   const showPerms = selectedType && selectedType.level > 1
+  // Branding overrides are only offered when an agency_admin creates/edits an Agent (level 4)
+  const showBranding = selectedType && selectedType.level === 4
+  const editingUser = editing ? users.find(u => u.id === editing) : null
 
   // Group permissions by module for cleaner UI
   const permGroups = {
@@ -232,6 +253,42 @@ export default function UsersPage() {
                       <option key={a.id} value={a.id}>{a.name}</option>
                     ))}
                   </select>
+                </div>
+              )}
+
+              {/* ── Branding (optional, Agent only) ── */}
+              {showBranding && (
+                <div className="border border-gray-200 rounded-lg p-4 space-y-3">
+                  <span className="text-sm font-semibold text-gray-700">Branding (optional)</span>
+                  <p className="text-xs text-gray-400">
+                    Overrides the agency's branding on this agent's sidebar and printed
+                    tickets/receipts. Leave blank to use the agency's.
+                  </p>
+                  <Field label="Business Name" value={form.businessName} onChange={set('businessName')} />
+                  <Field label="Contact No"    value={form.contactNo}    onChange={set('contactNo')} />
+                  <label className="block text-sm">
+                    <span className="block text-gray-600 mb-1">Address</span>
+                    <textarea
+                      value={form.address}
+                      onChange={set('address')}
+                      rows={2}
+                      className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                    />
+                  </label>
+                  <label className="block text-sm">
+                    <span className="block text-gray-600 mb-1">Logo Image</span>
+                    {editingUser?.hasLogo && (
+                      <img src={userLogoUrl(editing)} alt="current logo"
+                        className="h-10 w-10 rounded object-cover mb-2"
+                        onError={e => e.currentTarget.style.display = 'none'} />
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={e => setLogoFile(e.target.files?.[0] ?? null)}
+                      className="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                  </label>
                 </div>
               )}
 
