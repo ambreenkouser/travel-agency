@@ -61,7 +61,7 @@ export default function FlightSearchPage() {
 
   function loadAll() {
     setLoading(true)
-    searchFlights({ size: 100 })
+    searchFlights({ size: 100, upcomingOnly: true })
       .then(r => setFlights(r.content ?? []))
       .catch(() => setError('Failed to load flights.'))
       .finally(() => setLoading(false))
@@ -82,6 +82,7 @@ export default function FlightSearchPage() {
         dateFrom:    form.dateFrom    || undefined,
         dateTo:      form.dateTo      || undefined,
         airlineId:   form.airlineId   || undefined,
+        upcomingOnly: true,
         size: 50,
       }
       const result = await searchFlights(params)

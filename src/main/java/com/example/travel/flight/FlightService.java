@@ -33,7 +33,7 @@ public class FlightService {
     public Page<Flight> search(String origin, String destination, Long airlineId,
                                OffsetDateTime from, OffsetDateTime to,
                                BigDecimal min, BigDecimal max,
-                               String status, Pageable pageable) {
+                               String status, boolean upcomingOnly, Pageable pageable) {
         Long agencyId = AgencyContext.getCurrentAgencyId();
         Specification<Flight> agencySpec = AgencyContext.isSuperAdmin()
                 ? FlightSpecifications.ownedByAgency(agencyId)
@@ -44,7 +44,8 @@ public class FlightService {
                 .and(FlightSpecifications.byAirline(airlineId))
                 .and(FlightSpecifications.betweenDates(from, to))
                 .and(FlightSpecifications.withinPrice(min, max))
-                .and(FlightSpecifications.byStatus(status));
+                .and(FlightSpecifications.byStatus(status))
+                .and(upcomingOnly ? FlightSpecifications.departureAfter(OffsetDateTime.now()) : null);
         return flightRepository.findAll(spec, pageable);
     }
 

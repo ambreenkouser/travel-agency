@@ -48,6 +48,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpHeaders;
@@ -180,6 +181,14 @@ public class BookingRestController {
     @PreAuthorize("hasAuthority('bookings:create')")
     public BookingDto create(@RequestBody CreateBookingRequest request,
                              @AuthenticationPrincipal AuthUserDetails principal) {
+        if ("flight".equalsIgnoreCase(request.bookableType()) && request.bookableId() != null) {
+            List<FlightLeg> legs = flightLegRepository.findByFlightIdOrderByLegOrder(request.bookableId());
+            if (!legs.isEmpty() && legs.get(0).getDepartAt().isBefore(OffsetDateTime.now())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "This flight has already departed and can no longer be booked.");
+            }
+        }
+
         Booking booking = new Booking();
         booking.setBookableType(request.bookableType());
         booking.setBookableId(request.bookableId());
