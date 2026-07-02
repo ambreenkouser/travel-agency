@@ -58,10 +58,17 @@ export default function BookingHistoryPage() {
     return true
   })
 
-  const totalPassengers = visible.reduce((s, b) => s + (b.passengers?.length ?? 0), 0)
-  const totalAmount     = visible.reduce((s, b) => s + Number(b.grossTotal || 0), 0)
-  const confirmedCount  = visible.filter(b => b.status === 'CONFIRMED').length
-  const pendingCount    = visible.filter(b => b.status === 'PENDING').length
+  const confirmedBookings = visible.filter(b => b.status === 'CONFIRMED')
+  const pendingBookings   = visible.filter(b => b.status === 'PENDING' || b.status === 'CANCELLATION_REQUESTED')
+  const cancelledBookings = visible.filter(b => b.status === 'CANCELLED')
+
+  const sumPax    = arr => arr.reduce((s, b) => s + (b.passengers?.length ?? 0), 0)
+  const sumAmount = arr => arr.reduce((s, b) => s + Number(b.grossTotal || 0), 0)
+
+  const totalPassengers = sumPax(visible)
+  const confirmedCount  = confirmedBookings.length
+  const pendingCount    = pendingBookings.length
+  const cancelledCount  = cancelledBookings.length
 
   if (loading) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>
 
@@ -74,11 +81,12 @@ export default function BookingHistoryPage() {
 
       <ErrorMessage message={error} />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
           { label: 'Total Bookings',   value: visible.length, color: 'bg-blue-600' },
           { label: 'Confirmed',         value: confirmedCount,  color: 'bg-green-600' },
           { label: 'Pending',           value: pendingCount,    color: 'bg-yellow-500' },
+          { label: 'Cancelled',         value: cancelledCount,  color: 'bg-red-600' },
           { label: 'Total Passengers',  value: totalPassengers, color: 'bg-purple-600' },
         ].map(card => (
           <div key={card.label} className={`${card.color} text-white rounded-lg p-4`}>
@@ -237,10 +245,28 @@ export default function BookingHistoryPage() {
               <tfoot>
                 <tr className="bg-gray-50 border-t-2 border-gray-300">
                   <td colSpan={6} className="px-3 py-2 text-sm font-bold text-gray-800 text-right">
-                    Total ({visible.length} bookings, {totalPassengers} pax):
+                    Confirmed ({confirmedBookings.length} bookings, {sumPax(confirmedBookings)} pax):
                   </td>
                   <td className="px-3 py-2 font-bold text-gray-900 whitespace-nowrap">
-                    PKR {totalAmount.toLocaleString()}
+                    PKR {sumAmount(confirmedBookings).toLocaleString()}
+                  </td>
+                  <td colSpan={4}></td>
+                </tr>
+                <tr className="bg-gray-50 border-t border-gray-200">
+                  <td colSpan={6} className="px-3 py-2 text-sm font-bold text-gray-800 text-right">
+                    Pending ({pendingBookings.length} bookings, {sumPax(pendingBookings)} pax):
+                  </td>
+                  <td className="px-3 py-2 font-bold text-gray-900 whitespace-nowrap">
+                    PKR {sumAmount(pendingBookings).toLocaleString()}
+                  </td>
+                  <td colSpan={4}></td>
+                </tr>
+                <tr className="bg-gray-50 border-t border-gray-200">
+                  <td colSpan={6} className="px-3 py-2 text-sm font-bold text-gray-800 text-right">
+                    Cancelled ({cancelledBookings.length} bookings, {sumPax(cancelledBookings)} pax):
+                  </td>
+                  <td className="px-3 py-2 font-bold text-gray-900 whitespace-nowrap">
+                    PKR {sumAmount(cancelledBookings).toLocaleString()}
                   </td>
                   <td colSpan={4}></td>
                 </tr>
