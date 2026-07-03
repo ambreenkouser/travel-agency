@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import jsPDF from 'jspdf'
+import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import * as XLSX from 'xlsx'
 import { getBookings } from '../../api/bookings'
@@ -72,24 +72,32 @@ export default function BookingHistoryPage() {
   }
 
   function handleExportPdf() {
-    const rows = buildExportRows(visible, fmtDate)
-    const doc = new jsPDF({ orientation: 'landscape' })
-    doc.text('Booking History', 14, 12)
-    autoTable(doc, {
-      startY: 18,
-      head: [Object.keys(rows[0] ?? {})],
-      body: rows.map(r => Object.values(r)),
-      styles: { fontSize: 8 },
-    })
-    doc.save('booking-history.pdf')
+    try {
+      const rows = buildExportRows(visible, fmtDate)
+      const doc = new jsPDF({ orientation: 'landscape' })
+      doc.text('Booking History', 14, 12)
+      autoTable(doc, {
+        startY: 18,
+        head: [Object.keys(rows[0] ?? {})],
+        body: rows.map(r => Object.values(r)),
+        styles: { fontSize: 8 },
+      })
+      doc.save('booking-history.pdf')
+    } catch {
+      setError('Failed to generate PDF export.')
+    }
   }
 
   function handleExportExcel() {
-    const rows = buildExportRows(visible, fmtDate)
-    const ws = XLSX.utils.json_to_sheet(rows)
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Bookings')
-    XLSX.writeFile(wb, 'booking-history.xlsx')
+    try {
+      const rows = buildExportRows(visible, fmtDate)
+      const ws = XLSX.utils.json_to_sheet(rows)
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, 'Bookings')
+      XLSX.writeFile(wb, 'booking-history.xlsx')
+    } catch {
+      setError('Failed to generate Excel export.')
+    }
   }
 
   function load() {

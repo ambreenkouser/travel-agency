@@ -154,6 +154,7 @@ function NavItem({ to, label, icon, badge = 0 }) {
   return (
     <NavLink
       to={to}
+      end
       className={({ isActive }) =>
         `flex items-center gap-2 px-2 py-2 rounded-r-md text-sm font-medium transition-colors border-l-2 ${
           isActive
