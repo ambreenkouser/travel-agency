@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { getUsers, getAllowedTypes, createUser, updateUser, toggleActive, deleteUser } from '../../api/users'
-import { getAgencies } from '../../api/agencies'
+import { getAgencies, getBranding } from '../../api/agencies'
 import { getGrantablePermissions } from '../../api/permissions'
 
 const TYPE_COLORS = {
@@ -30,6 +30,8 @@ const PERM_LABELS = {
   'reports:view':      'View Reports',
   'accounts:manage':   'Manage Payment Accounts',
   'ledger:view':       'View Ledger',
+  'custom:view':       'View Custom Packages',
+  'custom:manage':     'Manage Custom Packages',
 }
 
 const emptyForm = {
@@ -51,6 +53,7 @@ export default function UsersPage() {
   const [users, setUsers]                     = useState([])
   const [allowedTypes, setAllowedTypes]       = useState([])
   const [agencies, setAgencies]               = useState([])
+  const [myAgencyName, setMyAgencyName]       = useState('')
   const [availablePerms, setAvailablePerms]   = useState([])
   const [form, setForm]                       = useState(emptyForm)
   const [editing, setEditing]                 = useState(null)
@@ -72,6 +75,11 @@ export default function UsersPage() {
       setAvailablePerms(perms)
     }).catch(() => setError('Failed to load data'))
       .finally(() => setLoading(false))
+  }, [myLevel])
+
+  useEffect(() => {
+    if (myLevel !== 3) return
+    getBranding().then(b => setMyAgencyName(b.agencyName ?? '')).catch(() => {})
   }, [myLevel])
 
   function load() {
@@ -165,6 +173,7 @@ export default function UsersPage() {
     'Accounts':  availablePerms.filter(p => p.name.startsWith('accounts')),
     'Reports':   availablePerms.filter(p => p.name.startsWith('reports')),
     'Ledger':    availablePerms.filter(p => p.name.startsWith('ledger')),
+    'Custom':    availablePerms.filter(p => p.name.startsWith('custom')),
   }
 
   const tree = buildTree(users)
@@ -232,6 +241,14 @@ export default function UsersPage() {
                       <option key={a.id} value={a.id}>{a.name}</option>
                     ))}
                   </select>
+                </div>
+              )}
+              {(needsAgency || editing) && myLevel === 3 && (
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Agency</label>
+                  <div className="w-full border border-gray-200 rounded-md px-3 py-1.5 text-sm bg-gray-50 text-gray-700">
+                    {myAgencyName || '—'}
+                  </div>
                 </div>
               )}
 

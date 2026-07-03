@@ -7,10 +7,6 @@ import { getPackageTypeDefs } from '../../api/packageTypeDefs'
 
 const navItems = [
   { to: '/dashboard',     label: 'Dashboard',     icon: '🏠' },
-  { to: '/analytics',     label: 'Analytics',     icon: '📊' },
-  { to: '/flights',       label: 'Flights',       icon: '✈' },
-  { to: '/packages',      label: 'Packages',      icon: '🕌' },
-  { to: '/bookings',      label: 'My Bookings',   icon: '📋' },
   { to: '/offers',        label: 'Offers',        icon: '🎁' },
   { to: '/announcements', label: 'News & Announcements', icon: '📢' },
 ]
@@ -59,7 +55,11 @@ export default function Sidebar({ announcementCount = 0 }) {
     .map(a => a.replace('ROLE_', ''))
   const canApprove  = roles.some(r => ['super_admin', 'master_agent', 'agency_admin'].includes(r))
   const isAgencyAdmin = roles.some(r => ['master_agent', 'agency_admin'].includes(r))
-  const canViewLedger = authorities.includes('ledger:view')
+  const canViewLedger    = authorities.includes('ledger:view')
+  const canViewAnalytics = authorities.includes('reports:view')
+  const canViewFlights   = authorities.includes('flights:view')
+  const canViewPackages  = authorities.includes('umrah:view') || authorities.includes('hajj:view') || authorities.includes('custom:view')
+  const canViewBookings  = authorities.includes('bookings:view') || authorities.includes('bookings:create')
 
   useEffect(() => {
     if (!canApprove) return
@@ -114,10 +114,12 @@ export default function Sidebar({ announcementCount = 0 }) {
           />
         ))}
 
-        {/* Ledger — visible only to users with the ledger:view permission */}
-        {canViewLedger && (
-          <NavItem to="/ledger" label="My Ledger" icon="📒" />
-        )}
+        {/* Permission-gated tabs — mirror the granted permissions checkboxes on the Users form */}
+        {canViewAnalytics && <NavItem to="/analytics" label="Analytics"   icon="📊" />}
+        {canViewFlights   && <NavItem to="/flights"   label="Flights"     icon="✈" />}
+        {canViewPackages  && <NavItem to="/packages"  label="Packages"    icon="🕌" />}
+        {canViewBookings  && <NavItem to="/bookings"  label="My Bookings" icon="📋" />}
+        {canViewLedger    && <NavItem to="/ledger"    label="My Ledger"   icon="📒" />}
 
         {/* Approval queue — visible to admins who can confirm bookings */}
         {approvalItems
