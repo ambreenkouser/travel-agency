@@ -22,7 +22,7 @@ spring:
     user: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     baseline-on-migrate: true
-    repair-on-migrate: true
+    ignore-migration-patterns: "*:missing"
   thymeleaf:
     cache: true
   redis:
