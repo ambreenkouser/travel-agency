@@ -139,7 +139,16 @@ public class DataInitializer implements CommandLineRunner {
             System.out.println("[Seed] Step 4: Users...");
             User superAdminUser = createUser("superadmin@demo.com", "password", "Super", "Admin", agency.getId(), superAdmin, null, null);
             System.out.println("[Seed] superadmin created id=" + superAdminUser.getId());
-            User masterUser = createUser("master@demo.com", "password", "Master", "Agent", agency.getId(), masterAgent, permsOf(perms, "ledger:view"), superAdminUser.getId());
+            // master_agent demo: grant same permissions as the master_agent role
+            Set<Permission> masterPerms = permsOf(perms,
+                    "agencies:view", "agencies:create", "agencies:edit",
+                    "flights:view", "flights:manage",
+                    "umrah:view", "umrah:manage",
+                    "hajj:view", "hajj:manage",
+                    "custom:view", "custom:manage",
+                    "bookings:view", "bookings:create", "bookings:confirm", "bookings:cancel",
+                    "reports:view", "ledger:view");
+            User masterUser = createUser("master@demo.com", "password", "Master", "Agent", agency.getId(), masterAgent, masterPerms, superAdminUser.getId());
             System.out.println("[Seed] master created id=" + masterUser.getId());
 
             // agency_admin demo: grant same permissions as the old agency_admin role

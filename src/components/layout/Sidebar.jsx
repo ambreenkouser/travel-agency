@@ -13,21 +13,24 @@ const navItems = [
 
 const approvalItems = [
   { to: '/bookings/requests', label: 'Booking Requests', icon: '📩',
-    roles: ['super_admin', 'master_agent', 'agency_admin'] },
+    roles: ['super_admin', 'master_agent', 'agency_admin'], permission: 'bookings:confirm' },
   { to: '/bookings/history', label: 'Booking History', icon: '📜',
-    roles: ['super_admin', 'master_agent', 'agency_admin'] },
+    roles: ['super_admin', 'master_agent', 'agency_admin'], permission: 'bookings:view' },
 ]
 
+// permission: the backend @PreAuthorize authority required to load that page's data
+// (matches AirlineController / RouteRestController / FlightRestController / HotelRestController /
+// UmrahRestController / HajjRestController — see their GET-list endpoints).
 const adminItems = [
   { to: '/agencies',       label: 'Agencies',        icon: '🏢', roles: ['super_admin', 'master_agent', 'agency_admin'], permission: 'agencies:view' },
   { to: '/users',          label: 'Users',            icon: '👥', roles: ['super_admin', 'master_agent', 'agency_admin'] },
-  { to: '/airlines',       label: 'Airlines',         icon: '🛩', roles: ['super_admin', 'master_agent', 'agency_admin'] },
-  { to: '/routes',         label: 'Sectors',          icon: '🗺', roles: ['super_admin', 'master_agent', 'agency_admin'] },
-  { to: '/manage/flights', label: 'Manage Flights',   icon: '🛫', roles: ['super_admin', 'master_agent', 'agency_admin'] },
-  { to: '/manage/umrah',   label: 'Umrah Packages',   icon: '🕌', roles: ['super_admin', 'master_agent', 'agency_admin'] },
-  { to: '/manage/hajj',           label: 'Hajj Packages',   icon: '🕋', roles: ['super_admin', 'master_agent', 'agency_admin'] },
+  { to: '/airlines',       label: 'Airlines',         icon: '🛩', roles: ['super_admin', 'master_agent', 'agency_admin'], permission: 'flights:view' },
+  { to: '/routes',         label: 'Sectors',          icon: '🗺', roles: ['super_admin', 'master_agent', 'agency_admin'], permission: 'flights:view' },
+  { to: '/manage/flights', label: 'Manage Flights',   icon: '🛫', roles: ['super_admin', 'master_agent', 'agency_admin'], permission: 'flights:view' },
+  { to: '/manage/umrah',   label: 'Umrah Packages',   icon: '🕌', roles: ['super_admin', 'master_agent', 'agency_admin'], permission: 'umrah:view' },
+  { to: '/manage/hajj',           label: 'Hajj Packages',   icon: '🕋', roles: ['super_admin', 'master_agent', 'agency_admin'], permission: 'hajj:view' },
   { to: '/manage/package-types', label: 'Package Types',    icon: '🗂️', roles: ['super_admin'] },
-  { to: '/manage/hotels',        label: 'Hotels',           icon: '🏨', roles: ['super_admin', 'master_agent', 'agency_admin'] },
+  { to: '/manage/hotels',        label: 'Hotels',           icon: '🏨', roles: ['super_admin', 'master_agent', 'agency_admin'], permission: 'flights:view' },
   { to: '/banks',          label: 'Banks',            icon: '🏦', roles: ['super_admin'] },
 ]
 
@@ -122,9 +125,9 @@ export default function Sidebar({ announcementCount = 0 }) {
         {canViewBookings  && <NavItem to="/bookings"  label="My Bookings" icon="📋" />}
         {canViewLedger    && <NavItem to="/ledger"    label="My Ledger"   icon="📒" />}
 
-        {/* Approval queue — visible to admins who can confirm bookings */}
+        {/* Approval queue — visible to admins who hold the matching booking permission */}
         {approvalItems
-          .filter(item => item.roles.some(r => roles.includes(r)))
+          .filter(item => item.roles.some(r => roles.includes(r)) && authorities.includes(item.permission))
           .map(item => <NavItem key={item.to} {...item} badge={item.to === '/bookings/requests' ? queueCount : 0} />)}
 
         {isAdmin && (
@@ -138,7 +141,7 @@ export default function Sidebar({ announcementCount = 0 }) {
             </div>
             {visibleAdminItems.map(item => <NavItem key={item.to} {...item} />)}
             {/* Dynamic package type pages for agency admins */}
-            {isAgencyAdmin && packageTypes.map(t => (
+            {isAgencyAdmin && authorities.includes('custom:view') && packageTypes.map(t => (
               <NavItem
                 key={`pkg-type-${t.id}`}
                 to={`/manage/custom-packages/${t.id}`}
