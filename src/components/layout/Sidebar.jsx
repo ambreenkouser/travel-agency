@@ -19,7 +19,7 @@ const approvalItems = [
 ]
 
 const adminItems = [
-  { to: '/agencies',       label: 'Agencies',        icon: '🏢', roles: ['super_admin', 'master_agent'] },
+  { to: '/agencies',       label: 'Agencies',        icon: '🏢', roles: ['super_admin', 'master_agent', 'agency_admin'], permission: 'agencies:view' },
   { to: '/users',          label: 'Users',            icon: '👥', roles: ['super_admin', 'master_agent', 'agency_admin'] },
   { to: '/airlines',       label: 'Airlines',         icon: '🛩', roles: ['super_admin', 'master_agent', 'agency_admin'] },
   { to: '/routes',         label: 'Sectors',          icon: '🗺', roles: ['super_admin', 'master_agent', 'agency_admin'] },
@@ -81,7 +81,8 @@ export default function Sidebar({ announcementCount = 0 }) {
   const isAdmin = roles.some(r => adminRoles.includes(r))
 
   const visibleAdminItems = adminItems.filter(item =>
-    item.roles.some(r => roles.includes(r))
+    item.roles.some(r => roles.includes(r)) &&
+    (!item.permission || authorities.includes(item.permission))
   )
 
   return (
