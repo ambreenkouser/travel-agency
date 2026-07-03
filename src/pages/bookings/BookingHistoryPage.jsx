@@ -4,6 +4,9 @@ import { getBookings } from '../../api/bookings'
 import { useAuth } from '../../context/AuthContext'
 import Spinner from '../../components/ui/Spinner'
 import ErrorMessage from '../../components/ui/ErrorMessage'
+import Pagination from '../../components/ui/Pagination'
+
+const PAGE_SIZE = 10
 
 function fmtDate(iso) {
   if (!iso) return '—'
@@ -36,8 +39,10 @@ export default function BookingHistoryPage() {
   const [filters, setFilters]   = useState({
     dateFrom: '', dateTo: '', status: '', agent: '',
   })
+  const [page, setPage] = useState(0)
 
   useEffect(() => { load() }, [])
+  useEffect(() => { setPage(0) }, [filters])
 
   function load() {
     setLoading(true)
@@ -69,6 +74,9 @@ export default function BookingHistoryPage() {
   const confirmedCount  = confirmedBookings.length
   const pendingCount    = pendingBookings.length
   const cancelledCount  = cancelledBookings.length
+
+  const totalPages    = Math.ceil(visible.length / PAGE_SIZE)
+  const pagedBookings = visible.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE)
 
   if (loading) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>
 
@@ -149,7 +157,7 @@ export default function BookingHistoryPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {visible.map((b, idx) => {
+                {pagedBookings.map((b, idx) => {
                   const paxCount = b.passengers?.length ?? 0
                   const adults   = b.passengers?.filter(p => p.type === 'ADULT').length ?? 0
                   const children = b.passengers?.filter(p => p.type === 'CHILD').length ?? 0
@@ -157,7 +165,7 @@ export default function BookingHistoryPage() {
 
                   return (
                     <tr key={b.id} className="hover:bg-gray-50 align-top">
-                      <td className="px-3 py-3 text-gray-900 font-semibold border-r border-gray-100">{idx + 1}</td>
+                      <td className="px-3 py-3 text-gray-900 font-semibold border-r border-gray-100">{page * PAGE_SIZE + idx + 1}</td>
 
                       <td className="px-3 py-3 border-r border-gray-100 min-w-[130px]">
                         <div className="text-blue-600 font-bold">BK# {b.id}</div>
@@ -273,6 +281,7 @@ export default function BookingHistoryPage() {
               </tfoot>
             </table>
           </div>
+          <Pagination page={page} totalPages={totalPages} onChange={setPage} />
         </div>
       )}
     </div>
