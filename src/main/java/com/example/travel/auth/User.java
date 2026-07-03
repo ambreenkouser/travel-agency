@@ -40,6 +40,15 @@ public class User extends TenantedEntity {
     @Column(name = "parent_id")
     private Long parentId;
 
+    @Column(name = "phone", length = 50)
+    private String phone;
+
+    @Column(name = "photo_data")
+    private byte[] photoData;
+
+    @Column(name = "photo_content_type", length = 100)
+    private String photoContentType;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_type_id", insertable = false, updatable = false)
     private UserType userType;
@@ -117,6 +126,30 @@ public class User extends TenantedEntity {
 
     public void setParentId(Long parentId) {
         this.parentId = parentId;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public byte[] getPhotoData() {
+        return photoData;
+    }
+
+    public void setPhotoData(byte[] photoData) {
+        this.photoData = photoData;
+    }
+
+    public String getPhotoContentType() {
+        return photoContentType;
+    }
+
+    public void setPhotoContentType(String photoContentType) {
+        this.photoContentType = photoContentType;
     }
 
     public UserType getUserType() {
