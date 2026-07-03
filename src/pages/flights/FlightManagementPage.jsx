@@ -4,6 +4,7 @@ import { getAirlines } from '../../api/airlines'
 import { getRoutes } from '../../api/routes'
 import { getAgencies } from '../../api/agencies'
 import { useAuth } from '../../context/AuthContext'
+import Pagination from '../../components/ui/Pagination'
 
 const STATUS_OPTIONS = ['draft', 'active', 'cancelled']
 const CLASS_OPTIONS  = [
@@ -46,10 +47,12 @@ export default function FlightManagementPage() {
   const [error, setError]         = useState('')
   const [loading, setLoading]     = useState(true)
   const [detailFlight, setDetailFlight] = useState(null)
+  const [page, setPage]           = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
 
   useEffect(() => {
     const loads = [
-      load(),
+      load(0),
       getAirlines().then(setAirlines),
       getRoutes().then(routeList => {
         setRoutes(routeList)
@@ -57,19 +60,23 @@ export default function FlightManagementPage() {
         routeList.forEach(r => { if (r.origin) codes.add(r.origin); if (r.destination) codes.add(r.destination) })
         setStopCodes([...codes].sort())
       }),
+      // Separate, unpaginated fetch just to build the full group-name autocomplete list
+      searchFlights({ size: 100, status: 'all' }).then(res => {
+        const names = [...new Set((res.content ?? []).map(f => f.groupName).filter(Boolean))].sort()
+        setGroupNames(names)
+      }).catch(() => {}),
     ]
     if (isSuperAdmin) loads.push(getAgencies().then(setAgencies))
     Promise.all(loads)
   }, [])
 
-  function load() {
+  function load(pageNum) {
     setLoading(true)
-    return searchFlights({ size: 100, status: 'all' })
-      .then(page => {
-        const list = page.content ?? []
-        setFlights(list)
-        const names = [...new Set(list.map(f => f.groupName).filter(Boolean))].sort()
-        setGroupNames(names)
+    return searchFlights({ size: 10, status: 'all', page: pageNum })
+      .then(res => {
+        setFlights(res.content ?? [])
+        setTotalPages(res.totalPages ?? 0)
+        setPage(pageNum)
       })
       .catch(() => setError('Failed to load flights'))
       .finally(() => setLoading(false))
@@ -158,7 +165,7 @@ export default function FlightManagementPage() {
     }
     try {
       editing ? await updateFlight(editing, payload) : await createFlight(payload)
-      setShowForm(false); load()
+      setShowForm(false); load(page)
     } catch (err) {
       const msg = err?.response?.data?.message || err?.message
       setError(msg ? `Save failed: ${msg}` : 'Save failed. Ensure Adult fare and at least one leg are set.')
@@ -167,7 +174,7 @@ export default function FlightManagementPage() {
 
   async function handleDelete(id) {
     if (!confirm('Soft-delete this flight?')) return
-    try { await deleteFlight(id); load() }
+    try { await deleteFlight(id); load(0) }
     catch { setError('Delete failed.') }
   }
 
@@ -568,6 +575,8 @@ export default function FlightManagementPage() {
           })}
         </div>
       )}
+
+      <Pagination page={page} totalPages={totalPages} onChange={load} />
 
       {/* Details popup */}
       {detailFlight && (
