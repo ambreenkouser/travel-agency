@@ -1,12 +1,33 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
+import * as XLSX from 'xlsx'
 import { getBookings } from '../../api/bookings'
 import { useAuth } from '../../context/AuthContext'
 import Spinner from '../../components/ui/Spinner'
 import ErrorMessage from '../../components/ui/ErrorMessage'
 import Pagination from '../../components/ui/Pagination'
 
-const PAGE_SIZE = 10
+function buildExportRows(list, fmtDate) {
+  return list.map((b, idx) => {
+    const adults   = b.passengers?.filter(p => p.type === 'ADULT').length ?? 0
+    const children = b.passengers?.filter(p => p.type === 'CHILD').length ?? 0
+    const infants  = b.passengers?.filter(p => p.type === 'INFANT').length ?? 0
+    return {
+      '#': idx + 1,
+      'Booking': `BK# ${b.id}`,
+      'Agent': b.bookedByName || '—',
+      'Flight/Group': b.groupName || b.airlineName || b.bookableTitle || '—',
+      'Departure': b.departureDate ? new Date(b.departureDate).toLocaleDateString('en-GB') : '—',
+      'Passengers': `${adults}A ${children}C ${infants}I`,
+      'Amount': `PKR ${Number(b.grossTotal || 0).toLocaleString()}`,
+      'Status': b.status,
+      'Booked On': fmtDate(b.createdAt),
+      'Confirmed/Rejected On': b.confirmedAt ? fmtDate(b.confirmedAt) : '—',
+    }
+  })
+}
 
 function fmtDate(iso) {
   if (!iso) return '—'
@@ -40,9 +61,36 @@ export default function BookingHistoryPage() {
     dateFrom: '', dateTo: '', status: '', agent: '',
   })
   const [page, setPage] = useState(0)
+  const [pageSize, setPageSize] = useState(10)
 
   useEffect(() => { load() }, [])
   useEffect(() => { setPage(0) }, [filters])
+
+  function handlePageSizeChange(newSize) {
+    setPageSize(newSize)
+    setPage(0)
+  }
+
+  function handleExportPdf() {
+    const rows = buildExportRows(visible, fmtDate)
+    const doc = new jsPDF({ orientation: 'landscape' })
+    doc.text('Booking History', 14, 12)
+    autoTable(doc, {
+      startY: 18,
+      head: [Object.keys(rows[0] ?? {})],
+      body: rows.map(r => Object.values(r)),
+      styles: { fontSize: 8 },
+    })
+    doc.save('booking-history.pdf')
+  }
+
+  function handleExportExcel() {
+    const rows = buildExportRows(visible, fmtDate)
+    const ws = XLSX.utils.json_to_sheet(rows)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Bookings')
+    XLSX.writeFile(wb, 'booking-history.xlsx')
+  }
 
   function load() {
     setLoading(true)
@@ -75,8 +123,8 @@ export default function BookingHistoryPage() {
   const pendingCount    = pendingBookings.length
   const cancelledCount  = cancelledBookings.length
 
-  const totalPages    = Math.ceil(visible.length / PAGE_SIZE)
-  const pagedBookings = visible.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE)
+  const totalPages    = Math.ceil(visible.length / pageSize)
+  const pagedBookings = visible.slice(page * pageSize, page * pageSize + pageSize)
 
   if (loading) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>
 
@@ -141,6 +189,20 @@ export default function BookingHistoryPage() {
         >
           Clear
         </button>
+        <button
+          onClick={handleExportPdf}
+          disabled={visible.length === 0}
+          className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          Download PDF
+        </button>
+        <button
+          onClick={handleExportExcel}
+          disabled={visible.length === 0}
+          className="px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          Download Excel
+        </button>
       </div>
 
       {visible.length === 0 ? (
@@ -151,7 +213,7 @@ export default function BookingHistoryPage() {
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="bg-gray-800 text-white text-xs">
-                  {['#', 'Booking', 'Agent', 'Flight / Group', 'Departure', 'Passengers', 'Amount', 'Status', 'Booked On', 'Confirmed/Rejected On', 'Action'].map(h => (
+                  {['#', 'Booking', 'Agent', 'Flight / Group', 'Pax / Amount', 'Status', 'Booked On'].map(h => (
                     <th key={h} className="px-3 py-3 text-left font-semibold border-r border-gray-700 last:border-0 whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -165,10 +227,12 @@ export default function BookingHistoryPage() {
 
                   return (
                     <tr key={b.id} className="hover:bg-gray-50 align-top">
-                      <td className="px-3 py-3 text-gray-900 font-semibold border-r border-gray-100">{page * PAGE_SIZE + idx + 1}</td>
+                      <td className="px-3 py-3 text-gray-900 font-semibold border-r border-gray-100">{page * pageSize + idx + 1}</td>
 
                       <td className="px-3 py-3 border-r border-gray-100 min-w-[130px]">
-                        <div className="text-blue-600 font-bold">BK# {b.id}</div>
+                        <Link to={`/bookings/${b.id}/confirm`} className="text-blue-600 font-bold hover:underline">
+                          BK# {b.id}
+                        </Link>
                         {b.bookableId && <div className="text-gray-700 text-xs">AG# {b.bookableId}</div>}
                       </td>
 
@@ -196,55 +260,38 @@ export default function BookingHistoryPage() {
                         {b.pnrCode && (
                           <div className="text-gray-600 text-[10px] mt-0.5">PNR: {b.pnrCode}</div>
                         )}
-                      </td>
-
-                      <td className="px-3 py-3 border-r border-gray-100 whitespace-nowrap text-sm font-bold text-gray-900">
-                        {b.departureDate
-                          ? new Date(b.departureDate).toLocaleDateString('en-GB', {
+                        {b.departureDate && (
+                          <div className="text-gray-600 text-[10px] mt-0.5">
+                            {new Date(b.departureDate).toLocaleDateString('en-GB', {
                               weekday: 'short', day: '2-digit', month: 'short', year: 'numeric',
-                            })
-                          : '—'}
+                            })}
+                          </div>
+                        )}
                       </td>
 
                       <td className="px-3 py-3 border-r border-gray-100">
-                        <div className="text-gray-900 font-bold text-sm">{paxCount}</div>
-                        <div className="text-gray-600 text-[10px]">
-                          {adults > 0 && `${adults}A`}
-                          {children > 0 && ` ${children}C`}
-                          {infants > 0 && ` ${infants}I`}
+                        <div className="text-gray-900 font-bold text-sm">
+                          {paxCount} pax
+                          {(adults > 0 || children > 0 || infants > 0) && (
+                            <span className="text-gray-600 font-normal text-[10px]">
+                              {' '}({adults > 0 && `${adults}A`}{children > 0 && ` ${children}C`}{infants > 0 && ` ${infants}I`})
+                            </span>
+                          )}
                         </div>
-                      </td>
-
-                      <td className="px-3 py-3 border-r border-gray-100 whitespace-nowrap">
                         <div className="font-bold text-gray-900">PKR {Number(b.grossTotal || 0).toLocaleString()}</div>
                       </td>
 
                       <td className="px-3 py-3 border-r border-gray-100">
                         <StatusBadge status={b.status} />
-                      </td>
-
-                      <td className="px-3 py-3 border-r border-gray-100 whitespace-nowrap text-xs text-gray-700">
-                        {fmtDate(b.createdAt)}
-                      </td>
-
-                      <td className="px-3 py-3 border-r border-gray-100 whitespace-nowrap text-xs">
-                        {b.confirmedAt ? (
-                          <div>
-                            <div className={b.status === 'CANCELLED' ? 'text-red-600 font-semibold' : 'text-green-700 font-semibold'}>
-                              {b.status === 'CANCELLED' ? 'Rejected' : 'Confirmed'}
-                            </div>
-                            <div className="text-gray-600">{fmtDate(b.confirmedAt)}</div>
+                        {b.confirmedAt && (
+                          <div className={`text-[10px] mt-1 ${b.status === 'CANCELLED' ? 'text-red-600' : 'text-green-700'}`}>
+                            {b.status === 'CANCELLED' ? 'Rejected' : 'Confirmed'} {fmtDate(b.confirmedAt)}
                           </div>
-                        ) : (
-                          <span className="text-gray-400">—</span>
                         )}
                       </td>
 
-                      <td className="px-3 py-3">
-                        <Link to={`/bookings/${b.id}/confirm`}
-                          className="inline-flex items-center justify-center px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded">
-                          View
-                        </Link>
+                      <td className="px-3 py-3 whitespace-nowrap text-xs text-gray-700">
+                        {fmtDate(b.createdAt)}
                       </td>
                     </tr>
                   )
@@ -252,36 +299,37 @@ export default function BookingHistoryPage() {
               </tbody>
               <tfoot>
                 <tr className="bg-gray-50 border-t-2 border-gray-300">
-                  <td colSpan={6} className="px-3 py-2 text-sm font-bold text-gray-800 text-right">
+                  <td colSpan={4} className="px-3 py-2 text-sm font-bold text-gray-800 text-right">
                     Confirmed ({confirmedBookings.length} bookings, {sumPax(confirmedBookings)} pax):
                   </td>
                   <td className="px-3 py-2 font-bold text-gray-900 whitespace-nowrap">
                     PKR {sumAmount(confirmedBookings).toLocaleString()}
                   </td>
-                  <td colSpan={4}></td>
+                  <td colSpan={2}></td>
                 </tr>
                 <tr className="bg-gray-50 border-t border-gray-200">
-                  <td colSpan={6} className="px-3 py-2 text-sm font-bold text-gray-800 text-right">
+                  <td colSpan={4} className="px-3 py-2 text-sm font-bold text-gray-800 text-right">
                     Pending ({pendingBookings.length} bookings, {sumPax(pendingBookings)} pax):
                   </td>
                   <td className="px-3 py-2 font-bold text-gray-900 whitespace-nowrap">
                     PKR {sumAmount(pendingBookings).toLocaleString()}
                   </td>
-                  <td colSpan={4}></td>
+                  <td colSpan={2}></td>
                 </tr>
                 <tr className="bg-gray-50 border-t border-gray-200">
-                  <td colSpan={6} className="px-3 py-2 text-sm font-bold text-gray-800 text-right">
+                  <td colSpan={4} className="px-3 py-2 text-sm font-bold text-gray-800 text-right">
                     Cancelled ({cancelledBookings.length} bookings, {sumPax(cancelledBookings)} pax):
                   </td>
                   <td className="px-3 py-2 font-bold text-gray-900 whitespace-nowrap">
                     PKR {sumAmount(cancelledBookings).toLocaleString()}
                   </td>
-                  <td colSpan={4}></td>
+                  <td colSpan={2}></td>
                 </tr>
               </tfoot>
             </table>
           </div>
-          <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+          <Pagination page={page} totalPages={totalPages} pageSize={pageSize}
+            onPageChange={setPage} onPageSizeChange={handlePageSizeChange} />
         </div>
       )}
     </div>

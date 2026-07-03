@@ -52,6 +52,7 @@ export default function FlightSearchPage() {
   const [error, setError] = useState('')
   const [page, setPage] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
+  const [pageSize, setPageSize] = useState(10)
 
   useEffect(() => {
     getAirlines().then(setAirlines).catch(() => {})
@@ -64,7 +65,7 @@ export default function FlightSearchPage() {
     runQuery(0)
   }, [])
 
-  function buildParams(pageNum, formOverride) {
+  function buildParams(pageNum, formOverride, sizeOverride) {
     const f = formOverride ?? form
     return {
       origin:      f.origin      || undefined,
@@ -74,14 +75,14 @@ export default function FlightSearchPage() {
       airlineId:   f.airlineId   || undefined,
       upcomingOnly: true,
       page: pageNum,
-      size: 10,
+      size: sizeOverride ?? pageSize,
     }
   }
 
-  function runQuery(pageNum, formOverride) {
+  function runQuery(pageNum, formOverride, sizeOverride) {
     setError('')
     setLoading(true)
-    searchFlights(buildParams(pageNum, formOverride))
+    searchFlights(buildParams(pageNum, formOverride, sizeOverride))
       .then(r => {
         setFlights(r.content ?? [])
         setTotalPages(r.totalPages ?? 0)
@@ -89,6 +90,11 @@ export default function FlightSearchPage() {
       })
       .catch(() => setError('Failed to load flights.'))
       .finally(() => setLoading(false))
+  }
+
+  function handlePageSizeChange(newSize) {
+    setPageSize(newSize)
+    runQuery(0, undefined, newSize)
   }
 
   function set(k) {
@@ -312,7 +318,8 @@ export default function FlightSearchPage() {
             </div>
           )}
 
-          <Pagination page={page} totalPages={totalPages} onChange={runQuery} />
+          <Pagination page={page} totalPages={totalPages} pageSize={pageSize}
+            onPageChange={runQuery} onPageSizeChange={handlePageSizeChange} />
         </>
       )}
     </div>
