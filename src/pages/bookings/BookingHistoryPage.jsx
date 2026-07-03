@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { jsPDF } from 'jspdf'
-import autoTable from 'jspdf-autotable'
+import 'jspdf-autotable'
 import * as XLSX from 'xlsx'
 import { getBookings } from '../../api/bookings'
 import { useAuth } from '../../context/AuthContext'
@@ -76,14 +76,15 @@ export default function BookingHistoryPage() {
       const rows = buildExportRows(visible, fmtDate)
       const doc = new jsPDF({ orientation: 'landscape' })
       doc.text('Booking History', 14, 12)
-      autoTable(doc, {
+      doc.autoTable({
         startY: 18,
         head: [Object.keys(rows[0] ?? {})],
         body: rows.map(r => Object.values(r)),
         styles: { fontSize: 8 },
       })
       doc.save('booking-history.pdf')
-    } catch {
+    } catch (err) {
+      console.error('PDF export failed:', err)
       setError('Failed to generate PDF export.')
     }
   }
@@ -95,7 +96,8 @@ export default function BookingHistoryPage() {
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, 'Bookings')
       XLSX.writeFile(wb, 'booking-history.xlsx')
-    } catch {
+    } catch (err) {
+      console.error('Excel export failed:', err)
       setError('Failed to generate Excel export.')
     }
   }
