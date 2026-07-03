@@ -1,6 +1,7 @@
 package com.example.travel.agency;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,10 +24,24 @@ public class AgencyService {
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Agency not found: " + id));
     }
 
+    /** Agencies visible to a non-super-admin: their own tenant plus any agency they personally created. */
+    public List<Agency> findVisibleTo(Long ownAgencyId, Long userId) {
+        List<Agency> created = repository.findByCreatedByUserId(userId);
+        boolean ownIncluded = ownAgencyId == null
+                || created.stream().anyMatch(a -> a.getId().equals(ownAgencyId));
+        if (ownIncluded) {
+            return created;
+        }
+        List<Agency> result = new ArrayList<>(created);
+        repository.findById(ownAgencyId).ifPresent(result::add);
+        return result;
+    }
+
     @Transactional
-    public Agency create(AgencyRequest req) {
+    public Agency create(AgencyRequest req, Long createdByUserId) {
         Agency agency = new Agency();
         applyRequest(agency, req);
+        agency.setCreatedByUserId(createdByUserId);
         return repository.save(agency);
     }
 

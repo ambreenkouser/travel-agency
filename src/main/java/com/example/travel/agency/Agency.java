@@ -50,6 +50,9 @@ public class Agency extends AuditableEntity {
     @Column(name = "address", length = 500)
     private String address;
 
+    @Column(name = "created_by_user_id")
+    private Long createdByUserId;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> settings;
@@ -82,6 +85,8 @@ public class Agency extends AuditableEntity {
     public void setContactNo(String contactNo) { this.contactNo = contactNo; }
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
+    public Long getCreatedByUserId() { return createdByUserId; }
+    public void setCreatedByUserId(Long createdByUserId) { this.createdByUserId = createdByUserId; }
     public Map<String, Object> getSettings() { return settings; }
     public void setSettings(Map<String, Object> settings) { this.settings = settings; }
     public List<User> getUsers() { return users; }
