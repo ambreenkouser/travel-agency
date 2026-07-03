@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { getUsers, getAllowedTypes, createUser, updateUser, toggleActive, deleteUser } from '../../api/users'
+import { getUsers, getAllowedTypes, createUser, updateUser, toggleActive, deleteUser, uploadUserPhoto, userPhotoUrl } from '../../api/users'
 import { getAgencies, getBranding } from '../../api/agencies'
 import { getGrantablePermissions } from '../../api/permissions'
 
@@ -37,7 +37,7 @@ const PERM_LABELS = {
 const emptyForm = {
   firstName: '', lastName: '', email: '', password: '',
   userTypeId: '', agencyId: '', parentId: '',
-  permissionIds: [],
+  permissionIds: [], phone: '',
 }
 
 export default function UsersPage() {
@@ -56,6 +56,7 @@ export default function UsersPage() {
   const [myAgencyName, setMyAgencyName]       = useState('')
   const [availablePerms, setAvailablePerms]   = useState([])
   const [form, setForm]                       = useState(emptyForm)
+  const [photoFile, setPhotoFile]             = useState(null)
   const [editing, setEditing]                 = useState(null)
   const [showForm, setShowForm]               = useState(false)
   const [error, setError]                     = useState('')
@@ -88,6 +89,7 @@ export default function UsersPage() {
 
   function openCreate() {
     setForm({ ...emptyForm, userTypeId: allowedTypes[0]?.id ?? '', permissionIds: [] })
+    setPhotoFile(null)
     setEditing(null)
     setShowForm(true)
     setError('')
@@ -103,7 +105,9 @@ export default function UsersPage() {
       agencyId:   u.agencyId ?? '',
       parentId:   u.parentId ?? '',
       permissionIds: u.permissionIds ?? [],
+      phone: u.phone ?? '',
     })
+    setPhotoFile(null)
     setEditing(u.id)
     setShowForm(true)
     setError('')
@@ -137,7 +141,18 @@ export default function UsersPage() {
       permissionIds: form.permissionIds,
     }
     try {
-      editing ? await updateUser(editing, payload) : await createUser(payload)
+      let savedId = editing
+      if (editing) {
+        await updateUser(editing, payload)
+      } else {
+        const created = await createUser(payload)
+        savedId = created.id
+      }
+      if (photoFile && savedId) {
+        const fd = new FormData()
+        fd.append('photo', photoFile)
+        await uploadUserPhoto(savedId, fd)
+      }
       setShowForm(false)
       load()
     } catch (err) {
@@ -162,6 +177,8 @@ export default function UsersPage() {
   const needsAgency  = selectedType ? selectedType.level >= 3 : myLevel <= 2
   // Show permissions panel when creating or editing a non-super_admin user
   const showPerms = selectedType && selectedType.level > 1
+  // Phone/Photo fields are only collected when an agency_admin creates/edits an Agent
+  const isAgentByAgencyAdmin = myLevel === 3 && selectedType?.level === 4
 
   // Group permissions by module for cleaner UI
   const permGroups = {
@@ -250,6 +267,27 @@ export default function UsersPage() {
                     {myAgencyName || '—'}
                   </div>
                 </div>
+              )}
+
+              {/* Phone + Photo — agency_admin creating/editing an Agent only */}
+              {isAgentByAgencyAdmin && (
+                <>
+                  <Field label="Phone Number (optional)" value={form.phone} onChange={set('phone')} />
+                  <label className="block text-sm">
+                    <span className="block text-gray-600 mb-1">Profile Photo (optional)</span>
+                    {editing && (
+                      <img src={userPhotoUrl(editing)} alt="current photo"
+                        className="h-12 w-12 rounded-full object-cover mb-2"
+                        onError={e => e.currentTarget.style.display = 'none'} />
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={e => setPhotoFile(e.target.files?.[0] ?? null)}
+                      className="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                  </label>
+                </>
               )}
 
               {/* ── Permissions Panel ── */}

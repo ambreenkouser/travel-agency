@@ -13,6 +13,7 @@ import com.example.travel.auth.UserRepository;
 import com.example.travel.auth.UserType;
 import com.example.travel.auth.UserTypeRepository;
 import jakarta.persistence.EntityNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,6 +23,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,8 +37,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
@@ -130,6 +135,7 @@ public class UserRestController {
         user.setRoles(Set.of(role));
         user.setUserTypeId(targetType != null ? targetType.getId() : null);
         user.setParentId(parentId);
+        user.setPhone(req.phone());
 
         // Assign custom permissions (not applicable for super_admin)
         if (!roleName.equals("super_admin") && req.permissionIds() != null && !req.permissionIds().isEmpty()) {
@@ -154,7 +160,7 @@ public class UserRestController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('agencies:edit')")
+    @PreAuthorize("isAuthenticated()")
     public UserListDto update(@PathVariable Long id,
                               @RequestBody CreateUserRequest req,
                               @AuthenticationPrincipal AuthUserDetails principal) {
@@ -169,6 +175,7 @@ public class UserRestController {
         if (req.password() != null && !req.password().isBlank()) {
             user.setPassword(passwordEncoder.encode(req.password()));
         }
+        user.setPhone(req.phone());
 
         if (req.userTypeId() != null) {
             UserType targetType = userTypeRepository.findById(req.userTypeId())
@@ -212,7 +219,7 @@ public class UserRestController {
     }
 
     @PatchMapping("/{id}/toggle-active")
-    @PreAuthorize("hasAuthority('agencies:edit')")
+    @PreAuthorize("isAuthenticated()")
     public UserListDto toggleActive(@PathVariable Long id,
                                     @AuthenticationPrincipal AuthUserDetails principal) {
         assertCanManage(id, principal);
@@ -224,7 +231,7 @@ public class UserRestController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAuthority('agencies:delete')")
+    @PreAuthorize("isAuthenticated()")
     public void delete(@PathVariable Long id,
                        @AuthenticationPrincipal AuthUserDetails principal) {
         assertCanManage(id, principal);
@@ -237,11 +244,47 @@ public class UserRestController {
         }
     }
 
+    /** Upload a profile photo for a user — stored as binary in the database. */
+    @PostMapping(value = "/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("isAuthenticated()")
+    public void uploadPhoto(@PathVariable Long id, @RequestParam MultipartFile photo,
+                            @AuthenticationPrincipal AuthUserDetails principal) throws IOException {
+        assertCanManage(id, principal);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + id));
+        user.setPhotoData(photo.getBytes());
+        user.setPhotoContentType(photo.getContentType());
+        userRepository.save(user);
+    }
+
+    /** Serve the user's profile photo stored in the database. */
+    @GetMapping("/{id}/photo")
+    public ResponseEntity<byte[]> getPhoto(@PathVariable Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + id));
+        if (user.getPhotoData() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        MediaType mediaType = user.getPhotoContentType() != null
+                ? MediaType.parseMediaType(user.getPhotoContentType())
+                : MediaType.IMAGE_JPEG;
+        return ResponseEntity.ok().contentType(mediaType).body(user.getPhotoData());
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private void assertCanManage(Long targetId, AuthUserDetails principal) {
         int myLevel = principal.getUserTypeLevel();
         if (myLevel == 1) return; // super_admin
+
+        if (myLevel >= 4) {
+            // sub_agent: can only manage their own account
+            if (!principal.getUserId().equals(targetId)) {
+                throw new IllegalStateException("Access denied: you can only manage your own account.");
+            }
+            return;
+        }
 
         User target = userRepository.findById(targetId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found: " + targetId));
@@ -335,7 +378,7 @@ public class UserRestController {
                     u.getAgencyId(), agencyNames.get(u.getAgencyId()),
                     userTypeId, userTypeName, userTypeLevel,
                     u.getParentId(), parentNames.get(u.getParentId()),
-                    permissionIds
+                    permissionIds, u.getPhone()
             );
         }).collect(Collectors.toList());
     }
