@@ -7,6 +7,7 @@ import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
 import Spinner from '../../components/ui/Spinner'
 import ErrorMessage from '../../components/ui/ErrorMessage'
+import Pagination from '../../components/ui/Pagination'
 
 
 function fmtLegDate(iso) {
@@ -28,6 +29,8 @@ function numDays(legs) {
   return Math.max(1, Math.round((last - first) / 86400000))
 }
 
+const today = new Date().toISOString().slice(0, 10)
+
 function headerRoute(f) {
   const airline = f.legs?.[0]?.airlineName || f.airlineName || ''
   const legs = f.legs ?? []
@@ -47,6 +50,8 @@ export default function FlightSearchPage() {
   const [flights, setFlights] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [page, setPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
 
   useEffect(() => {
     getAirlines().then(setAirlines).catch(() => {})
@@ -56,13 +61,32 @@ export default function FlightSearchPage() {
       setOrigins(origs)
       setDestinations(dests)
     }).catch(() => {})
-    loadAll()
+    runQuery(0)
   }, [])
 
-  function loadAll() {
+  function buildParams(pageNum, formOverride) {
+    const f = formOverride ?? form
+    return {
+      origin:      f.origin      || undefined,
+      destination: f.destination || undefined,
+      dateFrom:    f.dateFrom    || undefined,
+      dateTo:      f.dateTo      || undefined,
+      airlineId:   f.airlineId   || undefined,
+      upcomingOnly: true,
+      page: pageNum,
+      size: 10,
+    }
+  }
+
+  function runQuery(pageNum, formOverride) {
+    setError('')
     setLoading(true)
-    searchFlights({ size: 100, upcomingOnly: true })
-      .then(r => setFlights(r.content ?? []))
+    searchFlights(buildParams(pageNum, formOverride))
+      .then(r => {
+        setFlights(r.content ?? [])
+        setTotalPages(r.totalPages ?? 0)
+        setPage(pageNum)
+      })
       .catch(() => setError('Failed to load flights.'))
       .finally(() => setLoading(false))
   }
@@ -71,32 +95,15 @@ export default function FlightSearchPage() {
     return e => setForm(f => ({ ...f, [k]: e.target.value }))
   }
 
-  async function handleSearch(e) {
+  function handleSearch(e) {
     e.preventDefault()
-    setError('')
-    setLoading(true)
-    try {
-      const params = {
-        origin:      form.origin      || undefined,
-        destination: form.destination || undefined,
-        dateFrom:    form.dateFrom    || undefined,
-        dateTo:      form.dateTo      || undefined,
-        airlineId:   form.airlineId   || undefined,
-        upcomingOnly: true,
-        size: 50,
-      }
-      const result = await searchFlights(params)
-      setFlights(result.content ?? [])
-    } catch {
-      setError('Search failed. Please try again.')
-    } finally {
-      setLoading(false)
-    }
+    runQuery(0)
   }
 
   function handleReset() {
-    setForm({ origin: '', destination: '', dateFrom: '', dateTo: '', airlineId: '' })
-    loadAll()
+    const emptyForm = { origin: '', destination: '', dateFrom: '', dateTo: '', airlineId: '' }
+    setForm(emptyForm)
+    runQuery(0, emptyForm)
   }
 
   return (
@@ -144,8 +151,8 @@ export default function FlightSearchPage() {
               </select>
             </label>
 
-            <Field label="Date From" value={form.dateFrom} onChange={set('dateFrom')} type="date" />
-            <Field label="Date To"   value={form.dateTo}   onChange={set('dateTo')}   type="date" />
+            <Field label="Date From" value={form.dateFrom} onChange={set('dateFrom')} type="date" min={today} />
+            <Field label="Date To"   value={form.dateTo}   onChange={set('dateTo')}   type="date" min={today} />
 
             <div className="flex gap-2">
               <button type="button" onClick={handleReset}
@@ -304,6 +311,8 @@ export default function FlightSearchPage() {
               })}
             </div>
           )}
+
+          <Pagination page={page} totalPages={totalPages} onChange={runQuery} />
         </>
       )}
     </div>
