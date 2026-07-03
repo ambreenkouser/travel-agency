@@ -49,6 +49,7 @@ export default function FlightManagementPage() {
   const [detailFlight, setDetailFlight] = useState(null)
   const [page, setPage]           = useState(0)
   const [totalPages, setTotalPages] = useState(0)
+  const [pageSize, setPageSize]   = useState(10)
 
   useEffect(() => {
     const loads = [
@@ -70,9 +71,9 @@ export default function FlightManagementPage() {
     Promise.all(loads)
   }, [])
 
-  function load(pageNum) {
+  function load(pageNum, sizeOverride) {
     setLoading(true)
-    return searchFlights({ size: 10, status: 'all', page: pageNum })
+    return searchFlights({ size: sizeOverride ?? pageSize, status: 'all', page: pageNum })
       .then(res => {
         setFlights(res.content ?? [])
         setTotalPages(res.totalPages ?? 0)
@@ -80,6 +81,11 @@ export default function FlightManagementPage() {
       })
       .catch(() => setError('Failed to load flights'))
       .finally(() => setLoading(false))
+  }
+
+  function handlePageSizeChange(newSize) {
+    setPageSize(newSize)
+    load(0, newSize)
   }
 
   function openCreate() {
@@ -576,7 +582,8 @@ export default function FlightManagementPage() {
         </div>
       )}
 
-      <Pagination page={page} totalPages={totalPages} onChange={load} />
+      <Pagination page={page} totalPages={totalPages} pageSize={pageSize}
+        onPageChange={load} onPageSizeChange={handlePageSizeChange} />
 
       {/* Details popup */}
       {detailFlight && (
