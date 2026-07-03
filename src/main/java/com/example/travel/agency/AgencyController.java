@@ -31,43 +31,42 @@ public class AgencyController {
         this.service = service;
     }
 
-    /** super_admin sees every agency; everyone else sees their own tenant plus agencies they created. */
+    /** Every user sees only their own agency; super_admin sees all (full oversight). */
     @GetMapping
     @PreAuthorize("hasAuthority('agencies:view')")
     public List<Agency> list(@AuthenticationPrincipal AuthUserDetails principal) {
         if (principal.getUserTypeLevel() == 1) {
             return service.findAll();
         }
-        return service.findVisibleTo(principal.getAgencyId(), principal.getUserId());
+        Long agencyId = principal.getAgencyId();
+        return agencyId != null ? List.of(service.findById(agencyId)) : List.of();
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('agencies:view')")
     public Agency get(@PathVariable Long id, @AuthenticationPrincipal AuthUserDetails principal) {
-        Agency agency = service.findById(id);
-        assertCanManage(agency, principal);
-        return agency;
+        assertOwnAgencyOrSuperAdmin(id, principal);
+        return service.findById(id);
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('agencies:create')")
-    public ResponseEntity<Agency> create(@RequestBody AgencyRequest req,
-                                         @AuthenticationPrincipal AuthUserDetails principal) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(req, principal.getUserId()));
+    public ResponseEntity<Agency> create(@RequestBody AgencyRequest req) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(req));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('agencies:edit')")
     public Agency update(@PathVariable Long id, @RequestBody AgencyRequest req,
                          @AuthenticationPrincipal AuthUserDetails principal) {
-        assertCanManage(service.findById(id), principal);
+        assertOwnAgencyOrSuperAdmin(id, principal);
         return service.update(id, req);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('agencies:delete')")
     public ResponseEntity<Void> delete(@PathVariable Long id, @AuthenticationPrincipal AuthUserDetails principal) {
-        assertCanManage(service.findById(id), principal);
+        assertOwnAgencyOrSuperAdmin(id, principal);
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
@@ -78,18 +77,14 @@ public class AgencyController {
     @PreAuthorize("hasAuthority('agencies:edit')")
     public void uploadLogo(@PathVariable Long id, @RequestParam MultipartFile logo,
                            @AuthenticationPrincipal AuthUserDetails principal) throws IOException {
-        assertCanManage(service.findById(id), principal);
+        assertOwnAgencyOrSuperAdmin(id, principal);
         service.saveLogo(id, logo.getBytes(), logo.getContentType());
     }
 
-    /** Allowed if super_admin, this is the caller's own tenant, or the caller created it themselves. */
-    private void assertCanManage(Agency agency, AuthUserDetails principal) {
+    private void assertOwnAgencyOrSuperAdmin(Long agencyId, AuthUserDetails principal) {
         if (principal.getUserTypeLevel() == 1) return;
-        boolean isOwnTenant = agency.getId().equals(principal.getAgencyId());
-        boolean isCreator = principal.getUserId().equals(agency.getCreatedByUserId());
-        if (!isOwnTenant && !isCreator) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "You can only manage your own agency or agencies you created.");
+        if (!agencyId.equals(principal.getAgencyId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only manage your own agency.");
         }
     }
 

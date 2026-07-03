@@ -3,8 +3,6 @@ package com.example.travel.api;
 import com.example.travel.api.dto.ApiError;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Instant;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,14 +13,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
-// Unscoped so it covers every controller in the app, not just this package — several
-// controllers (AgencyController, AirlineController, RouteRestController, legacy MVC
-// controllers) live outside com.example.travel.api and were previously falling through
-// to Spring Boot's bare default error page instead of this handler's ApiError format.
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "com.example.travel.api")
 public class GlobalExceptionHandler {
-
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(EntityNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -79,15 +71,5 @@ public class GlobalExceptionHandler {
         int status = ex.getStatusCode().value();
         String message = ex.getReason() != null ? ex.getReason() : "Request failed.";
         return ResponseEntity.status(status).body(new ApiError(status, message, Instant.now()));
-    }
-
-    // Last-resort safety net: anything not matched above previously fell through to Spring
-    // Boot's bare default error page with no message at all. Log the real exception server-side
-    // (so it's diagnosable) while still giving the client a consistent ApiError response.
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiError handleUnexpected(Exception ex) {
-        log.error("Unhandled exception", ex);
-        return new ApiError(500, "Something went wrong. Please try again.", Instant.now());
     }
 }
