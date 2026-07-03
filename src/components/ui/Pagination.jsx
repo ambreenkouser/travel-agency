@@ -73,6 +73,10 @@ export default function Pagination({ page, totalPages, pageSize, onPageChange, o
           onChange={e => setGoTo(e.target.value)}
           className="w-14 border border-gray-300 rounded-md px-2 py-1 text-sm" />
         <span className="text-gray-600">Page</span>
+        <button type="submit"
+          className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-md">
+          Go
+        </button>
       </form>
     </div>
   )
