@@ -253,18 +253,17 @@ export default function FlightTicketPage() {
           <div className="text-sm text-center text-gray-600">
             <span className="font-medium">👤 Contact Person:</span>{' '}
             {booking.bookedByName || '—'}
-            {flight?.contactPersonPhone && (
-              <>
-                {' '}|{' '}
-                <span className="font-medium">📞 Contact No:</span>{' '}
-                {flight.contactPersonPhone}
-              </>
-            )}
-            {booking.bookedByPhone && (
+            {booking.bookedByPhone ? (
               <>
                 {' '}|{' '}
                 <span className="font-medium">📞 Agent Contact:</span>{' '}
                 {booking.bookedByPhone}
+              </>
+            ) : flight?.contactPersonPhone && (
+              <>
+                {' '}|{' '}
+                <span className="font-medium">📞 Contact No:</span>{' '}
+                {flight.contactPersonPhone}
               </>
             )}
           </div>
