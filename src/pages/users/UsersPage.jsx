@@ -41,6 +41,7 @@ const AGENT_PERMISSION_NAMES = [
   'umrah:view', 'umrah:manage',
   'hajj:view', 'hajj:manage',
   'bookings:view', 'bookings:create', 'bookings:confirm', 'bookings:cancel',
+  'ledger:view',
 ]
 
 const emptyForm = {
