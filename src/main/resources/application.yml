@@ -14,7 +14,7 @@ spring:
   flyway:
     user: postgres
     password: test
-    repair-on-migrate: true
+    ignore-migration-patterns: "*:missing"
   thymeleaf:
     cache: false
   servlet:
