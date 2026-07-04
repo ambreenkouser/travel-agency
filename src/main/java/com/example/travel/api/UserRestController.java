@@ -111,6 +111,12 @@ public class UserRestController {
             }
         }
 
+        if (targetType != null && targetType.getLevel() == 4
+                && (req.phone() == null || req.phone().isBlank())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Phone number is required for Agents.");
+        }
+
         // Determine role from user type (or fall back to req.role for backwards compat)
         String roleName = targetType != null
                 ? userTypeToRoleName(targetType.getName())
@@ -174,6 +180,18 @@ public class UserRestController {
         user.setEmail(req.email());
         if (req.password() != null && !req.password().isBlank()) {
             user.setPassword(passwordEncoder.encode(req.password()));
+        }
+
+        int effectiveLevel = req.userTypeId() != null
+                ? userTypeRepository.findById(req.userTypeId())
+                        .orElseThrow(() -> new EntityNotFoundException("User type not found: " + req.userTypeId()))
+                        .getLevel()
+                : (user.getUserTypeId() != null
+                        ? userTypeRepository.findById(user.getUserTypeId()).map(UserType::getLevel).orElse(0)
+                        : 0);
+        if (effectiveLevel == 4 && (req.phone() == null || req.phone().isBlank())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Phone number is required for Agents.");
         }
         user.setPhone(req.phone());
 

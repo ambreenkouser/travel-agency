@@ -12,6 +12,7 @@ public interface BookingMapper {
 
     @Mapping(source = "status", target = "status", qualifiedByName = "statusToString")
     @Mapping(target = "bookedByName",   ignore = true)
+    @Mapping(target = "bookedByPhone",  ignore = true)
     @Mapping(target = "payment",        ignore = true)
     @Mapping(target = "bookableTitle",  ignore = true)
     @Mapping(target = "flightNumber",   ignore = true)

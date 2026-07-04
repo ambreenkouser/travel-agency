@@ -34,6 +34,15 @@ const PERM_LABELS = {
   'custom:manage':     'Manage Custom Packages',
 }
 
+// Permissions relevant to an Agency Agent (booking agent) — hides
+// Payments/Reports/Custom Packages/Agencies/Ledger, which don't apply to that role.
+const AGENT_PERMISSION_NAMES = [
+  'flights:view', 'flights:manage',
+  'umrah:view', 'umrah:manage',
+  'hajj:view', 'hajj:manage',
+  'bookings:view', 'bookings:create', 'bookings:confirm', 'bookings:cancel',
+]
+
 const emptyForm = {
   firstName: '', lastName: '', email: '', password: '',
   userTypeId: '', agencyId: '', parentId: '',
@@ -123,7 +132,7 @@ export default function UsersPage() {
   }
 
   function selectAllPerms() {
-    setForm(f => ({ ...f, permissionIds: availablePerms.map(p => p.id) }))
+    setForm(f => ({ ...f, permissionIds: visiblePerms.map(p => p.id) }))
   }
 
   function clearAllPerms() {
@@ -180,17 +189,22 @@ export default function UsersPage() {
   // Phone/Photo fields are only collected when an agency_admin creates/edits an Agent
   const isAgentByAgencyAdmin = myLevel === 3 && selectedType?.level === 4
 
+  // Agents only see/can-be-granted a fixed, role-appropriate subset of permissions
+  const visiblePerms = selectedType?.level === 4
+    ? availablePerms.filter(p => AGENT_PERMISSION_NAMES.includes(p.name))
+    : availablePerms
+
   // Group permissions by module for cleaner UI
   const permGroups = {
-    'Agencies':  availablePerms.filter(p => p.name.startsWith('agencies')),
-    'Flights':   availablePerms.filter(p => p.name.startsWith('flights')),
-    'Umrah':     availablePerms.filter(p => p.name.startsWith('umrah')),
-    'Hajj':      availablePerms.filter(p => p.name.startsWith('hajj')),
-    'Bookings':  availablePerms.filter(p => p.name.startsWith('bookings')),
-    'Accounts':  availablePerms.filter(p => p.name.startsWith('accounts')),
-    'Reports':   availablePerms.filter(p => p.name.startsWith('reports')),
-    'Ledger':    availablePerms.filter(p => p.name.startsWith('ledger')),
-    'Custom':    availablePerms.filter(p => p.name.startsWith('custom')),
+    'Agencies':  visiblePerms.filter(p => p.name.startsWith('agencies')),
+    'Flights':   visiblePerms.filter(p => p.name.startsWith('flights')),
+    'Umrah':     visiblePerms.filter(p => p.name.startsWith('umrah')),
+    'Hajj':      visiblePerms.filter(p => p.name.startsWith('hajj')),
+    'Bookings':  visiblePerms.filter(p => p.name.startsWith('bookings')),
+    'Accounts':  visiblePerms.filter(p => p.name.startsWith('accounts')),
+    'Reports':   visiblePerms.filter(p => p.name.startsWith('reports')),
+    'Ledger':    visiblePerms.filter(p => p.name.startsWith('ledger')),
+    'Custom':    visiblePerms.filter(p => p.name.startsWith('custom')),
   }
 
   const tree = buildTree(users)
@@ -263,16 +277,15 @@ export default function UsersPage() {
               {(needsAgency || editing) && myLevel === 3 && (
                 <div>
                   <label className="block text-sm text-gray-600 mb-1">Agency</label>
-                  <div className="w-full border border-gray-200 rounded-md px-3 py-1.5 text-sm bg-gray-50 text-gray-700">
-                    {myAgencyName || '—'}
-                  </div>
+                  <input type="text" value={myAgencyName || '—'} disabled
+                    className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm bg-gray-50 text-gray-500" />
                 </div>
               )}
 
               {/* Phone + Photo — agency_admin creating/editing an Agent only */}
               {isAgentByAgencyAdmin && (
                 <>
-                  <Field label="Phone Number (optional)" value={form.phone} onChange={set('phone')} />
+                  <Field label="Phone Number *" value={form.phone} onChange={set('phone')} required />
                   <label className="block text-sm">
                     <span className="block text-gray-600 mb-1">Profile Photo (optional)</span>
                     {editing && (
@@ -291,7 +304,7 @@ export default function UsersPage() {
               )}
 
               {/* ── Permissions Panel ── */}
-              {showPerms && availablePerms.length > 0 && (
+              {showPerms && visiblePerms.length > 0 && (
                 <div className="border border-gray-200 rounded-lg p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold text-gray-700">Permissions</span>
@@ -325,7 +338,7 @@ export default function UsersPage() {
                     )
                   )}
                   <p className="text-xs text-gray-400">
-                    {form.permissionIds.length} of {availablePerms.length} selected
+                    {form.permissionIds.filter(id => visiblePerms.some(p => p.id === id)).length} of {visiblePerms.length} selected
                   </p>
                 </div>
               )}
@@ -354,6 +367,7 @@ export default function UsersPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
+                <th className="w-12 px-4 py-3" />
                 {['Name', 'User Type', 'Email', 'Agency', 'Status', ''].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">{h}</th>
                 ))}
@@ -361,13 +375,16 @@ export default function UsersPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {tree.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">No users found</td></tr>
+                <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">No users found</td></tr>
               )}
               {tree.map(({ user: u, depth }) => {
                 const level  = u.userTypeLevel || 0
                 const colors = TYPE_COLORS[level] ?? TYPE_COLORS[4]
                 return (
                   <tr key={u.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <UserAvatar user={u} />
+                    </td>
                     <td className="px-4 py-3 font-medium text-gray-900">
                       <span style={{ paddingLeft: depth * 20 }} className="flex items-center gap-1.5">
                         {depth > 0 && <span className="text-gray-300 text-xs">└─</span>}
@@ -438,6 +455,23 @@ function buildTree(users) {
   }
   roots.forEach(r => walk(r, 0))
   return result
+}
+
+function UserAvatar({ user }) {
+  const [error, setError] = useState(false)
+  const initials = `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase()
+
+  if (error) {
+    return (
+      <span className="h-7 w-7 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-[10px] font-semibold">
+        {initials}
+      </span>
+    )
+  }
+  return (
+    <img src={userPhotoUrl(user.id)} alt="" className="h-7 w-7 rounded-full object-cover"
+      onError={() => setError(true)} />
+  )
 }
 
 function Field({ label, value, onChange, type = 'text', required }) {
