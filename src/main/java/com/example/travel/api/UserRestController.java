@@ -221,10 +221,16 @@ public class UserRestController {
                     .map(GrantedAuthority::getAuthority)
                     .filter(a -> !a.startsWith("ROLE_"))
                     .collect(Collectors.toSet());
+            Set<Long> existingPermissionIds = user.getCustomPermissions().stream()
+                    .map(Permission::getId)
+                    .collect(Collectors.toSet());
             List<Permission> toGrant = permissionRepository.findAllById(req.permissionIds());
             if (myLevel != 1) {
                 for (Permission p : toGrant) {
-                    if (!myPerms.contains(p.getName())) {
+                    // Only newly-added permissions require the caller to hold them themselves —
+                    // permissions already on the user are allowed to carry forward unchanged,
+                    // even if hidden from or not held by the admin performing this edit.
+                    if (!existingPermissionIds.contains(p.getId()) && !myPerms.contains(p.getName())) {
                         throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                                 "Cannot grant permission you don't have: " + p.getName());
                     }
