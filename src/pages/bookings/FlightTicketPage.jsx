@@ -260,6 +260,13 @@ export default function FlightTicketPage() {
                 {flight.contactPersonPhone}
               </>
             )}
+            {booking.bookedByPhone && (
+              <>
+                {' '}|{' '}
+                <span className="font-medium">📞 Agent Contact:</span>{' '}
+                {booking.bookedByPhone}
+              </>
+            )}
           </div>
         </div>
 

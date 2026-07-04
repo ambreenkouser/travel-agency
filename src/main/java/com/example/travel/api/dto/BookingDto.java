@@ -18,6 +18,7 @@ public record BookingDto(
         List<PassengerDto> passengers,
         Long bookedByUserId,
         String bookedByName,       // resolved from userId; null unless enriched
+        String bookedByPhone,      // resolved from userId; null unless enriched
         String paymentComment,
         Long approvedByUserId,
         BookingPaymentDto payment,  // null if no slip submitted yet

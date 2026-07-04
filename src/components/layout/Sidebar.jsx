@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { getBranding } from '../../api/agencies'
 import { getBookingQueue } from '../../api/bookings'
 import { getPackageTypeDefs } from '../../api/packageTypeDefs'
+import { userPhotoUrl } from '../../api/users'
 
 const navItems = [
   { to: '/dashboard',     label: 'Dashboard',     icon: '🏠' },
@@ -42,6 +43,7 @@ export default function Sidebar({ announcementCount = 0 }) {
   const [branding, setBranding]         = useState({ agencyName: 'TravelDesk', logoUrl: '' })
   const [queueCount, setQueueCount]     = useState(0)
   const [packageTypes, setPackageTypes] = useState([])
+  const [photoError, setPhotoError]     = useState(false)
 
   // Scroll main content area to top on every route change
   useEffect(() => {
@@ -82,6 +84,7 @@ export default function Sidebar({ announcementCount = 0 }) {
   }, [isAgencyAdmin])
 
   const isAdmin = roles.some(r => adminRoles.includes(r))
+  const initials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`.toUpperCase()
 
   const visibleAdminItems = adminItems.filter(item =>
     item.roles.some(r => roles.includes(r)) &&
@@ -107,6 +110,25 @@ export default function Sidebar({ announcementCount = 0 }) {
           {branding.agencyName}
         </span>
       </div>
+
+      {/* Agent's own photo — only shown for Agency Agent logins */}
+      {!isAdmin && (
+        <div className="px-3 py-3 border-b border-gray-700 flex items-center gap-3 overflow-hidden">
+          {user?.id && !photoError ? (
+            <img src={userPhotoUrl(user.id)} alt="" className="h-7 w-7 rounded-full object-cover shrink-0"
+              onError={() => setPhotoError(true)} />
+          ) : (
+            <div className="h-7 w-7 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold shrink-0">
+              {initials}
+            </div>
+          )}
+          <span className="text-sm font-medium whitespace-nowrap overflow-hidden
+                           max-w-0 opacity-0 group-hover:max-w-[160px] group-hover:opacity-100
+                           transition-all duration-200">
+            {user?.firstName} {user?.lastName}
+          </span>
+        </div>
+      )}
 
       {/* Nav */}
       <nav className="flex-1 px-2 py-4 space-y-1">

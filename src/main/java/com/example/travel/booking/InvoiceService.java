@@ -2,6 +2,8 @@ package com.example.travel.booking;
 
 import com.example.travel.agency.Agency;
 import com.example.travel.agency.AgencyRepository;
+import com.example.travel.auth.User;
+import com.example.travel.auth.UserRepository;
 import com.example.travel.flight.Airline;
 import com.example.travel.flight.AirlineRepository;
 import com.example.travel.flight.Flight;
@@ -61,17 +63,20 @@ public class InvoiceService {
     private final FlightRepository      flightRepository;
     private final FlightLegRepository   flightLegRepository;
     private final AirlineRepository     airlineRepository;
+    private final UserRepository        userRepository;
 
     public InvoiceService(AgencyRepository agencyRepository,
                           PassengerRepository passengerRepository,
                           FlightRepository flightRepository,
                           FlightLegRepository flightLegRepository,
-                          AirlineRepository airlineRepository) {
+                          AirlineRepository airlineRepository,
+                          UserRepository userRepository) {
         this.agencyRepository    = agencyRepository;
         this.passengerRepository = passengerRepository;
         this.flightRepository    = flightRepository;
         this.flightLegRepository = flightLegRepository;
         this.airlineRepository   = airlineRepository;
+        this.userRepository      = userRepository;
     }
 
     @Transactional(readOnly = true)
@@ -152,7 +157,7 @@ public class InvoiceService {
         }
 
         // ── Emergency Contact ──
-        addEmergencyContact(doc, agency);
+        addEmergencyContact(doc, agency, booking);
         doc.add(gap(10));
 
         // ── Rules ──
@@ -319,7 +324,7 @@ public class InvoiceService {
         doc.add(route);
     }
 
-    private void addEmergencyContact(Document doc, Agency agency) throws DocumentException {
+    private void addEmergencyContact(Document doc, Agency agency, Booking booking) throws DocumentException {
         PdfPTable t = new PdfPTable(1);
         t.setWidthPercentage(100);
 
@@ -340,6 +345,16 @@ public class InvoiceService {
         cell.addElement(new Phrase("Contact No: " + contactNo,  normal(9, DARK)));
         cell.addElement(gap(2));
         cell.addElement(new Phrase("Address: "    + address,    normal(9, DARK)));
+
+        User agent = booking.getBookedByUserId() != null
+                ? userRepository.findById(booking.getBookedByUserId()).orElse(null)
+                : null;
+        if (agent != null) {
+            cell.addElement(gap(4));
+            cell.addElement(new Phrase("Agent: "       + agent.getFirstName() + " " + agent.getLastName(), bold(9, DARK)));
+            cell.addElement(gap(2));
+            cell.addElement(new Phrase("Agent Contact: " + nvl(agent.getPhone()), normal(9, DARK)));
+        }
 
         t.addCell(cell);
         doc.add(t);
@@ -388,7 +403,7 @@ public class InvoiceService {
         doc.add(gap(10));
 
         // ── Emergency contact ──
-        addEmergencyContact(doc, agency);
+        addEmergencyContact(doc, agency, booking);
         doc.add(gap(10));
 
         // ── Rules ──

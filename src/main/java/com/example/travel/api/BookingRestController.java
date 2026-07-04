@@ -467,9 +467,9 @@ public class BookingRestController {
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private BookingDto enrich(BookingDto dto, Long bookedByUserId) {
-        String name = bookedByUserId == null ? null : userRepository.findById(bookedByUserId)
-                .map(u -> u.getFirstName() + " " + u.getLastName())
-                .orElse(null);
+        var bookedByUser = bookedByUserId == null ? null : userRepository.findById(bookedByUserId).orElse(null);
+        String name = bookedByUser == null ? null : bookedByUser.getFirstName() + " " + bookedByUser.getLastName();
+        String phone = bookedByUser == null ? null : bookedByUser.getPhone();
         BookingPaymentDto payment = bookingPaymentRepository.findByBookingId(dto.id())
                 .map(bp -> {
                     PaymentAccount acct = paymentAccountRepository.findById(bp.getPaymentAccountId()).orElse(null);
@@ -521,7 +521,7 @@ public class BookingRestController {
                 dto.id(), dto.bookableType(), dto.bookableId(), dto.status(),
                 dto.grossTotal(), dto.netTotal(), dto.taxTotal(), dto.currency(),
                 dto.createdAt(), dto.expiresAt(), dto.passengers(),
-                dto.bookedByUserId(), name,
+                dto.bookedByUserId(), name, phone,
                 dto.paymentComment(), dto.approvedByUserId(), payment,
                 bookableTitle, flightNumber, pnrCode,
                 groupName, airlineName, airlineLogoUrl, departureDate,
