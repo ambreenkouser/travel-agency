@@ -95,21 +95,23 @@ export default function Sidebar({ announcementCount = 0 }) {
     <aside className="group w-14 hover:w-56 transition-[width] duration-200 ease-in-out
                       h-screen bg-gray-900 text-white flex flex-col overflow-y-auto
                       overflow-x-hidden shrink-0 print:hidden">
-      {/* Branding */}
-      <div className="px-3 py-5 border-b border-gray-700 flex items-center gap-3 overflow-hidden">
-        {branding.logoUrl ? (
-          <img src={branding.logoUrl} alt="logo" className="h-7 w-7 rounded object-cover shrink-0" />
-        ) : (
-          <div className="h-7 w-7 rounded bg-blue-600 flex items-center justify-center text-xs font-bold shrink-0">
-            {branding.agencyName?.charAt(0) ?? 'T'}
-          </div>
-        )}
-        <span className="text-sm font-bold tracking-tight whitespace-nowrap overflow-hidden
-                         max-w-0 opacity-0 group-hover:max-w-[160px] group-hover:opacity-100
-                         transition-all duration-200">
-          {branding.agencyName}
-        </span>
-      </div>
+      {/* Branding — admins only; agents see their own photo/name instead (below) */}
+      {isAdmin && (
+        <div className="px-3 py-5 border-b border-gray-700 flex items-center gap-3 overflow-hidden">
+          {branding.logoUrl ? (
+            <img src={branding.logoUrl} alt="logo" className="h-7 w-7 rounded object-cover shrink-0" />
+          ) : (
+            <div className="h-7 w-7 rounded bg-blue-600 flex items-center justify-center text-xs font-bold shrink-0">
+              {branding.agencyName?.charAt(0) ?? 'T'}
+            </div>
+          )}
+          <span className="text-sm font-bold tracking-tight whitespace-nowrap overflow-hidden
+                           max-w-0 opacity-0 group-hover:max-w-[160px] group-hover:opacity-100
+                           transition-all duration-200">
+            {branding.agencyName}
+          </span>
+        </div>
+      )}
 
       {/* Agent's own photo — only shown for Agency Agent logins */}
       {!isAdmin && (
