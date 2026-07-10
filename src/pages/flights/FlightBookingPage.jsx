@@ -38,6 +38,10 @@ function buildList(adults, children, infants) {
 
 const TITLE_OPTIONS = ['Mr', 'Mrs', 'Miss', 'Ms', 'Master', 'Mstr']
 
+function seatAlertMessage(availableSeats) {
+  return `Only ${availableSeats} seat${availableSeats !== 1 ? 's' : ''} available for this flight — reduce the number of passengers. More seats are not available.`
+}
+
 // ── Counter inside panel ───────────────────────────────────────────────────
 function PanelCounter({ label, value, min = 0, max = 9, onChange, readonly }) {
   return (
@@ -82,6 +86,7 @@ export default function FlightBookingPage() {
   const [extraPrices, setExtraPrices]     = useState({})
   const [selectedHotelId, setSelectedHotelId] = useState('')
   const [error, setError]                 = useState('')
+  const [seatAlert, setSeatAlert]         = useState('')
   const [submitting, setSubmitting]       = useState(false)
   const [successBooking, setSuccessBooking] = useState(null)
   const [parentAccounts, setParentAccounts] = useState([])
@@ -93,6 +98,9 @@ export default function FlightBookingPage() {
     getFlight(id)
       .then(data => {
         setFlight(data)
+        if (data.availableSeats != null && adults + children + infants > data.availableSeats) {
+          setSeatAlert(seatAlertMessage(data.availableSeats))
+        }
         if (data.extras) {
           const preSelected = {}
           const preFares = {}
@@ -149,6 +157,31 @@ export default function FlightBookingPage() {
   const discountedChild  = fareChild  * (1 - totalPercent / 100)
   const discountedInfant = fareInfant * (1 - totalPercent / 100)
   const totalPassengers = adults + children + infants
+  const seatsOk = flight?.availableSeats == null || totalPassengers <= flight.availableSeats
+
+  function handleAdultsChange(next) {
+    if (flight?.availableSeats != null && next + children + infants > flight.availableSeats) {
+      setSeatAlert(seatAlertMessage(flight.availableSeats))
+      return
+    }
+    setAdults(next)
+  }
+
+  function handleChildrenChange(next) {
+    if (flight?.availableSeats != null && adults + next + infants > flight.availableSeats) {
+      setSeatAlert(seatAlertMessage(flight.availableSeats))
+      return
+    }
+    setChildren(next)
+  }
+
+  function handleInfantsChange(next) {
+    if (flight?.availableSeats != null && adults + children + next > flight.availableSeats) {
+      setSeatAlert(seatAlertMessage(flight.availableSeats))
+      return
+    }
+    setInfants(next)
+  }
 
   const availableExtras = flight?.extras
     ? EXTRAS_CONFIG.filter(e => flight.extras[e.key] !== undefined)
@@ -167,6 +200,10 @@ export default function FlightBookingPage() {
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
+    if (!seatsOk) {
+      setSeatAlert(seatAlertMessage(flight.availableSeats))
+      return
+    }
     setSubmitting(true)
     try {
       const passengers = passengerList.map(({ type, num }) => {
@@ -278,9 +315,9 @@ export default function FlightBookingPage() {
                 <span className="text-white text-sm font-bold uppercase tracking-wide">Passengers</span>
               </div>
               <div className="bg-slate-700 px-4 py-3">
-                <PanelCounter label="Adults"   value={adults}   min={1} max={9} onChange={setAdults} />
-                <PanelCounter label="Childs"   value={children} min={0} max={9} onChange={setChildren} />
-                <PanelCounter label="Infants"  value={infants}  min={0} max={adults} onChange={setInfants} />
+                <PanelCounter label="Adults"   value={adults}   min={1} max={9} onChange={handleAdultsChange} />
+                <PanelCounter label="Childs"   value={children} min={0} max={9} onChange={handleChildrenChange} />
+                <PanelCounter label="Infants"  value={infants}  min={0} max={adults} onChange={handleInfantsChange} />
                 <PanelCounter label="Total"    value={totalPassengers} readonly />
                 {children > 0 && (
                   <p className="text-xs text-amber-400 font-medium mt-2 pt-2 border-t border-slate-600">
@@ -501,7 +538,7 @@ export default function FlightBookingPage() {
 
         <div className="flex justify-end gap-3">
           <Button type="button" variant="secondary" onClick={() => navigate(-1)}>Back</Button>
-          <Button type="submit" disabled={submitting || passengerList.length === 0}>
+          <Button type="submit" disabled={submitting || passengerList.length === 0 || !seatsOk}>
             {submitting ? 'Creating Booking…' : 'Book Now'}
           </Button>
         </div>
@@ -599,6 +636,31 @@ export default function FlightBookingPage() {
                 className="px-6 py-2 text-sm text-gray-600 hover:text-gray-900 font-medium"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Seat availability alert ── */}
+      {seatAlert && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-8">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full border-4 border-red-500 flex items-center justify-center shrink-0">
+                <span className="text-red-500 text-2xl font-bold">!</span>
+              </div>
+              <h2 className="text-lg font-bold text-gray-800 uppercase tracking-wide">
+                Not Enough Seats
+              </h2>
+            </div>
+            <p className="text-gray-700 text-sm mb-6">{seatAlert}</p>
+            <div className="border-t pt-4 flex justify-end">
+              <button
+                onClick={() => setSeatAlert('')}
+                className="px-6 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700"
+              >
+                OK
               </button>
             </div>
           </div>
