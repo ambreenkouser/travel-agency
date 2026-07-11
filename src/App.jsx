@@ -3,6 +3,8 @@ import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import AppShell from './components/layout/AppShell'
 import LoginPage from './pages/LoginPage'
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
+import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
 import FlightSearchPage from './pages/flights/FlightSearchPage'
 import FlightBookingPage from './pages/flights/FlightBookingPage'
@@ -37,6 +39,8 @@ export default function App() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           {/* Standalone ticket page â€” no app shell so it prints cleanly */}
           <Route path="/bookings/:id/ticket" element={<ProtectedRoute><FlightTicketPage /></ProtectedRoute>} />
           <Route

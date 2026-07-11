@@ -21,3 +21,6 @@ export async function getMe() {
 
 export const updateProfile = (data) => client.patch('/api/me', data).then(r => r.data)
 export const changePassword = (data) => client.post('/api/me/change-password', data)
+
+export const requestPasswordReset = (email) => client.post('/api/auth/forgot-password', { email })
+export const resetPassword = (token, newPassword) => client.post('/api/auth/reset-password', { token, newPassword })

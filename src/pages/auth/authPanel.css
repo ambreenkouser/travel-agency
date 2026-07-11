@@ -1,0 +1,328 @@
+/* ── Layout ── */
+.lp-root {
+  display: flex;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ── Left visual panel ── */
+.lp-left {
+  flex: 0 0 58%;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #060c1a 0%, #0a1528 35%, #0e1f40 65%, #071530 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px;
+}
+
+/* Radial glow overlay */
+.lp-glow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(80px);
+}
+
+/* ── Map grid lines ── */
+.lp-map-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.9;
+}
+
+/* Continent fills */
+.lp-continent { fill: rgba(30,64,175,0.18); stroke: rgba(59,130,246,0.35); stroke-width: 1; }
+
+/* Grid lines */
+.lp-grid { stroke: rgba(59,130,246,0.08); stroke-width: 0.7; fill: none; }
+
+/* Flight arcs */
+@keyframes drawRoute {
+  0%   { stroke-dashoffset: 400; opacity: 0; }
+  8%   { opacity: 0.8; }
+  60%  { stroke-dashoffset: 0;   opacity: 0.8; }
+  80%  { stroke-dashoffset: 0;   opacity: 0.3; }
+  100% { stroke-dashoffset: 400; opacity: 0; }
+}
+.lp-route {
+  fill: none;
+  stroke: #f59e0b;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  animation: drawRoute ease-in-out infinite;
+}
+
+/* City pulse */
+@keyframes cityPulse {
+  0%,100% { r: 3;   opacity: 0.9; }
+  50%     { r: 5.5; opacity: 0.5; }
+}
+.lp-city-ring { animation: cityPulse ease-in-out infinite; }
+
+/* Plane icon along route */
+@keyframes flyRoute {
+  0%   { offset-distance: 0%;   opacity: 0; }
+  8%   { opacity: 1; }
+  92%  { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+.lp-plane {
+  position: absolute;
+  font-size: 13px;
+  color: #fbbf24;
+  pointer-events: none;
+  animation: flyRoute ease-in-out infinite;
+  offset-rotate: auto;
+  filter: drop-shadow(0 0 4px rgba(251,191,36,0.8));
+}
+
+/* Brand text */
+.lp-brand-name {
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: #ffffff;
+  line-height: 1;
+  margin: 0;
+}
+.lp-brand-tagline {
+  font-size: 1rem;
+  color: rgba(148,163,184,0.85);
+  margin: 8px 0 0;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+.lp-brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: rgba(245,158,11,0.12);
+  border: 1px solid rgba(245,158,11,0.28);
+  border-radius: 20px;
+  color: #f59e0b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+/* Stats row */
+.lp-stats {
+  display: flex;
+  gap: 32px;
+  margin-top: 32px;
+}
+.lp-stat-num {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+.lp-stat-label {
+  font-size: 0.7rem;
+  color: rgba(148,163,184,0.7);
+  margin-top: 3px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.lp-stat-divider {
+  width: 1px;
+  background: rgba(255,255,255,0.1);
+  align-self: stretch;
+}
+
+/* Features list */
+.lp-features {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 28px;
+}
+.lp-feature {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(203,213,225,0.8);
+  font-size: 0.875rem;
+}
+.lp-feature-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #f59e0b;
+  flex-shrink: 0;
+}
+
+/* ── Right form panel ── */
+.lp-right {
+  flex: 1;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 32px;
+  position: relative;
+}
+.lp-right::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(30,64,175,0.15) 30%, rgba(30,64,175,0.15) 70%, transparent);
+}
+
+/* Form card */
+.lp-form-card {
+  width: 100%;
+  max-width: 380px;
+}
+
+/* Form header */
+.lp-form-logo {
+  width: 48px; height: 48px;
+  background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  box-shadow: 0 6px 20px rgba(29,78,216,0.35);
+}
+.lp-form-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.03em;
+  margin: 0 0 6px;
+}
+.lp-form-sub {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0 0 28px;
+}
+
+/* Inputs */
+.lp-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #374151;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.lp-input-wrap { position: relative; margin-bottom: 18px; }
+.lp-input {
+  width: 100%;
+  padding: 11px 14px 11px 42px;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #0f172a;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.lp-input::placeholder { color: #94a3b8; }
+.lp-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+}
+.lp-input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 15px;
+  opacity: 0.4;
+}
+.lp-input-icon-r {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 13px;
+  opacity: 0.35;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+/* Submit */
+.lp-btn {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(29,78,216,0.4);
+  transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+.lp-btn:hover:not(:disabled) {
+  opacity: 0.93;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(29,78,216,0.5);
+}
+.lp-btn:active:not(:disabled) { transform: translateY(0); }
+.lp-btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+
+/* Error */
+.lp-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #dc2626;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+
+/* Footer links */
+.lp-footer {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.lp-divider-line {
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+.lp-footer-text {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+}
+
+/* Responsive — collapse on small screens */
+@media (max-width: 768px) {
+  .lp-left { display: none; }
+  .lp-right { background: linear-gradient(160deg, #0e1f40, #1e3a5f); }
+  .lp-right::before { display: none; }
+  .lp-form-card { max-width: 100%; }
+  .lp-form-title { color: #fff; }
+  .lp-form-sub   { color: rgba(255,255,255,0.6); }
+  .lp-label       { color: rgba(255,255,255,0.7); }
+  .lp-input { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); color: #fff; }
+  .lp-input::placeholder { color: rgba(255,255,255,0.3); }
+  .lp-input:focus { border-color: #60a5fa; background: rgba(255,255,255,0.1); }
+  .lp-divider-line { background: rgba(255,255,255,0.1); }
+  .lp-footer-text  { color: rgba(255,255,255,0.3); }
+}
